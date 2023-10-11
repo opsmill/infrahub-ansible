@@ -1,0 +1,37 @@
+---
+version: "3.4"
+x-args:
+  &args
+  PYTHON_VER: ${PYTHON_VER}
+# Build block with context and target default
+x-build:
+  &build
+  args: *args
+  context: .
+  target: unittests
+x-service:
+  &service
+  environment:
+    ANSIBLE_INTEGRATION_ARGS: ${ANSIBLE_INTEGRATION_ARGS:-}
+    ANSIBLE_SANITY_ARGS: ${ANSIBLE_SANITY_ARGS:-}
+    ANSIBLE_UNIT_ARGS: ${ANSIBLE_UNIT_ARGS:-}
+    infrahub_VER: ${INVOKE_INFRAHUB_ANSIBLE_INFRAHUB_VER:-}
+
+services:
+  unit:
+    <<: *service
+    build:
+      <<: *build
+
+  integration:
+    <<: *service
+    build:
+      <<: *build
+      target: integration
+    networks:
+      - integration_network
+
+# Attach these services to the infrahub network that gets spun up from invoke start
+networks:
+  integration_network:
+    name: infrahub_ansible_default
