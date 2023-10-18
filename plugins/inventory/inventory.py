@@ -34,7 +34,7 @@ DOCUMENTATION = """
             env:
                 - name: INFRAHUB_TOKEN
         timeout:
-            required: Fakse
+            required: False
             description: Timeout for Nautobot requests in seconds
             type: int
             default: 10
