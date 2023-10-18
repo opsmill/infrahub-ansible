@@ -1,1 +1,1152 @@
-{}
+all:
+  children:
+    site_atl1:
+      hosts:
+        atl1-edge1:
+          ansible_host: 2001:db8::/128
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: atl1-edge1
+          interfaces:
+          - description: Connected to atl1-edge2 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to atl1-edge2 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Arista Devices
+            name: arista_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: atl1-edge1
+          platform: eos
+          primary_address:
+            address: 2001:db8::/128
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: atl1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: 7280R3
+        atl1-edge2:
+          ansible_host: 172.20.20.23/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: atl1-edge2
+          interfaces:
+          - description: Connected to atl1-edge1 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to atl1-edge1 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Cisco Devices
+            name: cisco_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: atl1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.23/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: atl1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: ASR1002-HX
+    site_den1:
+      hosts:
+        den1-edge1:
+          ansible_host: 172.20.20.20/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: den1-edge1
+          interfaces:
+          - description: Connected to den1-edge2 Ethernet1
+            enabled: false
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to den1-edge2 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Arista Devices
+            name: arista_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: den1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.20/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: den1
+            type: SITE
+          status:
+            description: null
+            label: Provisionning
+            name: provisionning
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: 7280R3
+        den1-edge2:
+          ansible_host: 172.20.20.24/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: den1-edge2
+          interfaces:
+          - description: Connected to den1-edge1 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to den1-edge1 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Cisco Devices
+            name: cisco_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: den1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.24/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: den1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: ASR1002-HX
+    site_dfw1:
+      hosts:
+        dfw1-edge1:
+          ansible_host: 172.20.20.25/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: dfw1-edge1
+          interfaces:
+          - description: Connected to dfw1-edge2 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to dfw1-edge2 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Arista Devices
+            name: arista_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: dfw1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.25/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: dfw1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: 7280R3
+        dfw1-edge2:
+          ansible_host: 172.20.20.26/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: dfw1-edge2
+          interfaces:
+          - description: Connected to dfw1-edge1 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to dfw1-edge1 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Cisco Devices
+            name: cisco_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: dfw1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.26/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: dfw1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: ASR1002-HX
+    site_jfk1:
+      hosts:
+        jfk1-edge1:
+          ansible_host: 172.20.20.17/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: jfk1-edge1
+          interfaces:
+          - description: Connected to jfk1-edge2 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to jfk1-edge2 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Arista Devices
+            name: arista_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: jfk1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.17/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: jfk1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: 7280R3
+        jfk1-edge2:
+          ansible_host: 172.20.20.21/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: jfk1-edge2
+          interfaces:
+          - description: Connected to jfk1-edge1 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to jfk1-edge1 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Cisco Devices
+            name: cisco_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: jfk1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.21/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: jfk1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: ASR1002-HX
+    site_ord1:
+      hosts:
+        ord1-edge1:
+          ansible_host: 172.20.20.19/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: ord1-edge1
+          interfaces:
+          - description: Connected to ord1-edge2 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to ord1-edge2 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Arista Devices
+            name: arista_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: ord1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.19/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: ord1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: 7280R3
+        ord1-edge2:
+          ansible_host: 172.20.20.22/24
+          artifacts: []
+          asn:
+            asn: '64496'
+            description: null
+            name: AS64496
+          description: null
+          hostname: ord1-edge2
+          interfaces:
+          - description: Connected to ord1-edge1 Ethernet1
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet1
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet10
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet11
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            l2_mode: Access
+            mtu: '1500'
+            name: Ethernet12
+            speed: '10000'
+          - description: Connected to ord1-edge1 Ethernet2
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet2
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet3
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet4
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet5
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet6
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet7
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet8
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Ethernet9
+            speed: '10000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Loopback0
+            speed: '1000'
+          - description: null
+            enabled: 'True'
+            mtu: '1500'
+            name: Management0
+            speed: '1000'
+          member_of_groups:
+          - description: null
+            label: Cisco Devices
+            name: cisco_devices
+          - description: null
+            label: Edge Router
+            name: edge_router
+          name: ord1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.22/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: ord1
+            type: SITE
+          status:
+            description: null
+            label: Active
+            name: active
+          subscriber_of_groups: []
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+          type: ASR1002-HX

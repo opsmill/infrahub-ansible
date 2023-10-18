@@ -5,6 +5,7 @@
 plugin: infrahub.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 validate_certs: True
+timeout: 30
 
 strict: True
 

@@ -1,1 +1,232 @@
-{}
+all:
+  children:
+    site_atl1:
+      hosts:
+        atl1-edge1:
+          ansible_host: 2001:db8::/128
+          hostname: atl1-edge1
+          name: atl1-edge1
+          platform: eos
+          primary_address:
+            address: 2001:db8::/128
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: atl1
+            type: SITE
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+        atl1-edge2:
+          ansible_host: 172.20.20.23/24
+          hostname: atl1-edge2
+          name: atl1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.23/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: atl1
+            type: SITE
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+    site_den1:
+      hosts:
+        den1-edge1:
+          ansible_host: 172.20.20.20/24
+          hostname: den1-edge1
+          name: den1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.20/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: den1
+            type: SITE
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+        den1-edge2:
+          ansible_host: 172.20.20.24/24
+          hostname: den1-edge2
+          name: den1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.24/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: den1
+            type: SITE
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+    site_dfw1:
+      hosts:
+        dfw1-edge1:
+          ansible_host: 172.20.20.25/24
+          hostname: dfw1-edge1
+          name: dfw1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.25/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: dfw1
+            type: SITE
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+        dfw1-edge2:
+          ansible_host: 172.20.20.26/24
+          hostname: dfw1-edge2
+          name: dfw1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.26/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: dfw1
+            type: SITE
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+    site_jfk1:
+      hosts:
+        jfk1-edge1:
+          ansible_host: 172.20.20.17/24
+          hostname: jfk1-edge1
+          name: jfk1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.17/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: jfk1
+            type: SITE
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+        jfk1-edge2:
+          ansible_host: 172.20.20.21/24
+          hostname: jfk1-edge2
+          name: jfk1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.21/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: jfk1
+            type: SITE
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
+    site_ord1:
+      hosts:
+        ord1-edge1:
+          ansible_host: 172.20.20.19/24
+          hostname: ord1-edge1
+          name: ord1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.19/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: ord1
+            type: SITE
+          tags:
+          - description: null
+            name: green
+          - description: null
+            name: red
+        ord1-edge2:
+          ansible_host: 172.20.20.22/24
+          hostname: ord1-edge2
+          name: ord1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.22/24
+            description: null
+          role:
+            description: null
+            label: Edge
+            name: edge
+          site:
+            description: null
+            name: ord1
+            type: SITE
+          tags:
+          - description: null
+            name: blue
+          - description: null
+            name: green
+          - description: null
+            name: red
