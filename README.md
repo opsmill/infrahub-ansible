@@ -2,7 +2,7 @@
 
 # Infrahub modules for Ansible using Ansible Collections
 
-To keep the code simple, we only officially support the two latest releases of Infrahub and don't guarantee backwards compatibility beyond that. We do try and keep these breaking changes to a minimum, but sometimes changes to NetBox's API cause us to have to make breaking changes.
+To keep the code simple, we only officially support the two latest releases of Infrahub and don't guarantee backwards compatibility beyond that. We do try and keep these breaking changes to a minimum, but sometimes changes to Infrahub's API cause us to have to make breaking changes.
 
 ## Requirements
 Requirements
