@@ -1,0 +1,4 @@
+No config file found; using defaults
+Using inventory plugin 'ansible_collections.infrahub.infrahub.plugins.inventory.inventory' to process inventory source '/Users/bkohler/automation/opsmill/infrahub-ansible/tests/integration/targets/inventory/test-inventory.yml'
+Fetching from cache.
+Fetching nodes: ['InfraDevice'] from API http://localhost:8000 

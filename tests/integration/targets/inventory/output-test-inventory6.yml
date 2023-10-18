@@ -1,0 +1,28 @@
+all:
+  children:
+    site_jfk1:
+      hosts:
+        jfk1-edge1:
+          ansible_host: 172.20.20.17/24
+          hostname: jfk1-edge1
+          name: jfk1-edge1
+          platform: eos
+          primary_address:
+            address: 172.20.20.17/24
+            description: null
+          site:
+            description: null
+            name: jfk1
+            type: SITE
+        jfk1-edge2:
+          ansible_host: 172.20.20.21/24
+          hostname: jfk1-edge2
+          name: jfk1-edge2
+          platform: ios
+          primary_address:
+            address: 172.20.20.21/24
+            description: null
+          site:
+            description: null
+            name: jfk1
+            type: SITE

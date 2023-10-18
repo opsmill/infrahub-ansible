@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2023 Benoit Kohler
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """
@@ -26,20 +27,26 @@ DOCUMENTATION = """
                 - name: INFRAHUB_API
         token:
             required: True
-            description: Infrahub API token to be able to read against Infrahub.
+            description:
+                - Infrahub API token to be able to read against Infrahub.
             env:
                 - name: INFRAHUB_TOKEN
         query:
             required: True
-            description: GraphQL query parameters or filters to send to Infrahub to obtain desired data
+            description:
+                - GraphQL query parameters or filters to send to Infrahub to obtain desired data
             type: dict
-            default: {}
         graph_variables:
             description:
                 - Dictionary of keys/values to pass into the GraphQL query
             required: False
             type: dict
             default: {}
+        validate_certs:
+            description:
+                - Whether or not to validate SSL of the Infrahub instance
+            required: False
+            default: True
 """
 
 EXAMPLES = """
@@ -57,7 +64,7 @@ EXAMPLES = """
   # Make query to GraphQL Endpoint
   - name: Obtain list of sites from Infrahub
     set_fact:
-      query_response: "{{ query('infrahub.infrahub.lookup', query=query_string, url='https://localhost:8000', token='<redact>') }}"
+      query_response: "{{ query('infrahub.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
 """
 
 RETURN = """
@@ -78,9 +85,9 @@ def infrahub_lookup_graphql(**kwargs):
         [type]: [description]
     """
     # Load and Test API (Url, Token and SSL verification)
-    url = kwargs.get("url") or os.getenv("INFRAHUB_API")
-    Display().v("INFRAHUB API: %s" % url)
-    if url is None:
+    api = kwargs.get("api") or os.getenv("INFRAHUB_API")
+    Display().v("INFRAHUB API: %s" % api)
+    if api is None:
         raise AnsibleLookupError("Missing Infrahub URL ")
 
     token = kwargs.get("token") or os.getenv("INFRAHUB_TOKEN")

@@ -1,0 +1,87 @@
+---
+plugin: infrahub.infrahub.inventory
+api_endpoint: "http://localhost:8000"
+token: ""
+validate_certs: False
+
+query:
+  InfraDevice:
+    role__name__value: "edge"
+    edges:
+      node:
+        name:
+          value:
+        primary_address:
+          node:
+            address:
+              value:
+        platform:
+          node:
+            ansible_network_os:
+              value:
+        site:
+          node:
+            name:
+              value:
+
+group_by:
+  - site.name
+
+# ------------------------------------------------------------------
+
+plugin: infrahub.infrahub.inventory
+api_endpoint: "http://localhost:8000"
+token: ""
+validate_certs: False
+
+query:
+  InfraDevice:
+    include:
+      primary_address
+      platform
+      site
+    execlude:
+      tags
+
+group_by:
+  - site.name
+
+# ------------------------------------------------------------------
+plugin: infrahub.infrahub.inventory
+api_endpoint: "http://localhost:8000"
+token: ""
+validate_certs: False
+
+nodes:
+  InfraDevice:
+
+compose:
+  hostname: primary_address.address
+  platform: platform.ansible_network_os
+
+group_by:
+  - site.name
+
+query_filters:
+  - role: edge
+
+
+
+# ------------------------------------------------------------------
+
+plugin: infrahub.infrahub.inventory
+api_endpoint: "http://localhost:8000"
+token: ""
+validate_certs: False
+
+query:
+  InfraDevice:
+    filters:
+      role__ic: role1
+      tag__ic: tag1
+    primary_address:
+      address:
+    platform:
+      ansible_network_os:
+    site:
+      name:

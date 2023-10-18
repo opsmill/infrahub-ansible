@@ -50,6 +50,18 @@ Plugin Index
 These are the plugins in the infrahub.infrahub collection:
 
 
+Modules
+~~~~~~~
+
+* :ansplugin:`query_graphql module <infrahub.infrahub.query_graphql#module>` -- Queries and returns elements from Infrahub GraphQL API
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    query_graphql_module
+
+
 Inventory Plugins
 ~~~~~~~~~~~~~~~~~
 

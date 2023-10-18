@@ -12,6 +12,12 @@ Index of all Collection Environment Variables
 The following index documents all environment variables declared by plugins in collections.
 Environment variables used by the ansible-core configuration are documented in :ref:`ansible_configuration_settings`.
 
+.. envvar:: ANSIBLE_INVENTORY_USE_EXTRA_VARS
+
+    Merge extra vars into the available variables for composition (highest precedence).
+
+    *Used by:*
+    :ansplugin:`infrahub.infrahub.inventory inventory plugin <infrahub.infrahub.inventory#inventory>`
 .. envvar:: INFRAHUB_API
 
     Endpoint of the Infrahub API

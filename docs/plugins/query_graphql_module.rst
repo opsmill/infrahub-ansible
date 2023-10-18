@@ -11,29 +11,34 @@
 
 .. Anchors
 
-.. _ansible_collections.infrahub.infrahub.lookup_lookup:
+.. _ansible_collections.infrahub.infrahub.query_graphql_module:
 
 .. Anchors: short name for ansible.builtin
 
 .. Title
 
-infrahub.infrahub.lookup lookup -- Queries and returns elements from Infrahub (using GraphQL)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+infrahub.infrahub.query_graphql module -- Queries and returns elements from Infrahub GraphQL API
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This lookup plugin is part of the `infrahub.infrahub collection <https://galaxy.ansible.com/ui/repo/published/infrahub/infrahub/>`_ (version 0.0.1).
+    This module is part of the `infrahub.infrahub collection <https://galaxy.ansible.com/ui/repo/published/infrahub/infrahub/>`_ (version 0.0.1).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
     To install it, use: :code:`ansible-galaxy collection install infrahub.infrahub`.
+    You need further requirements to be able to use this module,
+    see :ref:`Requirements <ansible_collections.infrahub.infrahub.query_graphql_module_requirements>` for details.
 
-    To use it in a playbook, specify: :code:`infrahub.infrahub.lookup`.
+    To use it in a playbook, specify: :code:`infrahub.infrahub.query_graphql`.
 
 .. version_added
 
+.. rst-class:: ansible-version-added
+
+New in infrahub.infrahub 0.0.1
 
 .. contents::
    :local:
@@ -47,13 +52,23 @@ Synopsis
 
 .. Description
 
-- Get inventory hosts from Infrahub
+- Queries Infrahub via its GraphQL API through pyinfrahub
 
+.. note::
+    This module has a corresponding :ref:`action plugin <action_plugins>`.
 
 .. Aliases
 
 
 .. Requirements
+
+.. _ansible_collections.infrahub.infrahub.query_graphql_module_requirements:
+
+Requirements
+------------
+The below requirements are needed on the host that executes this module.
+
+- pyinfrahub
 
 
 
@@ -62,11 +77,8 @@ Synopsis
 
 .. Options
 
-Keyword parameters
-------------------
-
-This describes keyword parameters of the lookup. These are the values ``key1=value1``, ``key2=value2`` and so on in the following
-examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` and ``query('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)``
+Parameters
+----------
 
 .. tabularcolumns:: \X{1}{3}\X{2}{3}
 
@@ -84,7 +96,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_endpoint"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-api_endpoint:
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-api_endpoint:
 
       .. rst-class:: ansible-option-title
 
@@ -96,10 +108,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
-
-
-
+        :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -109,14 +118,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      Endpoint of the Infrahub API
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-configuration:`Configuration:`
-
-      - Environment variable: :envvar:`INFRAHUB\_API`
+      Endpoint of the Infrahub API, optional env=INFRAHUB\_API
 
 
       .. raw:: html
@@ -128,7 +130,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_version"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-api_version:
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-api_version:
 
       .. rst-class:: ansible-option-title
 
@@ -142,9 +144,6 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         :ansible-option-type:`string`
 
-
-
-
       .. raw:: html
 
         </div>
@@ -153,7 +152,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      The Infrahub API Version to use
+      API Version Infrahub API
 
 
       .. raw:: html
@@ -165,7 +164,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-graph_variables:
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-graph_variables:
 
       .. rst-class:: ansible-option-title
 
@@ -178,9 +177,6 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
       .. ansible-option-type-line::
 
         :ansible-option-type:`dictionary`
-
-
-
 
       .. raw:: html
 
@@ -206,7 +202,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-query"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-query:
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-query:
 
       .. rst-class:: ansible-option-title
 
@@ -218,10 +214,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
-
-
-
+        :ansible-option-type:`string` / :ansible-option-required:`required`
 
       .. raw:: html
 
@@ -243,7 +236,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-token:
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-token:
 
       .. rst-class:: ansible-option-title
 
@@ -255,10 +248,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
-
-
-
+        :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -268,14 +258,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      Infrahub API token to be able to read against Infrahub.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-configuration:`Configuration:`
-
-      - Environment variable: :envvar:`INFRAHUB\_TOKEN`
+      The API token created through Infrahub, optional env=INFRAHUB\_TOKEN
 
 
       .. raw:: html
@@ -287,7 +270,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-validate_certs:
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-validate_certs:
 
       .. rst-class:: ansible-option-title
 
@@ -299,10 +282,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`string`
-
-
-
+        :ansible-option-type:`boolean`
 
       .. raw:: html
 
@@ -317,7 +297,11 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`true`
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`false`
+      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
+
 
       .. raw:: html
 
@@ -341,21 +325,6 @@ Examples
 .. code-block:: yaml+jinja
 
     
-    # Make API Query without variables
-      - name: SET FACT OF STRING
-        set_fact:
-          query_string: |
-            query {
-              location {
-                id
-                name
-              }
-            }
-
-      # Make query to GraphQL Endpoint
-      - name: Obtain list of sites from Infrahub
-        set_fact:
-          query_response: "{{ query('infrahub.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
 
 
 
@@ -377,8 +346,6 @@ Authors
 - Benoit Kohler (@bearchitek)
 
 
-.. hint::
-    Configuration entries for each entry type have a low to high priority order. For example, a variable that is lower in the list will override a variable that is higher up.
 
 .. Extra links
 

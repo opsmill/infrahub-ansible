@@ -1,0 +1,22 @@
+---
+### infrahub_inventory.yml file in YAML format
+### infrahub.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_TOKEN and INFRAHUB_API
+
+plugin: infrahub.infrahub.inventory
+api_endpoint: "http://localhost:8000"
+validate_certs: True
+
+strict: True
+
+nodes:
+  InfraDevice:
+    exclude:
+
+compose:
+  hostname: name
+  platform: platform.ansible_network_os
+  ansible_host: primary_address.address
+
+keyed_groups:
+  - prefix: site
+    key: site.name

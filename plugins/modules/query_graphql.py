@@ -19,26 +19,37 @@ requirements:
     - pyinfrahub
 options:
     api_endpoint:
-        description: Endpoint of the Infrahub API
-        required: True
-        env:
-            - name: INFRAHUB_API
-    token:
-        required: True
-        description: Infrahub API token to be able to read against Infrahub.
-        env:
-            - name: INFRAHUB_TOKEN
-    query:
         required: False
-        description: GraphQL query parameters or filters to send to Infrahub to obtain desired data
-        type: dict
-        default: {}
+        description:
+          - Endpoint of the Infrahub API, optional env=INFRAHUB_API
+        type: str
+    api_version:
+        required: False
+        description:
+          - API Version Infrahub API
+        type: str
+    token:
+        required: False
+        description:
+            - The API token created through Infrahub, optional env=INFRAHUB_TOKEN
+        type: str
+    query:
+        required: True
+        description:
+            - GraphQL query parameters or filters to send to Infrahub to obtain desired data
+        type: str
     graph_variables:
+        required: False
         description:
             - Dictionary of keys/values to pass into the GraphQL query
-        required: False
         type: dict
         default: {}
+    validate_certs:
+        required: False
+        description:
+            - Whether or not to validate SSL of the Infrahub instance
+        default: True
+        type: bool
 """
 
 EXAMPLES = """
@@ -49,6 +60,7 @@ RETURN = """
 
 from ansible.module_utils.basic import AnsibleModule
 
+
 def main():
     """Main definition of Action Plugin for query_graphql."""
     # the AnsibleModule object will be our abstraction working with Ansible
@@ -57,11 +69,11 @@ def main():
     # supports check mode
     AnsibleModule(
         argument_spec=dict(
-            api=dict(required=False, type="str", default=None),
+            api_endpoint=dict(required=False, type="str", default=None),
             token=dict(required=False, type="str", no_log=True, default=None),
             validate_certs=dict(required=False, type="bool", default=True),
             api_version=dict(required=False, type="str", default=None),
-            query=dict(required=True, type="str", default=None),
+            query=dict(required=True, type="str"),
             graph_variables=dict(required=False, type="dict", default={}),
         ),
         supports_check_mode=True,

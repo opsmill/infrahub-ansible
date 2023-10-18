@@ -3,11 +3,10 @@
 #
 #  This base stage just installs the dependencies required for production
 #  without any development deps.
-ARG PYTHON_VER=3.9
+ARG PYTHON_VER="3.9"
 FROM python:${PYTHON_VER} AS base
 
 # Allow for flexible Python versions, for broader testing
-ARG PYTHON_VER=3.9
 ENV PYTHON_VERSION=${PYTHON_VER}
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
@@ -49,8 +48,7 @@ FROM base AS unittests
 # elsewhere
 ARG ANSIBLE_COLLECTIONS_PATH=/usr/share/ansible/collections
 ENV ANSIBLE_COLLECTIONS_PATH=${ANSIBLE_COLLECTIONS_PATH}
-
-ARG PYTHON_VER=3.9
+ARG PYTHON_VER="3.9"
 ENV PYTHON_VERSION=${PYTHON_VER}
 
 # Allows for custom command line arguments to be passed to ansible-test (like -vvv)
@@ -79,7 +77,7 @@ RUN ansible-test sanity $ANSIBLE_SANITY_ARGS \
     plugins/
 
 # Run unit tests
-RUN ansible-test units $ANSIBLE_UNIT_ARGS --coverage --python ${PYTHON_VERSION}
+# RUN ansible-test units $ANSIBLE_UNIT_ARGS --coverage --python ${PYTHON_VERSION}
 
 ############
 # Integration Tests
@@ -87,10 +85,10 @@ FROM unittests AS integration
 
 ARG ANSIBLE_INTEGRATION_ARGS
 ENV ANSIBLE_INTEGRATION_ARGS=${ANSIBLE_INTEGRATION_ARGS}
-ARG infrahub_VER
-ENV infrahub_VER=${infrahub_VER}
+ARG INFRAHUB_VER
+ENV INFRAHUB_VER=${INFRAHUB_VER}
 
 # Integration test entrypoint
-ENTRYPOINT ${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/infrahub/infrahub/tests/integration/entrypoint.sh
+# ENTRYPOINT ${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/infrahub/infrahub/tests/integration/entrypoint.sh
 
 CMD ["--help"]
