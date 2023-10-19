@@ -111,26 +111,23 @@ RETURN = """
     type: list
 """
 import json
-
 from typing import Any, Dict, List, Optional
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.module_utils.six import raise_from
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
-from pydantic import BaseModel
 
 try:
     from infrahub_client import Config, InfrahubClientSync, InfrahubNodeSync, NodeSchema
-    from infrahub_client.schema import RelationshipCardinality, RelationshipKind
     from infrahub_client.exceptions import (
-        SchemaNotFound,
-        GraphQLError,
         FilterNotFound,
+        GraphQLError,
+        SchemaNotFound,
         ServerNotReacheableError,
         ServerNotResponsiveError,
     )
-    from infrahub_client.graphql import Query
+    from infrahub_client.schema import RelationshipCardinality, RelationshipKind
 except ImportError as imp_exc:
     INFRAHUBCLIENT_IMPORT_ERROR = imp_exc
 else:
@@ -145,20 +142,18 @@ else:
 
 
 def resolve_node_mapping(
-    node: InfrahubNodeSync,
-    attrs: List[str],
-    schemas: Dict[str, NodeSchema]
+    node: InfrahubNodeSync, attrs: List[str], schemas: Dict[str, NodeSchema]
 ) -> Optional[Dict[str, Any]]:
     """
-        Resolve the attributes and relationships of a given node based on a list of desired attributes.
+    Resolve the attributes and relationships of a given node based on a list of desired attributes.
 
-        Parameters:
-            node (InfrahubNodeSync): The node to which attributes/relationships are to be mapped.
-            attrs (List[str]): A list of attribute names that should be fetched for the node.
+    Parameters:
+        node (InfrahubNodeSync): The node to which attributes/relationships are to be mapped.
+        attrs (List[str]): A list of attribute names that should be fetched for the node.
 
-        Returns:
-            Dict[str, Any]: A dictionary mapping attribute/relationship names to their respective values.
-                      For relationship with "many" cardinality, it will be a List (of related nodes)
+    Returns:
+        Dict[str, Any]: A dictionary mapping attribute/relationship names to their respective values.
+                  For relationship with "many" cardinality, it will be a List (of related nodes)
     """
     attribute_dict = {}
     for attr in attrs:
@@ -180,7 +175,11 @@ def resolve_node_mapping(
                 for peer in node_attr:
                     if hasattr(peer.peer._schema, "attribute_names"):
                         peer_attribute = peer.peer._schema.attribute_names
-                        peers.append(resolve_node_mapping(node=peer.peer, attrs=peer_attribute, schemas=schemas))
+                        peers.append(
+                            resolve_node_mapping(
+                                node=peer.peer, attrs=peer_attribute, schemas=schemas
+                            )
+                        )
                 attribute_dict[node_attr.schema.name] = peers
             elif node_attr.schema.cardinality == "one":
                 peer = node_attr.peer
@@ -192,7 +191,9 @@ def resolve_node_mapping(
     return attribute_dict
 
 
-def get_attributes_for_schema(schema: NodeSchema, exclude: Optional[List[str]] = None) -> List[str]:
+def get_attributes_for_schema(
+    schema: NodeSchema, exclude: Optional[List[str]] = None
+) -> List[str]:
     """
     Build the attributes for the given kind.
 
@@ -216,10 +217,10 @@ def get_attributes_for_schema(schema: NodeSchema, exclude: Optional[List[str]] =
             continue
         rel_schema = schema.get_relationship(name=rel_name)
         if (
-                rel_schema.cardinality == RelationshipCardinality.MANY  # type: ignore[union-attr]
-                and rel_schema.kind not in [RelationshipKind.ATTRIBUTE, RelationshipKind.PARENT]  # type: ignore[union-attr]
-            ):
-                continue
+            rel_schema.cardinality == RelationshipCardinality.MANY  # type: ignore[union-attr]
+            and rel_schema.kind not in [RelationshipKind.ATTRIBUTE, RelationshipKind.PARENT]  # type: ignore[union-attr]
+        ):
+            continue
         if rel_schema and rel_schema.cardinality == "one":
             attributes_by_kind.append(rel_name)
         elif rel_schema and rel_schema.cardinality == "many":
@@ -238,18 +239,20 @@ def get_related_nodes(schema: NodeSchema, attrs: List[str]) -> List[str]:
     Returns:
         List[str]: The node kind of the related nodes
     """
-    relationship_schemas = [schema.peer for schema in schema.relationships if schema.name in attrs]
+    relationship_schemas = [
+        schema.peer for schema in schema.relationships if schema.name in attrs
+    ]
     return list(set(relationship_schemas))
 
 
-def build_include_from_constructed(compose: Dict, groups: List[Dict])-> List[str]:
+def build_include_from_constructed(compose: Dict, groups: List[Dict]) -> List[str]:
     """
     Build a List of str, based on the compose and keyed_groups options.
 
     Parameters:
         compose (Dict): A dictionary containing the compose options details.
         groups (List[Dict]): A list of dictionaries, each representing a group with specific attributes.
-        
+
     Returns:
         List[str]: A list of strings constructed based on the input parameters.
 
@@ -259,9 +262,12 @@ def build_include_from_constructed(compose: Dict, groups: List[Dict])-> List[str
         include_compose = [value.split(".")[0] for value in compose.values()]
         include += include_compose
     if groups:
-       include_groups = [group['key'].split('.')[0] for group in groups if 'key' in group]
-       include +=  include_groups
+        include_groups = [
+            group["key"].split(".")[0] for group in groups if "key" in group
+        ]
+        include += include_groups
     return include
+
 
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     NAME = "infrahub.infrahub.inventory"
@@ -274,7 +280,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 return True
 
         return False
-
 
     def fetch_nodes_by_kind(
         self,
@@ -296,16 +301,22 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         """
         try:
             if not filters:
-                nodes = self.client.all(kind=kind, populate_store=True, include=include, exclude=exclude)
+                nodes = self.client.all(
+                    kind=kind, populate_store=True, include=include, exclude=exclude
+                )
             else:
                 nodes = self.client.filters(
-                    kind=kind, include=include, populate_store=True, exclude=exclude, **filters
+                    kind=kind,
+                    include=include,
+                    populate_store=True,
+                    exclude=exclude,
+                    **filters,
                 )
             return nodes
         except GraphQLError:
             self.display.warning(f"Database not Responsive")
         except SchemaNotFound:
-            pass # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
+            pass  # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
         except FilterNotFound:
             self.display.warning(f"Filters {filters} not Found for {kind}")
         except ServerNotReacheableError:
@@ -313,7 +324,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         except ServerNotResponsiveError:
             self.display.warning(f"Server not Responsive")
         return None
-
 
     def fetch_schema_by_kind(self, kind: str) -> NodeSchema:
         """
@@ -332,13 +342,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         except GraphQLError:
             self.display.warning(f"Database not Responsive")
         except SchemaNotFound:
-            pass # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
+            pass  # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
         except ServerNotReacheableError:
             self.display.warning(f"Server not Reacheable")
         except ServerNotResponsiveError:
             self.display.warning(f"Server not Responsive")
         return None
-
 
     def set_host_variables(self, host_node: str, attributes: Dict):
         """
@@ -347,7 +356,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         Parameters:
             host_node (str): The identifier or name of the host node for which the variables are being set.
             attributes (Dict): A dictionary representing attributes and their values to be associated with the host node.
-    """
+        """
         self.inventory.add_host(host_node)
         for key, value in attributes.items():
             self.inventory.set_variable(host_node, key, value)
@@ -388,9 +397,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.client = InfrahubClientSync(
                 address=self.api_endpoint,
                 default_branch=self.branch,
-                config=Config(api_token=self.token,
-                            timeout=self.timeout
-                            ),
+                config=Config(api_token=self.token, timeout=self.timeout),
             )
 
             all_nodes = []
@@ -400,14 +407,23 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if self.nodes:
                 self.display.v(f"Fetching API {self.api_endpoint} ")
                 for node_kind in self.nodes:
-                    self.display.vvv(f"Fetching Schema for {node_kind} from API {self.api_endpoint}")
+                    self.display.vvv(
+                        f"Fetching Schema for {node_kind} from API {self.api_endpoint}"
+                    )
                     self.schema_dict[node_kind] = self.fetch_schema_by_kind(node_kind)
                     if self.nodes[node_kind]:
-                        include = self.nodes[node_kind].get("include", build_include_from_constructed(compose=self.compose, groups=self.keyed_groups))
+                        include = self.nodes[node_kind].get(
+                            "include",
+                            build_include_from_constructed(
+                                compose=self.compose, groups=self.keyed_groups
+                            ),
+                        )
                         exclude = self.nodes[node_kind].get("exclude", None)
                         filters = self.nodes[node_kind].get("filters", None)
                     else:
-                        include = build_include_from_constructed(compose=self.compose, groups=self.keyed_groups)
+                        include = build_include_from_constructed(
+                            compose=self.compose, groups=self.keyed_groups
+                        )
                         exclude = None
                         filters = None
 
@@ -421,25 +437,36 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
                     if not nodes_from_kind:
                         continue
-                    node_attributes_dict[node_kind] = include if include else get_attributes_for_schema(self.schema_dict[node_kind], exclude)
+                    node_attributes_dict[node_kind] = (
+                        include
+                        if include
+                        else get_attributes_for_schema(
+                            self.schema_dict[node_kind], exclude
+                        )
+                    )
                     all_nodes.extend(nodes_from_kind)
-            
 
             if not all_nodes:
                 self.display.v("No nodes fetched.")
                 return
 
             for node_kind, node_atributes in node_attributes_dict.items():
-                related_kinds = get_related_nodes(schema=self.schema_dict[node_kind], attrs=node_atributes)
+                related_kinds = get_related_nodes(
+                    schema=self.schema_dict[node_kind], attrs=node_atributes
+                )
                 for related_kind in related_kinds:
-                    self.schema_dict[node_kind] = self.fetch_schema_by_kind(kind=related_kind)
+                    self.schema_dict[node_kind] = self.fetch_schema_by_kind(
+                        kind=related_kind
+                    )
                     # fetching nodes to populate Store for related Nodes
                     self.fetch_nodes_by_kind(kind=related_kind)
 
             host_node_attributes = {}
             for host_node in all_nodes:
                 result = resolve_node_mapping(
-                    node=host_node, attrs=node_attributes_dict[host_node._schema.kind], schemas=self.schema_dict
+                    node=host_node,
+                    attrs=node_attributes_dict[host_node._schema.kind],
+                    schemas=self.schema_dict,
                 )
                 if result is not None:
                     host_node_attributes[str(host_node)] = result
@@ -450,8 +477,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for host_node, attributes in host_node_attributes.items():
             self.set_host_variables(host_node, attributes)
 
-            self._add_host_to_keyed_groups(self.keyed_groups, attributes, host_node, strict=self.strict)
-
+            self._add_host_to_keyed_groups(
+                self.keyed_groups, attributes, host_node, strict=self.strict
+            )
 
     def _set_authorization(self):
         """Handle Infrahub API authentication."""
@@ -462,7 +490,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.token = self.templar.template(
                 self.get_option("token"), fail_on_undefined=False
             )
-
 
     def parse(self, inventory, loader, path, cache=True):
         """Parse the inventory."""

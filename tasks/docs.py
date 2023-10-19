@@ -1,15 +1,9 @@
-import os
-import sys
-from pathlib import Path
-
 from invoke import Context, task
+
+from .utils import ESCAPED_REPO_PATH
 
 MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-DOCS"
-
-path = Path(__file__)
-TASKS_DIR = str(path.parent)
-REPO_BASE = os.path.join(TASKS_DIR, "..")
 
 # ----------------------------------------------------------------------------
 # Documentation tasks
@@ -32,5 +26,5 @@ def generate_doc(context: Context):
 
     print(f" - [{NAMESPACE}] Generate documentation")
     for exec_cmd in COMMANDS:
-        with context.cd(REPO_BASE):
+        with context.cd(ESCAPED_REPO_PATH):
             context.run(exec_cmd)

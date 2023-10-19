@@ -1,22 +1,9 @@
-import os
-import sys
-from pathlib import Path
-
 from invoke import Context, task
+
+from .utils import ESCAPED_REPO_PATH
 
 MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-TEST"
-
-try:
-    pass
-except ImportError:
-    sys.exit(
-        "Please make sure to `pip install toml` or enable the Poetry shell and run `poetry install`."
-    )
-
-path = Path(__file__)
-TASKS_DIR = str(path.parent)
-REPO_BASE = os.path.join(TASKS_DIR, "..")
 
 
 # ----------------------------------------------------------------------------
@@ -33,7 +20,7 @@ def tests_unit(context: Context):
         raise KeyError(
             "Could not find python_ver in context.config['infrahub_ansible']"
         )
-    with context.cd(REPO_BASE):
+    with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd, env={"PYTHON_VER": python_ver})
 
 
@@ -42,5 +29,5 @@ def tests_integration(context: Context):
     """Run integration tests"""
     print(f" - [{NAMESPACE}] Run integration tests")
     exec_cmd = f""
-    with context.cd(REPO_BASE):
+    with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)

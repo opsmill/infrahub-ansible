@@ -1002,7 +1002,9 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Configuration for specific node types within Infrahub. Defines the attributes to include or exclude for each node.
+      Configuration for specific node types within Infrahub.
+
+      Defines the attributes to include or exclude for each node.
 
 
       .. raw:: html
@@ -1047,7 +1049,9 @@ Parameters
 
         <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
-      Configuration settings for a specific node type, e.g., "InfraDevice". Replace "node\_type" with the actual node type name you want to configure.
+      Configuration settings for a specific node type, e.g., "InfraDevice".
+
+      Replace "node\_type" with the actual node type name you want to configure.
 
 
       .. raw:: html
@@ -1289,6 +1293,47 @@ Parameters
       - :ansible-option-choices-entry-default:`false` :ansible-option-choices-default-mark:`← (default)`
       - :ansible-option-choices-entry:`true`
 
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
+
+      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-timeout:
+
+      .. rst-class:: ansible-option-title
+
+      **timeout**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-timeout" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`integer`
+
+
+
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Timeout for Nautobot requests in seconds
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`10`
 
       .. raw:: html
 

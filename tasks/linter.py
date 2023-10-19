@@ -1,22 +1,9 @@
-import os
-import sys
-from pathlib import Path
-
 from invoke import Context, task
+
+from .utils import ESCAPED_REPO_PATH
 
 MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-LINT"
-
-try:
-    pass
-except ImportError:
-    sys.exit(
-        "Please make sure to `pip install toml` or enable the Poetry shell and run `poetry install`."
-    )
-
-path = Path(__file__)
-TASKS_DIR = str(path.parent)
-REPO_BASE = os.path.join(TASKS_DIR, "..")
 
 
 # ----------------------------------------------------------------------------
@@ -28,7 +15,7 @@ def format_black(context: Context):
 
     print(f" - [{NAMESPACE}] Format code with black")
     exec_cmd = f"black {MAIN_DIRECTORY}/"
-    with context.cd(REPO_BASE):
+    with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 
 
@@ -38,7 +25,7 @@ def format_autoflake(context: Context):
 
     print(f" - [{NAMESPACE}] Format code with autoflake")
     exec_cmd = f"autoflake --recursive --verbose --in-place --remove-all-unused-imports --remove-unused-variables {MAIN_DIRECTORY}"
-    with context.cd(REPO_BASE):
+    with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 
 
@@ -48,7 +35,7 @@ def format_isort(context: Context):
 
     print(f" - [{NAMESPACE}] Format code with isort")
     exec_cmd = f"isort {MAIN_DIRECTORY}"
-    with context.cd(REPO_BASE):
+    with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 
 
