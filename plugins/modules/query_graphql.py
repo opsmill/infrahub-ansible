@@ -23,17 +23,12 @@ options:
         description:
           - Endpoint of the Infrahub API, optional env=INFRAHUB_API
         type: str
-    api_version:
-        required: False
-        description:
-          - API Version Infrahub API
-        type: str
     token:
         required: False
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_TOKEN
         type: str
-    query:
+    `query`:
         required: True
         description:
             - GraphQL query parameters or filters to send to Infrahub to obtain desired data

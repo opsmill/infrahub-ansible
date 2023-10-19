@@ -50,6 +50,7 @@ DOCUMENTATION = """
                         - Configuration settings for a specific node type, e.g., "InfraDevice".
                         - Replace "node_type" with the actual node type name you want to configure.
                     type: dict
+                    elements: list
                     suboptions:
                         filters:
                             description:
@@ -314,15 +315,15 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 )
             return nodes
         except GraphQLError:
-            self.display.warning(f"Database not Responsive")
+            self.display.warning("Database not Responsive")
         except SchemaNotFound:
             pass  # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
         except FilterNotFound:
             self.display.warning(f"Filters {filters} not Found for {kind}")
         except ServerNotReacheableError:
-            self.display.warning(f"Server not Reacheable")
+            self.display.warning("Server not Reacheable")
         except ServerNotResponsiveError:
-            self.display.warning(f"Server not Responsive")
+            self.display.warning("Server not Responsive")
         return None
 
     def fetch_schema_by_kind(self, kind: str) -> NodeSchema:
@@ -340,13 +341,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             schema = self.client.schema.get(kind=kind)
             return schema
         except GraphQLError:
-            self.display.warning(f"Database not Responsive")
+            self.display.warning("Database not Responsive")
         except SchemaNotFound:
             pass  # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
         except ServerNotReacheableError:
-            self.display.warning(f"Server not Reacheable")
+            self.display.warning("Server not Reacheable")
         except ServerNotResponsiveError:
-            self.display.warning(f"Server not Responsive")
+            self.display.warning("Server not Responsive")
         return None
 
     def set_host_variables(self, host_node: str, attributes: Dict):
@@ -384,7 +385,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         if self.user_cache_setting and self.use_cache:
             try:
-                self.display.v(f"Fetching cache.")
+                self.display.v("Fetching cache.")
                 host_node_attributes = json.loads(self._cache[cache_key])
                 need_to_load_from_api = False
             except KeyError:
@@ -393,7 +394,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             need_to_load_from_api = True
 
         if need_to_load_from_api:
-            self.display.vvvv(f"Initalizing InfrahubClientSync")
+            self.display.vvvv("Initalizing InfrahubClientSync")
             self.client = InfrahubClientSync(
                 address=self.api_endpoint,
                 default_branch=self.branch,
