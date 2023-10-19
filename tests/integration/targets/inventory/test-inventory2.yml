@@ -4,19 +4,12 @@
 
 plugin: infrahub.infrahub.inventory
 api_endpoint: "http://localhost:8000"
-validate_certs: True
 timeout: 30
 
 strict: True
 
 nodes:
   InfraDevice:
-    exclude:
-
-compose:
-  hostname: name
-  platform: platform.ansible_network_os
-  ansible_host: primary_address.address
 
 keyed_groups:
   - prefix: site

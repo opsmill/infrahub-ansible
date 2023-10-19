@@ -110,6 +110,8 @@ RETURN = """
       - list of composed dictionaries with key and value
     type: list
 """
+import json
+
 from typing import Any, Dict, List, Optional
 
 from ansible.errors import AnsibleError
@@ -120,6 +122,7 @@ from pydantic import BaseModel
 
 try:
     from infrahub_client import Config, InfrahubClientSync, InfrahubNodeSync, NodeSchema
+    from infrahub_client.schema import RelationshipCardinality, RelationshipKind
     from infrahub_client.exceptions import (
         SchemaNotFound,
         GraphQLError,
@@ -201,8 +204,28 @@ def get_attributes_for_schema(schema: NodeSchema, exclude: Optional[List[str]] =
         List[str]: The schema attributes for the given kind.
     """
     exclude = exclude or []
-    attributes_by_kind = [attr for attr in (schema.attribute_names + schema.relationship_names) if attr not in exclude]
+    attributes_by_kind = []
+    # From https://docs.infrahub.app/python-sdk/10_query/#control-what-will-be-queried
+    #  "By default the query will include, the attributes, the relationships of cardinality one and the relationships of kind Attribute"
+    for attr_name in schema.attribute_names:
+        if exclude and attr_name in exclude:
+            continue
+        attributes_by_kind.append(attr_name)
+    for rel_name in schema.relationship_names:
+        if exclude and rel_name in exclude:
+            continue
+        rel_schema = schema.get_relationship(name=rel_name)
+        if (
+                rel_schema.cardinality == RelationshipCardinality.MANY  # type: ignore[union-attr]
+                and rel_schema.kind not in [RelationshipKind.ATTRIBUTE, RelationshipKind.PARENT]  # type: ignore[union-attr]
+            ):
+                continue
+        if rel_schema and rel_schema.cardinality == "one":
+            attributes_by_kind.append(rel_name)
+        elif rel_schema and rel_schema.cardinality == "many":
+            attributes_by_kind.append(rel_name)
     return attributes_by_kind
+
 
 def get_related_nodes(schema: NodeSchema, attrs: List[str]) -> List[str]:
     """
@@ -218,6 +241,27 @@ def get_related_nodes(schema: NodeSchema, attrs: List[str]) -> List[str]:
     relationship_schemas = [schema.peer for schema in schema.relationships if schema.name in attrs]
     return list(set(relationship_schemas))
 
+
+def build_include_from_constructed(compose: Dict, groups: List[Dict])-> List[str]:
+    """
+    Build a List of str, based on the compose and keyed_groups options.
+
+    Parameters:
+        compose (Dict): A dictionary containing the compose options details.
+        groups (List[Dict]): A list of dictionaries, each representing a group with specific attributes.
+        
+    Returns:
+        List[str]: A list of strings constructed based on the input parameters.
+
+    """
+    include = []
+    if compose:
+        include_compose = [value.split(".")[0] for value in compose.values()]
+        include += include_compose
+    if groups:
+       include_groups = [group['key'].split('.')[0] for group in groups if 'key' in group]
+       include +=  include_groups
+    return include
 
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     NAME = "infrahub.infrahub.inventory"
@@ -327,77 +371,81 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             raise_from(AnsibleError(str(e)), e)
 
         if self.use_cache:
+            cache_key = self.get_cache_key(self.api_endpoint)
+
+        if self.user_cache_setting and self.use_cache:
             try:
-                self.display.v("Fetching from cache.")
-                # TODO
-                raise KeyError
+                self.display.v(f"Fetching cache.")
+                host_node_attributes = json.loads(self._cache[cache_key])
+                need_to_load_from_api = False
             except KeyError:
-                self.display.warning("Data not in cache.")
                 need_to_load_from_api = True
         else:
             need_to_load_from_api = True
 
-        if not need_to_load_from_api:
-            return
-
-        self.display.vvv(f"Initalizing InfrahubClientSync")
-        self.client = InfrahubClientSync(
-            address=self.api_endpoint,
-            default_branch=self.branch,
-            config=Config(api_token=self.token,
-                          timeout=self.timeout
-                          ),
-        )
-
-        all_nodes = []
-        self.schema_dict = {}
-        node_attributes_dict = {}
-
-        if self.nodes:
-            self.display.v(f"Fetching nodes: {list(self.nodes.keys())} from API {self.api_endpoint} ")
-            for node_kind in self.nodes:
-                self.display.vvv(f"Fetching Schema for {node_kind} from API {self.api_endpoint}")
-                self.schema_dict[node_kind] = self.fetch_schema_by_kind(node_kind)
-                if node_kind in self.nodes:
-                    include = self.nodes[node_kind].get("include", None)
-                    exclude = self.nodes[node_kind].get("exclude", None)
-                    filters = self.nodes[node_kind].get("filters", None)
-                else:
-                    include = None
-                    exclude = None
-                    filters = None
-
-                self.display.vvv(f"Fetching Nodes for {node_kind} from API {self.api_endpoint}")
-                nodes_from_kind = self.fetch_nodes_by_kind(
-                    node_kind,
-                    include,
-                    exclude,
-                    filters,
-                )
-
-                if not nodes_from_kind:
-                    continue
-                node_attributes_dict[node_kind] = include if include else get_attributes_for_schema(self.schema_dict[node_kind], exclude)
-                all_nodes.extend(nodes_from_kind)
-
-        if not all_nodes:
-            self.display.v("No nodes were fetched.")
-            return
-
-        for node_kind, node_atributes in node_attributes_dict.items():
-            related_kinds = get_related_nodes(schema=self.schema_dict[node_kind], attrs=node_atributes)
-            for related_kind in related_kinds:
-                self.schema_dict[node_kind] = self.fetch_schema_by_kind(kind=related_kind)
-                # fetching nodes to populate Store for related Nodes
-                self.fetch_nodes_by_kind(kind=related_kind)
-
-        host_node_attributes = {}
-        for host_node in all_nodes:
-            result = resolve_node_mapping(
-                node=host_node, attrs=node_attributes_dict[host_node._schema.kind], schemas=self.schema_dict
+        if need_to_load_from_api:
+            self.display.vvvv(f"Initalizing InfrahubClientSync")
+            self.client = InfrahubClientSync(
+                address=self.api_endpoint,
+                default_branch=self.branch,
+                config=Config(api_token=self.token,
+                            timeout=self.timeout
+                            ),
             )
-            if result is not None:
-                host_node_attributes[str(host_node)] = result
+
+            all_nodes = []
+            self.schema_dict = {}
+            node_attributes_dict = {}
+
+            if self.nodes:
+                self.display.v(f"Fetching API {self.api_endpoint} ")
+                for node_kind in self.nodes:
+                    self.display.vvv(f"Fetching Schema for {node_kind} from API {self.api_endpoint}")
+                    self.schema_dict[node_kind] = self.fetch_schema_by_kind(node_kind)
+                    if self.nodes[node_kind]:
+                        include = self.nodes[node_kind].get("include", build_include_from_constructed(compose=self.compose, groups=self.keyed_groups))
+                        exclude = self.nodes[node_kind].get("exclude", None)
+                        filters = self.nodes[node_kind].get("filters", None)
+                    else:
+                        include = build_include_from_constructed(compose=self.compose, groups=self.keyed_groups)
+                        exclude = None
+                        filters = None
+
+                    self.display.vvv(f"Fetching Nodes for {node_kind}")
+                    nodes_from_kind = self.fetch_nodes_by_kind(
+                        node_kind,
+                        include,
+                        exclude,
+                        filters,
+                    )
+
+                    if not nodes_from_kind:
+                        continue
+                    node_attributes_dict[node_kind] = include if include else get_attributes_for_schema(self.schema_dict[node_kind], exclude)
+                    all_nodes.extend(nodes_from_kind)
+            
+
+            if not all_nodes:
+                self.display.v("No nodes fetched.")
+                return
+
+            for node_kind, node_atributes in node_attributes_dict.items():
+                related_kinds = get_related_nodes(schema=self.schema_dict[node_kind], attrs=node_atributes)
+                for related_kind in related_kinds:
+                    self.schema_dict[node_kind] = self.fetch_schema_by_kind(kind=related_kind)
+                    # fetching nodes to populate Store for related Nodes
+                    self.fetch_nodes_by_kind(kind=related_kind)
+
+            host_node_attributes = {}
+            for host_node in all_nodes:
+                result = resolve_node_mapping(
+                    node=host_node, attrs=node_attributes_dict[host_node._schema.kind], schemas=self.schema_dict
+                )
+                if result is not None:
+                    host_node_attributes[str(host_node)] = result
+
+        if self.user_cache_setting:
+            self._cache[cache_key] = json.dumps(host_node_attributes)
 
         for host_node, attributes in host_node_attributes.items():
             self.set_host_variables(host_node, attributes)
@@ -420,7 +468,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         """Parse the inventory."""
         super(InventoryModule, self).parse(inventory, loader, path)
         self._read_config_data(path=path)
+
         self.use_cache = cache
+        self.user_cache_setting = self.get_option("cache")
 
         # Handle extra "/" from api_endpoint configuration and trim if necessary
         self.api_endpoint = self.get_option("api_endpoint").strip("/")

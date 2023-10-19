@@ -14,7 +14,7 @@ branch: "jfk1-update-edge-ips"
 nodes:
   InfraDevice:
     filters:
-      site__ids: "178d5350-e58e-0913-3585-d8e612e1374e" #jfk1
+      site__ids: "178f7e5c-b23a-c3f4-38dc-d8e0dbedb62f" #jfk1
     include:
       - name
       - primary_address

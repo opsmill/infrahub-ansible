@@ -3,12 +3,12 @@ all:
     site_jfk1:
       hosts:
         jfk1-edge1:
-          ansible_host: 172.20.20.17/24
+          ansible_host: 172.20.20.18/24
           hostname: jfk1-edge1
           name: jfk1-edge1
           platform: eos
           primary_address:
-            address: 172.20.20.17/24
+            address: 172.20.20.18/24
             description: null
           site:
             description: null

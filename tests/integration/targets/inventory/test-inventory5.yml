@@ -17,6 +17,8 @@ nodes:
       - primary_address
       - platform
       - site
+      - tags
+      - interfaces
 
 compose:
   hostname: name

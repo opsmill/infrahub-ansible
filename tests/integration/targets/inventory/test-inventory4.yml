@@ -11,13 +11,4 @@ strict: True
 nodes:
   InfraDevice:
     exclude:
-      - interfaces
-
-compose:
-  hostname: name
-  platform: platform.ansible_network_os
-  ansible_host: primary_address.address
-
-keyed_groups:
-  - prefix: site
-    key: site.name
+      - site
