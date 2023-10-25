@@ -8,7 +8,6 @@ x-build:
   &build
   args: *args
   context: .
-  target: unittests
 x-service:
   &service
   environment:
@@ -18,10 +17,16 @@ x-service:
     INRAHUB_VER: ${INVOKE_INFRAHUB_ANSIBLE_INFRAHUB_VER:-}
 
 services:
+  sanity:
+    <<: *service
+    build:
+      <<: *build
+      target: sanity
   unit:
     <<: *service
     build:
       <<: *build
+      target: unittests
 
   integration:
     <<: *service

@@ -8,7 +8,7 @@ ns.configure(
         "infrahub_ansible": {
             "infrahub_ver": "0.0.1",
             "project_name": "infrahub_ansible",
-            "python_ver": "3.9",
+            "python_ver": "3.10",
             "local": False,
         }
     }
@@ -40,17 +40,23 @@ def lint_all(context: Context):
 
 @task(name="tests-all")
 def test_all(context: Context):
+    tests.tests_sanity(context)
     tests.tests_unit(context)
     tests.tests_integration(context)
 
 
+@task(name="tests-sanity")
+def tests_sanity(context: Context):
+    tests.tests_sanity(context)
+
+
 @task(name="tests-unit")
-def test_unit(context: Context):
+def tests_unit(context: Context):
     tests.tests_unit(context)
 
 
 @task(name="tests-integration")
-def test_integration(context: Context):
+def tests_integration(context: Context):
     tests.tests_integration(context)
 
 
@@ -71,7 +77,8 @@ ns.add_task(format_all)
 ns.add_task(lint_all)
 ns.add_task(yamllint)
 ns.add_task(test_all)
-ns.add_task(test_unit)
-ns.add_task(test_integration)
+ns.add_task(tests_sanity)
+ns.add_task(tests_unit)
+ns.add_task(tests_integration)
 ns.add_task(generate_doc)
 ns.add_task(galaxy_build)

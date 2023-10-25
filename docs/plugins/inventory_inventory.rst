@@ -1128,7 +1128,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+        :ansible-option-type:`dictionary`
 
 
 
@@ -1150,7 +1150,7 @@ Parameters
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`[]`
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`{}`
 
       .. raw:: html
 
@@ -1514,6 +1514,38 @@ Examples
     plugin: infrahub.infrahub.inventory
     api_endpoint: http://localhost:8000  # Can be omitted if the INFRAHUB_API environment variable is set
     token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN environment variable is set
+
+    # Complete Example
+    # This will :
+    # - Retrieve in the branch "branch1" attributes for the Node Kind "InfraDevice"
+    # - The attributes wanted for "InfraDevice" are forced with the keyword "include"
+    # - Create 2 compose variable "hostname" ad "platform" (platform will override the attribute platform retrieved)
+    # - Create group based on the "site" name
+
+    plugin: infrahub.infrahub.inventory
+    api_endpoint: "http://localhost:8000"
+    validate_certs: True
+
+    strict: True
+
+    branch: "branch1"
+
+    nodes:
+      InfraDevice:
+        include:
+          - name
+          - platform
+          - primary_address
+          - interfaces
+          - site
+
+    compose:
+      hostname: name
+      platform: platform.ansible_network_os
+
+    keyed_groups:
+      - prefix: site
+        key: site.name
 
 
 

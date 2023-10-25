@@ -128,51 +128,17 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-api_version"></div>
+        <div class="ansibleOptionAnchor" id="parameter-filters"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-api_version:
-
-      .. rst-class:: ansible-option-title
-
-      **api_version**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-api_version" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      API Version Infrahub API
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
-
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-graph_variables:
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-filters:
 
       .. rst-class:: ansible-option-title
 
-      **graph_variables**
+      **filters**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-graph_variables" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-filters" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 

@@ -9,13 +9,14 @@ license = "GPLv3"
 python = ">=3.9,<3.12"
 ansible-core = "^2.14"
 black = "*"
+isort = "*"
+ruff = "0.1.0"
 codecov = "*"
 coverage = "^6.5"
 deepdiff = "*"
 cryptography = "*"
 jinja2 = "*"
 jmespath = "*"
-pynetbox = "^7"
 pytest = "*"
 pytest-mock = "*"
 pytest-xdist = "*"
@@ -30,7 +31,6 @@ packaging = "*"
 jsondiff = "*"
 sphinx_rtd_theme = "*"
 hypothesis = "^6.8.0"
-pynautobot = "^1.1.2"
 pytest-pythonpath = "^0.7.3"
 parameterized = "^0.8.1"
 invoke = "^1.6.0"
@@ -42,6 +42,25 @@ infrahub = { path = "../infrahub/" }
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+exclude = '''
+        /(
+          \.git
+        | \.tox
+        | \.venv
+        | env/
+        | _build
+        | build
+        | dist
+        | examples
+        )/
+    '''
+
+[tool.isort]
+profile = "black"
+
 [tool.ruff]
 
 select = [
@@ -49,8 +68,12 @@ select = [
     "DTZ",
     "E",
     "F",
+    "ICN",
     "TCH",
+    "T10",
+    "Q",
     "W",
+    "YTT",
 ]
 
 line-length = 170
@@ -58,6 +81,8 @@ line-length = 170
 [tool.ruff.mccabe]
 # Target max-complexity=10
 max-complexity = 26
+
+[tool.ruff.per-file-ignores]
 
 [tool.pytest.ini_options]
 testpaths = [

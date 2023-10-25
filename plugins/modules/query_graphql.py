@@ -10,7 +10,8 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: query_graphql
-author: Benoit Kohler (@bearchitek)
+author:
+    - Benoit Kohler (@bearchitek)
 version_added: "0.0.1"
 short_description: Queries and returns elements from Infrahub GraphQL API
 description:
@@ -28,12 +29,12 @@ options:
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_TOKEN
         type: str
-    `query`:
+    query:
         required: True
         description:
             - GraphQL query parameters or filters to send to Infrahub to obtain desired data
         type: str
-    graph_variables:
+    filters:
         required: False
         description:
             - Dictionary of keys/values to pass into the GraphQL query
@@ -67,9 +68,8 @@ def main():
             api_endpoint=dict(required=False, type="str", default=None),
             token=dict(required=False, type="str", no_log=True, default=None),
             validate_certs=dict(required=False, type="bool", default=True),
-            api_version=dict(required=False, type="str", default=None),
             query=dict(required=True, type="str"),
-            graph_variables=dict(required=False, type="dict", default={}),
+            filters=dict(required=False, type="dict", default={}),
         ),
         supports_check_mode=True,
     )

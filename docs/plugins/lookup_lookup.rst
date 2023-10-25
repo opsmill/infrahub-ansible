@@ -126,17 +126,17 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-api_version"></div>
+        <div class="ansibleOptionAnchor" id="parameter-branch"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-api_version:
+      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-branch:
 
       .. rst-class:: ansible-option-title
 
-      **api_version**
+      **branch**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-api_version" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-branch" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
@@ -153,8 +153,12 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      The Infrahub API Version to use
+      Branch in which the request is made
 
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`"main"`
 
       .. raw:: html
 
@@ -163,17 +167,17 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
+        <div class="ansibleOptionAnchor" id="parameter-filters"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-graph_variables:
+      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-filters:
 
       .. rst-class:: ansible-option-title
 
-      **graph_variables**
+      **filters**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-graph_variables" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-filters" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
@@ -218,7 +222,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
+        :ansible-option-type:`string` / :ansible-option-required:`required`
 
 
 
@@ -233,6 +237,47 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
       GraphQL query parameters or filters to send to Infrahub to obtain desired data
 
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
+
+      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-timeout:
+
+      .. rst-class:: ansible-option-title
+
+      **timeout**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-timeout" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`integer`
+
+
+
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Timeout for Nautobot requests in seconds
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`10`
 
       .. raw:: html
 
@@ -364,6 +409,60 @@ Examples
 
 
 .. Return values
+
+Return Value
+------------
+
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
+
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+  :class: longtable ansible-option-table
+
+  * - Key
+    - Description
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-data"></div>
+
+      .. _ansible_collections.infrahub.infrahub.lookup_lookup__return-data:
+
+      .. rst-class:: ansible-option-title
+
+      **data**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-data" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Data result from the Infrahub GraphQL endpoint
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` success
+
+
+      .. raw:: html
+
+        </div>
+
 
 
 ..  Status (Presently only deprecated)
