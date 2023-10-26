@@ -94,18 +94,6 @@ from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils i
     InfrahubQueryProcessor,
 )
 
-try:
-    from infrahub_client import InfrahubClientSync
-except ImportError as imp_exc:
-    INFRAHUBCLIENT_IMPORT_ERROR = imp_exc
-else:
-    INFRAHUBCLIENT_IMPORT_ERROR = None
-
-if INFRAHUBCLIENT_IMPORT_ERROR:
-
-    class InfrahubClientSync:
-        pass
-
 
 class LookupModule(LookupBase):
     """

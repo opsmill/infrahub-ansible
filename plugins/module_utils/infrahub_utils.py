@@ -20,7 +20,6 @@ try:
         RelationshipCardinality,
         RelationshipKind,
     )
-
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None
 except ImportError:
@@ -28,7 +27,6 @@ except ImportError:
     HAS_INFRAHUBCLIENT = False
 
 if HAS_INFRAHUBCLIENT:
-
     class InfrahubclientWrapper:
         def __init__(self, api_endpoint: str, branch: str, token: str, timeout: int):
             """
@@ -135,7 +133,7 @@ if HAS_INFRAHUBCLIENT:
             """
             return self.branch_manager.get(branch_name=branch_name)
 
-        def _render_query(query: Dict, variables: Optional[Dict] = None) -> str:
+        def _render_query(self, query: Dict, variables: Optional[Dict] = None) -> str:
             """
             Render a Grapql Query from a Dict to a String
 
@@ -164,9 +162,6 @@ if HAS_INFRAHUBCLIENT:
                 Dict: The result of the executed GraphQL query.
             """
             return self.client.execute_graphql(query=query, branch=branch)
-
-
-if HAS_INFRAHUBCLIENT:
 
     class InfrahubBaseProcessor:
         def __init__(self, client: InfrahubclientWrapper):
@@ -384,3 +379,13 @@ if HAS_INFRAHUBCLIENT:
             results = self.client.execute_graphql(query=query_str, variables=variables)
 
             return results
+
+if not HAS_INFRAHUBCLIENT:
+    class InfrahubclientWrapper:
+        pass
+    class InfrahubclientWrapper:
+        pass
+    class InfrahubNodesProcessor:
+        pass
+    class InfrahubQueryProcessor:
+        pass

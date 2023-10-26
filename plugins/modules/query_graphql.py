@@ -55,6 +55,7 @@ options:
         description:
             - Whether or not to validate SSL of the Infrahub instance
         required: False
+        type: bool
         default: True
 """
 
