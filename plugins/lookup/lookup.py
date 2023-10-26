@@ -84,7 +84,7 @@ RETURN = """
 
 
 import os
-from typing import Any, Dict, Optional
+from typing import Dict
 
 from ansible.errors import AnsibleError, AnsibleLookupError
 from ansible.module_utils.six import raise_from
@@ -102,8 +102,10 @@ else:
     INFRAHUBCLIENT_IMPORT_ERROR = None
 
 if INFRAHUBCLIENT_IMPORT_ERROR:
+
     class InfrahubClientSync:
         pass
+
 
 class LookupModule(LookupBase):
     """
@@ -158,7 +160,7 @@ class LookupModule(LookupBase):
             raise AnsibleLookupError("Query parameter must be of type Str")
         if filters is not None and not isinstance(filters, Dict):
             raise AnsibleLookupError("Filters parameter must be a list of Dict")
-        
+
         results = {}
         try:
             self.display.v("Initializing Infrahub Client")

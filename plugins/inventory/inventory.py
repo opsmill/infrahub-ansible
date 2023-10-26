@@ -152,8 +152,8 @@ from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.module_utils.six import raise_from
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
-    InfrahubNodesProcessor,
     InfrahubclientWrapper,
+    InfrahubNodesProcessor,
 )
 
 try:

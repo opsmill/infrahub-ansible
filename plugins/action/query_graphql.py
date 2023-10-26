@@ -24,10 +24,13 @@ else:
     INFRAHUBCLIENT_IMPORT_ERROR = None
 
 if INFRAHUBCLIENT_IMPORT_ERROR:
+
     class InfrahubClientSync:
         pass
 
-def infrahub_action_graphql(client: InfrahubClientSync,
+
+def infrahub_action_graphql(
+    client: InfrahubClientSync,
     query: str = None,
     filters: Optional[Dict[str, str]] = None,
 ) -> Optional[Dict[str, Any]]:
@@ -44,7 +47,7 @@ def infrahub_action_graphql(client: InfrahubClientSync,
         raise AnsibleError("Query parameter must be of type Str. Please see docs for examples.")
     if filters is not None and not isinstance(filters, Dict):
         raise AnsibleError("Filters parameter must be a list of Dict. Please see docs for examples.")
-    
+
     # Init API Call
     # -> "build" infrahub GraphQL request = XX
     # -> Check GraphQL responses (Exception or Records)
@@ -52,6 +55,7 @@ def infrahub_action_graphql(client: InfrahubClientSync,
     results = {}
 
     return results
+
 
 class ActionModule(ActionBase):
     """
@@ -108,7 +112,7 @@ class ActionModule(ActionBase):
             raise AnsibleError("Query parameter must be of type Str")
         if filters is not None and not isinstance(filters, Dict):
             raise AnsibleError("Filters parameter must be a list of Dict")
-        
+
         results = {}
         try:
             self.display.v("Initializing Infrahub Client")

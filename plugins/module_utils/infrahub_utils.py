@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import traceback
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from ansible_collections.infrahub.infrahub.plugins.module_utils.exception import (
     handle_infrahub_exceptions,
@@ -11,15 +11,15 @@ from ansible_collections.infrahub.infrahub.plugins.module_utils.exception import
 
 try:
     from infrahub_client import Config, InfrahubClientSync
+    from infrahub_client.branch import InfrahubBranchManagerSync
+    from infrahub_client.data import BranchData
+    from infrahub_client.graphql import Query
     from infrahub_client.node import InfrahubNodeSync
     from infrahub_client.schema import (
         NodeSchema,
         RelationshipCardinality,
         RelationshipKind,
     )
-    from infrahub_client.data import BranchData
-    from infrahub_client.graphql import Query
-    from infrahub_client.branch import InfrahubBranchManagerSync
 
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None
@@ -28,6 +28,7 @@ except ImportError:
     HAS_INFRAHUBCLIENT = False
 
 if HAS_INFRAHUBCLIENT:
+
     class InfrahubclientWrapper:
         def __init__(self, api_endpoint: str, branch: str, token: str, timeout: int):
             """
@@ -43,9 +44,9 @@ if HAS_INFRAHUBCLIENT:
                 address=api_endpoint,
                 default_branch=branch,
                 config=Config(api_token=token, timeout=timeout),
-                )
+            )
             self.branch_manager = InfrahubBranchManagerSync(self.client)
-        
+
         @handle_infrahub_exceptions
         def fetch_nodes(
             self,
@@ -111,7 +112,6 @@ if HAS_INFRAHUBCLIENT:
             branch = branch or self.default_branch
             return self.client.schema.get(branch=branch)
 
-
         @handle_infrahub_exceptions
         def fetch_branchs(self) -> Dict[str, BranchData]:
             """
@@ -149,7 +149,9 @@ if HAS_INFRAHUBCLIENT:
             return Query(query=query, variables=variables).render()
 
         @handle_infrahub_exceptions
-        def execute_graphql(self, query: str, variables: Optional[Dict[str, Any]] = None, branch: Optional[str] = None) -> Dict:
+        def execute_graphql(
+            self, query: str, variables: Optional[Dict[str, Any]] = None, branch: Optional[str] = None
+        ) -> Dict:
             """
             Executes a GraphQL query against the Infrahub Endpoint.
 
@@ -165,15 +167,13 @@ if HAS_INFRAHUBCLIENT:
 
 
 if HAS_INFRAHUBCLIENT:
+
     class InfrahubBaseProcessor:
         def __init__(self, client: InfrahubclientWrapper):
             self.client = client
 
         def resolve_node_mapping(
-            self,
-            node: InfrahubNodeSync,
-            attrs: List[str],
-            schemas: Dict[str, NodeSchema]
+            self, node: InfrahubNodeSync, attrs: List[str], schemas: Dict[str, NodeSchema]
         ) -> Optional[Dict[str, Any]]:
             """
             Resolve the attributes and relationships of a given node based on a list of desired attributes.
@@ -210,7 +210,9 @@ if HAS_INFRAHUBCLIENT:
                         for peer in node_attr:
                             if hasattr(peer.peer._schema, "attribute_names"):
                                 peer_attribute = peer.peer._schema.attribute_names
-                                peers.append(self.resolve_node_mapping(node=peer.peer, attrs=peer_attribute, schemas=schemas))
+                                peers.append(
+                                    self.resolve_node_mapping(node=peer.peer, attrs=peer_attribute, schemas=schemas)
+                                )
                         attribute_dict[node_attr.schema.name] = peers
                     elif node_attr.schema.cardinality == "one":
                         peer = node_attr.peer
@@ -222,7 +224,6 @@ if HAS_INFRAHUBCLIENT:
             return attribute_dict
 
     class InfrahubNodesProcessor(InfrahubBaseProcessor):
-
         @staticmethod
         def get_attributes_for_schema(schema: NodeSchema, exclude: Optional[List[str]] = None) -> List[str]:
             """
@@ -294,7 +295,7 @@ if HAS_INFRAHUBCLIENT:
                 include_groups = [group["key"].split(".")[0] for group in groups if "key" in group]
                 include += include_groups
             return include
-        
+
         def fetch_and_process(self, nodes: List[str]) -> Optional[Dict[str, Any]]:
             """
             Fetches schemas and nodes for the given node kinds using the Infrahub client wrapper,
@@ -309,7 +310,7 @@ if HAS_INFRAHUBCLIENT:
             all_nodes = []
             schema_dict = {}
             node_attributes_dict = {}
-            
+
             if not nodes:
                 return None
             for node_kind in nodes:
@@ -359,13 +360,10 @@ if HAS_INFRAHUBCLIENT:
 
             return host_node_attributes
 
-
     class InfrahubQueryProcessor(InfrahubBaseProcessor):
         def fetch_and_process(
-                self,
-                query: Union[dict, str],
-                variables: Optional[Dict[str, Any]] = None
-                ) -> Optional[Dict[str, Any]]:
+            self, query: Union[dict, str], variables: Optional[Dict[str, Any]] = None
+        ) -> Optional[Dict[str, Any]]:
             """
             Fetches nodes for the given GraphQl query using the Infrahub client wrapper,
             then processes and maps these nodes to their corresponding attributes.
@@ -378,7 +376,7 @@ if HAS_INFRAHUBCLIENT:
             """
             if not query:
                 return None
-            
+
             if isinstance(query, Dict):
                 query_str = self.client._render_query(query=query)
             elif isinstance(query, str):
