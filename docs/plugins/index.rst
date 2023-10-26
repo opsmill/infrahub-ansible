@@ -18,7 +18,7 @@ Collection version 0.0.1
 Description
 -----------
 
-This is a collection of Nautobot Ansible modules
+This is a collection of Infrahub Ansible modules
 
 **Author:**
 

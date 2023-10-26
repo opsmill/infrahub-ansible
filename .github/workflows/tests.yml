@@ -1,6 +1,6 @@
 ---
 # yamllint disable rule:truthy rule:truthy rule:line-length
-name: "CI"
+name: "tests"
 on:  #yamllint disable
   workflow_call:
     inputs:

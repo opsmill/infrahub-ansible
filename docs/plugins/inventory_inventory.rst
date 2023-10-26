@@ -1328,7 +1328,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Timeout for Nautobot requests in seconds
+      Timeout for Infrahub requests in seconds
 
 
       .. rst-class:: ansible-option-line

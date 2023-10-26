@@ -9,7 +9,11 @@ categories:
     labels:
       - 'type/bug'
   - title: '🧰 Maintenance'
-    label: 'type/housekeeping'
+    labels:
+      - 'type/housekeeping'
+  - title: 📖 Documentation Change
+    label:
+      - 'type/doctumentation'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 exclude-labels:
   - 'ci/skip-changelog'

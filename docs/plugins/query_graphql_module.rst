@@ -128,6 +128,44 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-branch"></div>
+
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-branch:
+
+      .. rst-class:: ansible-option-title
+
+      **branch**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-branch" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Branch in which the request is made
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`"main"`
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-filters"></div>
 
       .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-filters:
@@ -200,6 +238,44 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
+
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-timeout:
+
+      .. rst-class:: ansible-option-title
+
+      **timeout**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-timeout" title="Permalink to this option"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`integer`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Timeout for Infrahub requests in seconds
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`10`
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
       .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-token:
@@ -248,7 +324,7 @@ Parameters
 
       .. ansible-option-type-line::
 
-        :ansible-option-type:`boolean`
+        :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -263,11 +339,7 @@ Parameters
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-choices:`Choices:`
-
-      - :ansible-option-choices-entry:`false`
-      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
-
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`true`
 
       .. raw:: html
 
@@ -299,6 +371,61 @@ Examples
 
 
 .. Return values
+
+Return Values
+-------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
+
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
+
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+  :class: longtable ansible-option-table
+
+  * - Key
+    - Description
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-data"></div>
+
+      .. _ansible_collections.infrahub.infrahub.query_graphql_module__return-data:
+
+      .. rst-class:: ansible-option-title
+
+      **data**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-data" title="Permalink to this return value"></a>
+
+      .. ansible-option-type-line::
+
+        :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Data result from the Infrahub GraphQL endpoint
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` success
+
+
+      .. raw:: html
+
+        </div>
+
 
 
 ..  Status (Presently only deprecated)

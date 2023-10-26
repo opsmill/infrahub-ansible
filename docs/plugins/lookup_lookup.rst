@@ -272,7 +272,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      Timeout for Nautobot requests in seconds
+      Timeout for Infrahub requests in seconds
 
 
       .. rst-class:: ansible-option-line
