@@ -3,12 +3,12 @@ all:
     ungrouped:
       hosts:
         atl1-edge1:
-          ansible_host: 172.20.20.19/24
+          ansible_host: 172.20.20.17/24
           hostname: atl1-edge1
           name: atl1-edge1
           platform: eos
           primary_address:
-            address: 172.20.20.19/24
+            address: 172.20.20.17/24
             description: null
           role:
             description: null
@@ -24,12 +24,12 @@ all:
           - description: null
             name: red
         atl1-edge2:
-          ansible_host: 172.20.20.24/24
+          ansible_host: 172.20.20.22/24
           hostname: atl1-edge2
           name: atl1-edge2
           platform: ios
           primary_address:
-            address: 172.20.20.24/24
+            address: 172.20.20.22/24
             description: null
           role:
             description: null
@@ -47,12 +47,12 @@ all:
           - description: null
             name: red
         den1-edge1:
-          ansible_host: 172.20.20.17/24
+          ansible_host: 172.20.20.20/24
           hostname: den1-edge1
           name: den1-edge1
           platform: eos
           primary_address:
-            address: 172.20.20.17/24
+            address: 172.20.20.20/24
             description: null
           role:
             description: null
@@ -68,12 +68,12 @@ all:
           - description: null
             name: red
         den1-edge2:
-          ansible_host: 172.20.20.23/24
+          ansible_host: 172.20.20.24/24
           hostname: den1-edge2
           name: den1-edge2
           platform: ios
           primary_address:
-            address: 172.20.20.23/24
+            address: 172.20.20.24/24
             description: null
           role:
             description: null
@@ -179,12 +179,12 @@ all:
           - description: null
             name: red
         ord1-edge1:
-          ansible_host: 172.20.20.20/24
+          ansible_host: 172.20.20.19/24
           hostname: ord1-edge1
           name: ord1-edge1
           platform: eos
           primary_address:
-            address: 172.20.20.20/24
+            address: 172.20.20.19/24
             description: null
           role:
             description: null
@@ -200,12 +200,12 @@ all:
           - description: null
             name: red
         ord1-edge2:
-          ansible_host: 172.20.20.22/24
+          ansible_host: 172.20.20.23/24
           hostname: ord1-edge2
           name: ord1-edge2
           platform: ios
           primary_address:
-            address: 172.20.20.22/24
+            address: 172.20.20.23/24
             description: null
           role:
             description: null

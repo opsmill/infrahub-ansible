@@ -22,7 +22,8 @@ else:
 
 
 def handle_infrahub_exceptions(func):
-    """Decorator function to handle exceptions for Infrahub operations.
+    """
+    Decorator function to handle exceptions for Infrahub operations.
 
     Parameters:
         func (Callable): Function that requires exception handling.

@@ -1,0 +1,114 @@
+---
+# Labels names are important as they are used by Release Drafter to decide
+# regarding where to record them in changelog or if to skip them.
+#
+# The repository labels will be automatically configured using this file and
+# the GitHub Action https://github.com/marketplace/actions/github-labeler.
+
+# ----------------------------------
+# GROUP
+# ----------------------------------
+- name: "group/backend"
+  description: "Issue related to the backend (API Server, Git Agent)"
+  color: "b60205"
+
+- name: "group/frontend"
+  description: "Issue related to the frontend (React)"
+  color: "353755"
+
+- name: "group/infrahubctl"
+  description: "Issue related to the infrahubctl command line"
+  color: "77ab64"
+
+- name: "group/python-sdk"
+  description: "Issue related to the Python SDK"
+  color: "56e8e1"
+
+- name: "group/sync-engine"
+  description: "Issue related to the Synchronization engine"
+  color: "56e8e1"
+
+# ----------------------------------
+# TYPE
+# ----------------------------------
+- name: "type/feature"
+  description: "New feature or request"
+  color: "a2eeef"
+
+- name: "type/bug"
+  description: "Something isn't working as expected"
+  color: "d73a4a"
+
+- name: "type/documentation"
+  description: "Improvements or additions to documentation"
+  color: "0075ca"
+
+- name: "type/housekeeping"
+  description: "Maintenance task"
+  color: "fef2c0"
+
+- name: "type/question"
+  description: "Question or discussion"
+  color: "d876e3"
+
+- name: "type/duplicate"
+  description: "This issue or pull request already exists"
+  color: "cfd3d7"
+
+- name: "type/epic"
+  description: "Large body of work composed of multiple tasks and/or features"
+  color: "fbd39c"
+
+- name: "type/task"
+  description: "Body of work related to an epic"
+  color: "0b8e92"
+
+- name: "type/ecosystem"
+  description: "Effort related to the community, usually not part of the core project"
+  color: "0b5aa9"
+
+- name: "type/brainstorming"
+  description: "Topic for brainstorming, discussions"
+  color: "e19e0f"
+
+- name: "type/user-centric"
+  description: "Issue that would improve the overall experience of our users"
+  color: "ff8c00"
+
+- name: "type/newcomers"
+  description: "Good for newcomers"
+  color: "309c56"
+
+# ----------------------------------
+# EFFORT
+# ----------------------------------
+- name: "effort/high"
+  description: "This issue should be completed in more than a day"
+  color: "c80464"
+
+- name: "effort/medium"
+  description: "This issue should be completed in a less than a day"
+  color: "676a43"
+
+- name: "effort/low"
+  description: "This issue should be completed in a couple of hours"
+  color: "eafee4"
+
+# ----------------------------------
+# STATUS
+# ----------------------------------
+- name: "state/blocked"
+  description: "The issue is currently blocked and cannot be resolved."
+  color: "e34918"
+
+- name: "state/draft"
+  description: "The redaction of the issue is still a work in progress"
+  color: "dcb518"
+
+# ----------------------------------
+# CI
+# ----------------------------------
+
+- name: "ci/skip-changelog"
+  description: "Don't include this PR in the changelog"
+  color: "c30664"

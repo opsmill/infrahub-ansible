@@ -3,43 +3,75 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
+import os
+from typing import Any, Dict, Optional
+
 from ansible.errors import AnsibleError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.action import ActionBase
+from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
+    InfrahubclientWrapper,
+    InfrahubQueryProcessor,
+)
 
 try:
-    import requests
+    from infrahub_client import InfrahubClientSync
 except ImportError as imp_exc:
-    REQUESTS_IMPORT_ERROR = imp_exc
+    INFRAHUBCLIENT_IMPORT_ERROR = imp_exc
 else:
-    REQUESTS_IMPORT_ERROR = None
+    INFRAHUBCLIENT_IMPORT_ERROR = None
 
-__metaclass__ = type
+if INFRAHUBCLIENT_IMPORT_ERROR:
+    class InfrahubClientSync:
+        pass
 
+def infrahub_action_graphql(client: InfrahubClientSync,
+    query: str = None,
+    filters: Optional[Dict[str, str]] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Ansible Action module for Infrahub, broken out to assist with testing
+
+    Returns:
+        Optional[Dict[str, Any]]: A dictionary with processed node attributes, or None if no nodes were processed.
+    """
+
+    if query is None:
+        raise AnsibleError("Query parameter was not passed. Please verify that query is passed.")
+    if not isinstance(query, str):
+        raise AnsibleError("Query parameter must be of type Str. Please see docs for examples.")
+    if filters is not None and not isinstance(filters, Dict):
+        raise AnsibleError("Filters parameter must be a list of Dict. Please see docs for examples.")
+    
+    # Init API Call
+    # -> "build" infrahub GraphQL request = XX
+    # -> Check GraphQL responses (Exception or Records)
+
+    results = {}
+
+    return results
 
 class ActionModule(ActionBase):
-    """Ansible Action Module to interact with Infrahub GraphQL Endpoint.
+    """
+    Ansible Action Module to interact with Infrahub GraphQL Endpoint.
 
-    Args:
+    Parameters:
         ActionBase (ActionBase): Ansible Action Plugin
     """
 
     def run(self, tmp=None, task_vars=None):
-        """Run of action plugin for interacting with Infrahub GraphQL API.
+        """
+        Run of action plugin for interacting with Infrahub GraphQL API.
 
-        Args:
+        Parameters:
             tmp ([type], optional): [description]. Defaults to None.
             task_vars ([type], optional): [description]. Defaults to None.
         """
 
-        if REQUESTS_IMPORT_ERROR:
-            raise_from(
-                AnsibleError("requests must be installed to use this plugin"),
-                REQUESTS_IMPORT_ERROR,
-            )
-
         self._supports_check_mode = True
-        self._supports_async = False
+        self._supports_async = True
 
         result = super(ActionModule, self).run(tmp, task_vars)
         del tmp
@@ -48,21 +80,48 @@ class ActionModule(ActionBase):
             return None
 
         if result.get("invocation", {}).get("module_args"):
-            # avoid passing to modules in case of no_log
-            # should not be set anymore but here for backwards compatibility
             del result["invocation"]["module_args"]
 
-        # do work!
-        # Get the arguments from the module definition
-        self._task.args
-        try:
-            results = None
-            ## TODO
-        except requests.exceptions.HTTPError as http_error:
-            return {
-                "failed": True,
-                "msg": f"Request failed: {http_error}",
-            }
+        args = self._task.args
 
-        # Results should be the data response of the query to be returned as a lookup
+        api_endpoint = args.get("api_endpoint") or os.getenv("INFRAHUB_API")
+        token = args.get("token") or os.getenv("INFRAHUB_TOKEN")
+        if api_endpoint is None:
+            raise AnsibleError("Missing Infrahub API Endpoint")
+        if token is None:
+            raise AnsibleError("Missing Infrahub TOKEN")
+
+        api_endpoint = api_endpoint.strip("/")
+
+        validate_certs = args.get("validate_certs", True)
+        if not isinstance(validate_certs, bool):
+            raise AnsibleError("validate_certs must be a boolean")
+
+        timeout = args.get("timeout", 10)
+        branch = args.get("branch", "main")
+
+        query_str = args.get("query")
+        filters = args.get("filters")
+        if query_str is None:
+            raise AnsibleError("Query parameter was not passed")
+        if not isinstance(query_str, str):
+            raise AnsibleError("Query parameter must be of type Str")
+        if filters is not None and not isinstance(filters, Dict):
+            raise AnsibleError("Filters parameter must be a list of Dict")
+        
+        results = {}
+        try:
+            self.display.v("Initializing Infrahub Client")
+            client = InfrahubclientWrapper(
+                api_endpoint=api_endpoint,
+                token=token,
+                branch=branch,
+                timeout=timeout,
+            )
+            processor = InfrahubQueryProcessor(client=client)
+            self.display.v("Processing Query")
+            results = processor.fetch_and_process(query=query_str, variables=filters)
+        except Exception as exp:
+            raise_from(AnsibleError(str(exp)), exp)
+
         return results

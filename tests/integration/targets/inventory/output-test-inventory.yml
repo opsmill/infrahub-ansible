@@ -17,7 +17,7 @@ all:
             netmiko_device_type: arista_eos
             nornir_platform: eos
           primary_address:
-            address: 172.20.20.19/24
+            address: 172.20.20.17/24
             description: null
           role:
             description: null
@@ -52,7 +52,7 @@ all:
             netmiko_device_type: cisco_ios
             nornir_platform: ios
           primary_address:
-            address: 172.20.20.24/24
+            address: 172.20.20.22/24
             description: null
           role:
             description: null
@@ -89,7 +89,7 @@ all:
             netmiko_device_type: arista_eos
             nornir_platform: eos
           primary_address:
-            address: 172.20.20.17/24
+            address: 172.20.20.20/24
             description: null
           role:
             description: null
@@ -124,7 +124,7 @@ all:
             netmiko_device_type: cisco_ios
             nornir_platform: ios
           primary_address:
-            address: 172.20.20.23/24
+            address: 172.20.20.24/24
             description: null
           role:
             description: null
@@ -305,7 +305,7 @@ all:
             netmiko_device_type: arista_eos
             nornir_platform: eos
           primary_address:
-            address: 172.20.20.20/24
+            address: 172.20.20.19/24
             description: null
           role:
             description: null
@@ -340,7 +340,7 @@ all:
             netmiko_device_type: cisco_ios
             nornir_platform: ios
           primary_address:
-            address: 172.20.20.22/24
+            address: 172.20.20.23/24
             description: null
           role:
             description: null

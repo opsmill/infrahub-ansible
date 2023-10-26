@@ -1,0 +1,35 @@
+---
+name: 💡 Feature Request
+description: Suggest a feature for Infrahub
+title: 'feature: '
+body:
+  - type: dropdown
+    attributes:
+      label: Component
+      description: Please indicate which component(s) this feature is associated with (leave blank if unknown)
+      multiple: true
+      options:
+        - Frontend UI
+        - API Server / GraphQL
+        - Git Integration
+        - Python SDK
+        - infrahubctl CLI
+        - Not Sure
+  - type: textarea
+    attributes:
+      label: Describe the Feature Request
+      description: A clear and concise description of what the feature does.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Describe the Use Case
+      description: A clear and concise use case for what problem this feature would solve.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional Information
+      description: |
+        List any other information that is relevant to your request.
+        Stack traces, related issues, suggestions on how to implement, Stack Overflow links, forum links, etc.

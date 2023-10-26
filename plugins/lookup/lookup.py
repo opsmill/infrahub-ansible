@@ -30,7 +30,7 @@ DOCUMENTATION = """
                 - name: INFRAHUB_TOKEN
         timeout:
             required: False
-            description: Timeout for Nautobot requests in seconds
+            description: Timeout for Infrahub requests in seconds
             type: int
             default: 10
         query:
@@ -90,7 +90,8 @@ from ansible.errors import AnsibleError, AnsibleLookupError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
-    initialize_infrahub_client,
+    InfrahubclientWrapper,
+    InfrahubQueryProcessor,
 )
 
 try:
@@ -104,42 +105,22 @@ if INFRAHUBCLIENT_IMPORT_ERROR:
     class InfrahubClientSync:
         pass
 
-def infrahub_lookup_graphql(
-    client: InfrahubClientSync,
-    query: str = None,
-    filters: Optional[Dict[str, str]] = None,
-) -> Optional[Dict[str, Any]]:
-    """Lookup functionality, broken out to assist with testing
-
-    Returns:
-        Optional[Dict[str, Any]]: A dictionary with processed node attributes, or None if no nodes were processed.
-    """
-
-    if query is None:
-        raise AnsibleLookupError("Query parameter was not passed. Please verify that query is passed.")
-    if not isinstance(query, str):
-        raise AnsibleLookupError("Query parameter must be of type Str. Please see docs for examples.")
-    if filters is not None and not isinstance(filters, Dict):
-        raise AnsibleLookupError("Filters parameter must be a list of Dict. Please see docs for examples.")
-
-    # Init API Call
-    # -> "builb" infrahub GraphQL request = XX
-    # -> "builb" infrahub GraphQL response = XX
-
-    # -> Check GraphQL responses (Exception or Records)
-
-    results = None
-
-    return [results]
-
-
 class LookupModule(LookupBase):
     """
     LookupModule(LookupBase) is defined by Ansible
+
+    Parameters:
+        LookupBase (LookupBase): Ansible Lookup Plugin
     """
 
     def run(self, terms, variables=None, filters=None, **kwargs):
         """Runs Ansible Lookup Plugin for using Infrahub GraphQL endpoint
+
+        Parameters:
+            terms
+            variables
+            filters
+            kwargs
 
         Raises:
             AnsibleLookupError: Error in data loaded into the plugin
@@ -167,17 +148,30 @@ class LookupModule(LookupBase):
         if not isinstance(validate_certs, bool):
             raise AnsibleLookupError("validate_certs must be a boolean")
 
-        kwargs.get("timeout", 10)
-        kwargs.get("branch", "main")
+        timeout = kwargs.get("timeout", 10)
+        branch = kwargs.get("branch", "main")
 
-        client = initialize_infrahub_client(
-            api_endpoint=api_endpoint,
-            branch=self.branch,
-            token=self.token,
-            timeout=self.timeout,
-        )
+        query_str = terms[0]
+        if query_str is None:
+            raise AnsibleLookupError("Query parameter was not passed")
+        if not isinstance(query_str, str):
+            raise AnsibleLookupError("Query parameter must be of type Str")
+        if filters is not None and not isinstance(filters, Dict):
+            raise AnsibleLookupError("Filters parameter must be a list of Dict")
+        
+        results = {}
+        try:
+            self.display.v("Initializing Infrahub Client")
+            client = InfrahubclientWrapper(
+                api_endpoint=api_endpoint,
+                token=token,
+                branch=branch,
+                timeout=timeout,
+            )
+            processor = InfrahubQueryProcessor(client=client)
+            self.display.v("Processing Query")
+            results = processor.fetch_and_process(query=query_str, variables=filters)
+        except Exception as exp:
+            raise_from(AnsibleLookupError(str(exp)), exp)
 
-        lookup_info = infrahub_lookup_graphql(client=client, query=terms[0], filters=filters)
-
-        # Results should be the data response of the query to be returned as a lookup
-        return lookup_info
+        return results

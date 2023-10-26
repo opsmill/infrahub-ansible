@@ -10,24 +10,35 @@ __metaclass__ = type
 class ModuleDocFragment(object):
     BASE = r"""
 requirements:
-  - xxx
+  - infrahub_client
 options:
-  infrahub_url:
+  api_endpoint:
+    description: Endpoint of the Infrahub API
+    required: True
+    env:
+        - name: INFRAHUB_API
+  token:
+    required: True
     description:
-      - The URL of the Infrahub instance.
-      - Must be accessible by the Ansible control host.
-    required: true
-    type: str
-  infrahub_token:
+        - Infrahub API token to be able to read against Infrahub.
+    env:
+        - name: INFRAHUB_TOKEN
+  timeout:
+    required: False
+    description: Timeout for Infrahub requests in seconds
+    type: int
+    default: 10
+  branch:
+    required: False
     description:
-      - The infrahub API token.
-    required: true
+        - Branch in which the request is made
     type: str
-  api_version:
+    default: main
+  validate_certs:
     description:
-      - "API Version Infrahub API"
-    required: false
-    type: str
+        - Whether or not to validate SSL of the Infrahub instance
+    required: False
+    default: True
 """
 
     TAGS = r"""

@@ -29,29 +29,44 @@ options:
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_TOKEN
         type: str
+    timeout:
+        required: False
+        description: Timeout for Infrahub requests in seconds
+        type: int
+        default: 10
     query:
         required: True
         description:
             - GraphQL query parameters or filters to send to Infrahub to obtain desired data
         type: str
     filters:
-        required: False
         description:
             - Dictionary of keys/values to pass into the GraphQL query
+        required: False
         type: dict
         default: {}
-    validate_certs:
+    branch:
         required: False
         description:
+            - Branch in which the request is made
+        type: str
+        default: main
+    validate_certs:
+        description:
             - Whether or not to validate SSL of the Infrahub instance
+        required: False
         default: True
-        type: bool
 """
 
 EXAMPLES = """
 """
 
 RETURN = """
+  data:
+    description:
+      - Data result from the Infrahub GraphQL endpoint
+    type: dict
+    returned: success
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -67,7 +82,9 @@ def main():
         argument_spec=dict(
             api_endpoint=dict(required=False, type="str", default=None),
             token=dict(required=False, type="str", no_log=True, default=None),
+            timeout=dict(required=False, type="int", default=10),
             validate_certs=dict(required=False, type="bool", default=True),
+            branch=dict(required=False, type="str", default="main"),
             query=dict(required=True, type="str"),
             filters=dict(required=False, type="dict", default={}),
         ),

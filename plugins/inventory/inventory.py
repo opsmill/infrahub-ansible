@@ -35,7 +35,7 @@ DOCUMENTATION = """
                 - name: INFRAHUB_TOKEN
         timeout:
             required: False
-            description: Timeout for Nautobot requests in seconds
+            description: Timeout for Infrahub requests in seconds
             type: int
             default: 10
         nodes:
@@ -152,8 +152,8 @@ from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.module_utils.six import raise_from
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
-    fetch_and_process_nodes,
-    initialize_infrahub_client,
+    InfrahubNodesProcessor,
+    InfrahubclientWrapper,
 )
 
 try:
@@ -278,14 +278,15 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if need_to_load_from_api:
             try:
                 self.display.v("Initializing Infrahub Client")
-                client = initialize_infrahub_client(
+                client = InfrahubclientWrapper(
                     api_endpoint=self.api_endpoint,
                     branch=self.branch,
                     token=self.token,
                     timeout=self.timeout,
                 )
+                processor = InfrahubNodesProcessor(client=client)
                 self.display.v("Processing Nodes request")
-                host_node_attributes = fetch_and_process_nodes(client=client, nodes=self.nodes)
+                host_node_attributes = processor.fetch_and_process(nodes=self.nodes)
             except Exception as exp:
                 raise_from(AnsibleError(str(exp)), exp)
 

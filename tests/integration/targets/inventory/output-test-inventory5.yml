@@ -93,7 +93,7 @@ all:
           - description: null
             name: red
         atl1-edge2:
-          ansible_host: 172.20.20.23/24
+          ansible_host: 172.20.20.22/24
           hostname: atl1-edge2
           interfaces:
           - description: Connected to atl1-edge1 Ethernet1
@@ -171,7 +171,7 @@ all:
           name: atl1-edge2
           platform: ios
           primary_address:
-            address: 172.20.20.23/24
+            address: 172.20.20.22/24
             description: null
           site:
             description: null
@@ -187,7 +187,7 @@ all:
     site_den1:
       hosts:
         den1-edge1:
-          ansible_host: 172.20.20.18/24
+          ansible_host: 172.20.20.20/24
           hostname: den1-edge1
           interfaces:
           - description: Connected to den1-edge2 Ethernet1
@@ -265,7 +265,7 @@ all:
           name: den1-edge1
           platform: eos
           primary_address:
-            address: 172.20.20.18/24
+            address: 172.20.20.20/24
             description: null
           site:
             description: null
@@ -555,7 +555,7 @@ all:
     site_jfk1:
       hosts:
         jfk1-edge1:
-          ansible_host: 172.20.20.19/24
+          ansible_host: 172.20.20.18/24
           hostname: jfk1-edge1
           interfaces:
           - description: Connected to jfk1-edge2 Ethernet1
@@ -633,7 +633,7 @@ all:
           name: jfk1-edge1
           platform: eos
           primary_address:
-            address: 172.20.20.19/24
+            address: 172.20.20.18/24
             description: null
           site:
             description: null
@@ -739,7 +739,7 @@ all:
     site_ord1:
       hosts:
         ord1-edge1:
-          ansible_host: 172.20.20.20/24
+          ansible_host: 172.20.20.19/24
           hostname: ord1-edge1
           interfaces:
           - description: Connected to ord1-edge2 Ethernet1
@@ -817,7 +817,7 @@ all:
           name: ord1-edge1
           platform: eos
           primary_address:
-            address: 172.20.20.20/24
+            address: 172.20.20.19/24
             description: null
           site:
             description: null
@@ -829,7 +829,7 @@ all:
           - description: null
             name: red
         ord1-edge2:
-          ansible_host: 172.20.20.22/24
+          ansible_host: 172.20.20.23/24
           hostname: ord1-edge2
           interfaces:
           - description: Connected to ord1-edge1 Ethernet1
@@ -907,7 +907,7 @@ all:
           name: ord1-edge2
           platform: ios
           primary_address:
-            address: 172.20.20.22/24
+            address: 172.20.20.23/24
             description: null
           site:
             description: null
