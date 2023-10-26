@@ -90,10 +90,10 @@ from ansible.errors import AnsibleError, AnsibleLookupError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
-    InfrahubclientWrapper,
-    InfrahubQueryProcessor,
     HAS_INFRAHUBCLIENT,
     INFRAHUBCLIENT_IMP_ERR,
+    InfrahubclientWrapper,
+    InfrahubQueryProcessor,
 )
 
 

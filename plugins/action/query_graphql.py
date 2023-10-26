@@ -6,16 +6,16 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import os
-from typing import Any, Dict, Optional
+from typing import Dict
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.action import ActionBase
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
-    InfrahubclientWrapper,
-    InfrahubQueryProcessor,
     HAS_INFRAHUBCLIENT,
     INFRAHUBCLIENT_IMP_ERR,
+    InfrahubclientWrapper,
+    InfrahubQueryProcessor,
 )
 
 
@@ -41,7 +41,7 @@ class ActionModule(ActionBase):
                 AnsibleError("infrahub_client must be installed to use this plugin"),
                 INFRAHUBCLIENT_IMP_ERR,
             )
-        
+
         self._supports_check_mode = True
         self._supports_async = True
 

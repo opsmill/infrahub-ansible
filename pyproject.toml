@@ -60,6 +60,51 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+known_first_party = [ "infrahub" , "infrahub_client", "infrahub_ctl" ]
+
+[tool.pylint.general]
+extension-pkg-whitelist = [
+    "pydantic",
+    "ujson",
+]
+
+[tool.pylint.format]
+disable = "logging-fstring-interpolation"
+
+[tool.pylint.basic]
+# No docstrings required for private methods (Pylint default), or for test_ functions.
+no-docstring-rgx="^(_|test_)"
+
+[tool.pylint.messages_control]
+# Line length is enforced by Black, so pylint doesn't need to check it.
+# Pylint and Black disagree about how to format multi-line arrays; Black wins.
+disable = """,
+    line-too-long,
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    consider-using-from-import,
+    invalid-name,
+    too-many-arguments,
+    too-many-locals,
+    keyword-arg-before-vararg,
+    too-few-public-methods,
+    too-many-instance-attributes,
+    fixme,
+    consider-using-f-string,
+    protected-access,
+    import-self,
+    wrong-import-order,
+    """
+
+[tool.pylint.miscellaneous]
+notes = """,
+    FIXME,
+    XXX,
+    """
+
+[tool.pylint.similarities]
+min-similarity-lines = 20
 
 [tool.ruff]
 

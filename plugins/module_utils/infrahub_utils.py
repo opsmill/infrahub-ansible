@@ -20,6 +20,7 @@ try:
         RelationshipCardinality,
         RelationshipKind,
     )
+
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None
 except ImportError:
@@ -27,6 +28,7 @@ except ImportError:
     HAS_INFRAHUBCLIENT = False
 
 if HAS_INFRAHUBCLIENT:
+
     class InfrahubclientWrapper:
         def __init__(self, api_endpoint: str, branch: str, token: str, timeout: int):
             """
@@ -380,12 +382,17 @@ if HAS_INFRAHUBCLIENT:
 
             return results
 
+
 if not HAS_INFRAHUBCLIENT:
+
     class InfrahubclientWrapper:
         pass
+
     class InfrahubclientWrapper:
         pass
+
     class InfrahubNodesProcessor:
         pass
+
     class InfrahubQueryProcessor:
         pass
