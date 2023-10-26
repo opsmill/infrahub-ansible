@@ -92,6 +92,8 @@ from ansible.plugins.lookup import LookupBase
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
+    HAS_INFRAHUBCLIENT,
+    INFRAHUBCLIENT_IMP_ERR,
 )
 
 
@@ -119,10 +121,10 @@ class LookupModule(LookupBase):
         Returns:
             dict: Data returned from Infrahub endpoint
         """
-        if INFRAHUBCLIENT_IMPORT_ERROR:
+        if not HAS_INFRAHUBCLIENT:
             raise_from(
                 AnsibleError("infrahub_client must be installed to use this plugin"),
-                INFRAHUBCLIENT_IMPORT_ERROR,
+                INFRAHUBCLIENT_IMP_ERR,
             )
 
         api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_API")

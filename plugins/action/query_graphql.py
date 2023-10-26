@@ -14,47 +14,9 @@ from ansible.plugins.action import ActionBase
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
+    HAS_INFRAHUBCLIENT,
+    INFRAHUBCLIENT_IMP_ERR,
 )
-
-try:
-    from infrahub_client import InfrahubClientSync
-except ImportError as imp_exc:
-    INFRAHUBCLIENT_IMPORT_ERROR = imp_exc
-else:
-    INFRAHUBCLIENT_IMPORT_ERROR = None
-
-if INFRAHUBCLIENT_IMPORT_ERROR:
-
-    class InfrahubClientSync:
-        pass
-
-
-def infrahub_action_graphql(
-    client: InfrahubClientSync,
-    query: str = None,
-    filters: Optional[Dict[str, str]] = None,
-) -> Optional[Dict[str, Any]]:
-    """
-    Ansible Action module for Infrahub, broken out to assist with testing
-
-    Returns:
-        Optional[Dict[str, Any]]: A dictionary with processed node attributes, or None if no nodes were processed.
-    """
-
-    if query is None:
-        raise AnsibleError("Query parameter was not passed. Please verify that query is passed.")
-    if not isinstance(query, str):
-        raise AnsibleError("Query parameter must be of type Str. Please see docs for examples.")
-    if filters is not None and not isinstance(filters, Dict):
-        raise AnsibleError("Filters parameter must be a list of Dict. Please see docs for examples.")
-
-    # Init API Call
-    # -> "build" infrahub GraphQL request = XX
-    # -> Check GraphQL responses (Exception or Records)
-
-    results = {}
-
-    return results
 
 
 class ActionModule(ActionBase):
@@ -74,6 +36,12 @@ class ActionModule(ActionBase):
             task_vars ([type], optional): [description]. Defaults to None.
         """
 
+        if not HAS_INFRAHUBCLIENT:
+            raise_from(
+                AnsibleError("infrahub_client must be installed to use this plugin"),
+                INFRAHUBCLIENT_IMP_ERR,
+            )
+        
         self._supports_check_mode = True
         self._supports_async = True
 

@@ -154,6 +154,8 @@ from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructa
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
     InfrahubclientWrapper,
     InfrahubNodesProcessor,
+    HAS_INFRAHUBCLIENT,
+    INFRAHUBCLIENT_IMP_ERR,
 )
 
 try:
@@ -267,6 +269,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def main(self):
         """Main function"""
+        if not HAS_INFRAHUBCLIENT:
+            raise_from(
+                AnsibleError("infrahub_client must be installed to use this plugin"),
+                INFRAHUBCLIENT_IMP_ERR,
+            )
+
         try:
             if not self.nodes:
                 raise ValueError("node' is undefined.")
