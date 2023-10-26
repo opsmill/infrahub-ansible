@@ -3,92 +3,18 @@ ci_config: &ci_config
   - ".github/workflows/ci.yml"
   - ".github/file-filters.yml"
 
-development_files: &development_files
-  - "development/**"
-  - "tasks/**"
+ansible_plugins: &ansible_plugins
+  - "plugins/**"
 
-backend_files: &backend_files
-  - "backend/**"
-  - "pyproject.toml"
-  - "poetry.lock"
-
-sdk_files: &sdk_files
-  - "python_sdk/**"
-  - "pyproject.toml"
-  - "poetry.lock"
-
-nornir_files: &nornir_files
-  - "nornir_plugin/**"
-  - "pyproject.toml"
-  - "poetry.lock"
-
-sync_files: &sync_files
-  - "sync/**"
-  - "pyproject.toml"
-  - "poetry.lock"
-
-ctl_files: &ctl_files
-  - "ctl/**"
-  - "pyproject.toml"
-  - "poetry.lock"
-
-frontend_files: &frontend_files
-  - "frontend/**"
-
-demo_files: &demo_files
-  - "models/**"
+ansible_docs: &ansible_docs
+  - "ansible_docs/**"
 
 python_all: &python_all
   - "**/*.py"
 
-javascript_all: &javascript_all
-  - "**/*.[tj]{s,sx}"
-
 yaml_all: &yaml_all
   - "**/*.{yml,yaml}"
 
-backend_all:
-  - *sdk_files
-  - *backend_files
-  - *ci_config
-  - *development_files
-
-sdk_all:
-  - *sdk_files
-  - *backend_files
-  - *ci_config
-  - *development_files
-
-nornir_all:
-  - *nornir_files
-  - *sdk_files
-  - *backend_files
-  - *ci_config
-  - *development_files
-
-sync_all:
-  - *sync_files
-  - *sdk_files
-  - *backend_files
-  - *ci_config
-  - *development_files
-
-ctl_all:
-  - *sdk_files
-  - *backend_files
-  - *ctl_files
-  - *ci_config
-  - *development_files
-
-frontend_all:
-  - *frontend_files
-  - *ci_config
-  - *development_files
-
-e2e_all:
-  - *sdk_files
-  - *backend_files
-  - *frontend_files
-  - *demo_files
-  - *ci_config
-  - *development_files
+ansible_all:
+  - *ansible_plugins
+  - *ansible_docs
