@@ -1,7 +1,7 @@
 ---
 # yamllint disable rule:truthy rule:truthy rule:line-length
 name: "tests"
-on:  #yamllint disable
+on:  # yamllint disable
   workflow_call:
     inputs:
       runs-on:
