@@ -11,5 +11,3 @@ on: # yamllint disable
 jobs:
   tests:
     uses: ./.github/workflows/tests.yml
-    with:
-      full-integration: false
