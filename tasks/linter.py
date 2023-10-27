@@ -6,8 +6,20 @@ MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-LINT"
 
 
+@task(name="format")
+def format_all(context: Context):
+    """This will run all formatter."""
+
+    format_isort(context)
+    format_autoflake(context)
+    format_black(context)
+    format_yaml(context)
+
+    print(f" - [{NAMESPACE}] All formatters have been executed!")
+
+
 # ----------------------------------------------------------------------------
-# Formatting tasks
+# Formatting tasks - Python
 # ----------------------------------------------------------------------------
 @task
 def format_black(context: Context):
@@ -39,12 +51,14 @@ def format_isort(context: Context):
         context.run(exec_cmd)
 
 
-@task(name="format")
-def format_all(context: Context):
-    """This will run all formatter."""
+# ----------------------------------------------------------------------------
+# Formatting tasks - Yaml
+# ----------------------------------------------------------------------------
 
-    format_isort(context)
-    format_autoflake(context)
-    format_black(context)
 
-    print(f" - [{NAMESPACE}] All formatters have been executed!")
+@task
+def format_yaml(context: Context):
+    """This will run yamllint to validate formatting of all yaml files."""
+
+    exec_cmd = "yamllint ."
+    context.run(exec_cmd, pty=True)
