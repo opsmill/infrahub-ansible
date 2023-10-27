@@ -378,8 +378,11 @@ if HAS_INFRAHUBCLIENT:
                 query_str = self.client._render_query(query=query)
             elif isinstance(query, str):
                 query_str = query
-            results = self.client.execute_graphql(query=query_str, variables=variables)
-
+            response = self.client.execute_graphql(query=query_str, variables=variables)
+            results = []
+            for node in response[schema.kind]["edges"]:
+                # TODO build all_nodes
+                pass
             return results
 
 
