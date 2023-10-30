@@ -5,6 +5,7 @@ from .utils import ESCAPED_REPO_PATH
 MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-DOCS"
 
+
 # ----------------------------------------------------------------------------
 # Documentation tasks
 # ----------------------------------------------------------------------------

@@ -114,7 +114,7 @@ class LookupModule(LookupBase):
             dict: Data returned from Infrahub endpoint
         """
         if not HAS_INFRAHUBCLIENT:
-            raise(AnsibleError("infrahub_client must be installed to use this plugin"))
+            raise (AnsibleError("infrahub_client must be installed to use this plugin"))
 
         api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_API")
         token = kwargs.get("token") or os.getenv("INFRAHUB_TOKEN")
@@ -132,7 +132,6 @@ class LookupModule(LookupBase):
         timeout = kwargs.get("timeout", 10)
         branch = kwargs.get("branch", "main")
 
-        print(f"DEBUG_terms={terms}")
         query_str = terms[0]
         if query_str is None:
             raise AnsibleLookupError("Query parameter was not passed")
@@ -154,6 +153,6 @@ class LookupModule(LookupBase):
             self.display.v("Processing Query")
             results = processor.fetch_and_process(query=query_str, variables=graph_variables)
         except Exception as exp:
-            raise(AnsibleLookupError(str(exp)))
+            raise (AnsibleLookupError(str(exp)))
 
         return results

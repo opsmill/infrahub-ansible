@@ -268,13 +268,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def main(self):
         """Main function"""
         if not HAS_INFRAHUBCLIENT:
-            raise(AnsibleError("infrahub_client must be installed to use this plugin"))
+            raise (AnsibleError("infrahub_client must be installed to use this plugin"))
 
         try:
             if not self.nodes:
                 raise ValueError("node' is undefined.")
         except ValueError as exp:
-            raise(AnsibleError(str(exp)))
+            raise (AnsibleError(str(exp)))
 
         host_node_attributes, need_to_load_from_api = self._fetch_from_cache()
 
@@ -291,7 +291,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 self.display.v("Processing Nodes request")
                 host_node_attributes = processor.fetch_and_process(nodes=self.nodes)
             except Exception as exp:
-                raise(AnsibleError(str(exp)))
+                raise (AnsibleError(str(exp)))
 
         if not host_node_attributes:
             self.display.v("No nodes processed.")

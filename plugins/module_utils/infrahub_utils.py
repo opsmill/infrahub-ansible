@@ -20,6 +20,7 @@ try:
         RelationshipCardinality,
         RelationshipKind,
     )
+
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None
 except ImportError:
