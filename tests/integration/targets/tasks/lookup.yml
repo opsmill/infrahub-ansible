@@ -2,6 +2,8 @@
 - name: Infrahub lookup
   gather_facts: no
   hosts: localhost
+  vars:
+    ansible_python_interpreter: /Users/bkohler/.pyenv/versions/3.11.4/envs/infrahub-3.11/bin/python
 
   tasks:
     - name: SET FACT OF STRING

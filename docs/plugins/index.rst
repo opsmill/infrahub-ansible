@@ -1,8 +1,5 @@
 
 
-.. meta::
-  :antsibull-docs: 2.5.0
-
 
 .. _plugins_in_infrahub.infrahub:
 
@@ -28,15 +25,12 @@ This is a collection of Infrahub Ansible modules
 
 * 2.9.10 or newer
 
-.. ansible-links::
+.. raw:: html
 
-  - title: "Issue Tracker"
-    url: "https://github.com/opsmill/infrahub-ansible/issues"
-    external: true
-  - title: "Repository (Sources)"
-    url: "https://github.com/opsmill/infrahub-ansible"
-    external: true
-
+  <p class="ansible-links">
+    <a href="https://github.com/opsmill/infrahub-ansible/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
+    <a href="https://github.com/opsmill/infrahub-ansible" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
+  </p>
 
 
 
@@ -53,7 +47,7 @@ These are the plugins in the infrahub.infrahub collection:
 Modules
 ~~~~~~~
 
-* :ansplugin:`query_graphql module <infrahub.infrahub.query_graphql#module>` -- Queries and returns elements from Infrahub GraphQL API
+* :ref:`query_graphql module <ansible_collections.infrahub.infrahub.query_graphql_module>` -- Queries and returns elements from Infrahub GraphQL API
 
 .. toctree::
     :maxdepth: 1
@@ -65,7 +59,7 @@ Modules
 Inventory Plugins
 ~~~~~~~~~~~~~~~~~
 
-* :ansplugin:`inventory inventory <infrahub.infrahub.inventory#inventory>` -- Infrahub inventory source (using GraphQL)
+* :ref:`inventory inventory <ansible_collections.infrahub.infrahub.inventory_inventory>` -- Infrahub inventory source (using GraphQL)
 
 .. toctree::
     :maxdepth: 1
@@ -77,7 +71,7 @@ Inventory Plugins
 Lookup Plugins
 ~~~~~~~~~~~~~~
 
-* :ansplugin:`lookup lookup <infrahub.infrahub.lookup#lookup>` -- Queries and returns elements from Infrahub (using GraphQL)
+* :ref:`lookup lookup <ansible_collections.infrahub.infrahub.lookup_lookup>` -- Queries and returns elements from Infrahub (using GraphQL)
 
 .. toctree::
     :maxdepth: 1

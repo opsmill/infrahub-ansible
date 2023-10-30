@@ -33,7 +33,7 @@ sphinx_rtd_theme = "*"
 hypothesis = "^6.8.0"
 pytest-pythonpath = "^0.7.3"
 parameterized = "^0.8.1"
-invoke = "^1.6.0"
+invoke = "^2.2.0"
 bandit = "^1.7.0"
 antsibull-docs = "^1.7.3"
 infrahub = { path = "../infrahub/" }
