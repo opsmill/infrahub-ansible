@@ -167,17 +167,17 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-filters"></div>
+        <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-filters:
+      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-graph_variables:
 
       .. rst-class:: ansible-option-title
 
-      **filters**
+      **graph_variables**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-filters" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-graph_variables" title="Permalink to this option"></a>
 
       .. ansible-option-type-line::
 
@@ -235,7 +235,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      GraphQL query parameters or filters to send to Infrahub to obtain desired data
+      GraphQL query to send to Infrahub to obtain desired data
 
 
       .. raw:: html

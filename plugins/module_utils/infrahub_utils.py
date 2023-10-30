@@ -20,12 +20,13 @@ try:
         RelationshipCardinality,
         RelationshipKind,
     )
-
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None
 except ImportError:
     INFRAHUBCLIENT_IMP_ERR = traceback.format_exc()
     HAS_INFRAHUBCLIENT = False
+else:
+    HAS_INFRAHUBCLIENT = True
 
 if HAS_INFRAHUBCLIENT:
 
@@ -367,6 +368,7 @@ if HAS_INFRAHUBCLIENT:
 
             Parameters:
                 query (str): A GraphQL formatted query string
+                variables (Optional[Dict[str, Any]]): A dictionaries of variables to use with the query
 
             Returns:
                 Optional[Dict[str, Any]]: A dictionary with processed host node attributes, or None if no nodes were processed.
@@ -380,9 +382,9 @@ if HAS_INFRAHUBCLIENT:
                 query_str = query
             response = self.client.execute_graphql(query=query_str, variables=variables)
             results = []
-            for node in response[schema.kind]["edges"]:
-                # TODO build all_nodes
-                pass
+            for kind in response:
+                if response[kind]["edges"]:
+                    results += response[kind]["edges"]
             return results
 
 

@@ -1,0 +1,23 @@
+---
+- name: Infrahub lookup
+  gather_facts: no
+  hosts: localhost
+
+  tasks:
+    - name: SET FACT OF STRING
+      set_fact:
+        query_string: |
+          query {
+            location {
+              id
+              name
+            }
+          }
+
+    - name: Obtain list of sites from Infrahub
+      set_fact:
+        query_response: "{{ query('infrahub.infrahub.lookup', query=query_string) }}"
+    
+    - name: Print result
+      debug:
+        msg: "{{ query_response }}"

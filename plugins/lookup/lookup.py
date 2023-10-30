@@ -36,9 +36,9 @@ DOCUMENTATION = """
         query:
             required: True
             description:
-                - GraphQL query parameters or filters to send to Infrahub to obtain desired data
+                - GraphQL query to send to Infrahub to obtain desired data
             type: str
-        filters:
+        graph_variables:
             description:
                 - Dictionary of keys/values to pass into the GraphQL query
             required: False
@@ -87,11 +87,9 @@ import os
 from typing import Dict
 
 from ansible.errors import AnsibleError, AnsibleLookupError
-from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
-    INFRAHUBCLIENT_IMP_ERR,
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
 )
@@ -105,14 +103,8 @@ class LookupModule(LookupBase):
         LookupBase (LookupBase): Ansible Lookup Plugin
     """
 
-    def run(self, terms, variables=None, filters=None, **kwargs):
+    def run(self, terms, variables=None, graph_variables=None, **kwargs):
         """Runs Ansible Lookup Plugin for using Infrahub GraphQL endpoint
-
-        Parameters:
-            terms
-            variables
-            filters
-            kwargs
 
         Raises:
             AnsibleLookupError: Error in data loaded into the plugin
@@ -122,10 +114,7 @@ class LookupModule(LookupBase):
             dict: Data returned from Infrahub endpoint
         """
         if not HAS_INFRAHUBCLIENT:
-            raise_from(
-                AnsibleError("infrahub_client must be installed to use this plugin"),
-                INFRAHUBCLIENT_IMP_ERR,
-            )
+            raise(AnsibleError("infrahub_client must be installed to use this plugin"))
 
         api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_API")
         token = kwargs.get("token") or os.getenv("INFRAHUB_TOKEN")
@@ -143,13 +132,14 @@ class LookupModule(LookupBase):
         timeout = kwargs.get("timeout", 10)
         branch = kwargs.get("branch", "main")
 
+        print(f"DEBUG_terms={terms}")
         query_str = terms[0]
         if query_str is None:
             raise AnsibleLookupError("Query parameter was not passed")
         if not isinstance(query_str, str):
             raise AnsibleLookupError("Query parameter must be of type Str")
-        if filters is not None and not isinstance(filters, Dict):
-            raise AnsibleLookupError("Filters parameter must be a list of Dict")
+        if graph_variables is not None and not isinstance(graph_variables, Dict):
+            raise AnsibleLookupError("graph_variables parameter must be a list of Dict")
 
         results = {}
         try:
@@ -162,8 +152,8 @@ class LookupModule(LookupBase):
             )
             processor = InfrahubQueryProcessor(client=client)
             self.display.v("Processing Query")
-            results = processor.fetch_and_process(query=query_str, variables=filters)
+            results = processor.fetch_and_process(query=query_str, variables=graph_variables)
         except Exception as exp:
-            raise_from(AnsibleLookupError(str(exp)), exp)
+            raise(AnsibleLookupError(str(exp)))
 
         return results

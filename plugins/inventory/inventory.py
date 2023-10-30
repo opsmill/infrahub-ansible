@@ -149,11 +149,9 @@ from typing import Any, Dict, Optional, Tuple
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
-from ansible.module_utils.six import raise_from
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
 from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
-    INFRAHUBCLIENT_IMP_ERR,
     InfrahubclientWrapper,
     InfrahubNodesProcessor,
 )
@@ -270,16 +268,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def main(self):
         """Main function"""
         if not HAS_INFRAHUBCLIENT:
-            raise_from(
-                AnsibleError("infrahub_client must be installed to use this plugin"),
-                INFRAHUBCLIENT_IMP_ERR,
-            )
+            raise(AnsibleError("infrahub_client must be installed to use this plugin"))
 
         try:
             if not self.nodes:
                 raise ValueError("node' is undefined.")
         except ValueError as exp:
-            raise_from(AnsibleError(str(exp)), exp)
+            raise(AnsibleError(str(exp)))
 
         host_node_attributes, need_to_load_from_api = self._fetch_from_cache()
 
@@ -296,7 +291,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 self.display.v("Processing Nodes request")
                 host_node_attributes = processor.fetch_and_process(nodes=self.nodes)
             except Exception as exp:
-                raise_from(AnsibleError(str(exp)), exp)
+                raise(AnsibleError(str(exp)))
 
         if not host_node_attributes:
             self.display.v("No nodes processed.")
