@@ -36,7 +36,7 @@ parameterized = "^0.8.1"
 invoke = "^2.2.0"
 bandit = "^1.7.0"
 antsibull-docs = "^1.7.3"
-infrahub = { path = "../infrahub/" }
+infrahub_sdk = "^0.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -60,7 +60,7 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
-known_first_party = [ "infrahub" , "infrahub_client", "infrahub_ctl" ]
+known_first_party = [ "infrahub_sdk" ]
 
 [tool.pylint.general]
 extension-pkg-whitelist = [

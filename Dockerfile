@@ -30,8 +30,6 @@ RUN poetry config virtualenvs.create false
 # Bring in Poetry related files needed for other stages
 COPY pyproject.toml poetry.lock ./
 
-COPY ./infrahub/ /usr/src/infrahub
-
 RUN poetry install --no-interaction --no-ansi --no-root
 
 # Copy in the application source and everything not explicitly banned by .dockerignore

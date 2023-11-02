@@ -72,7 +72,7 @@ EXAMPLES = """
   # Make query to GraphQL Endpoint
   - name: Obtain list of sites from Infrahub
     set_fact:
-      query_response: "{{ query('infrahub.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
+      query_response: "{{ query('opsmill.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
 """
 
 RETURN = """
@@ -87,9 +87,12 @@ import os
 from typing import Dict
 
 from ansible.errors import AnsibleError, AnsibleLookupError
+from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
-from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
+from ansible.utils.display import Display
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
+    INFRAHUBCLIENT_IMP_ERR,
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
 )
@@ -103,7 +106,7 @@ class LookupModule(LookupBase):
         LookupBase (LookupBase): Ansible Lookup Plugin
     """
 
-    def run(self, terms, variables=None, graph_variables=None, **kwargs):
+    def run(self, terms, variables=None, query=None, graph_variables=None, **kwargs):
         """Runs Ansible Lookup Plugin for using Infrahub GraphQL endpoint
 
         Raises:
@@ -114,7 +117,7 @@ class LookupModule(LookupBase):
             dict: Data returned from Infrahub endpoint
         """
         if not HAS_INFRAHUBCLIENT:
-            raise (AnsibleError("infrahub_client must be installed to use this plugin"))
+            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
 
         api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_API")
         token = kwargs.get("token") or os.getenv("INFRAHUB_TOKEN")
@@ -132,17 +135,19 @@ class LookupModule(LookupBase):
         timeout = kwargs.get("timeout", 10)
         branch = kwargs.get("branch", "main")
 
-        query_str = terms[0]
-        if query_str is None:
+        if query is None:
             raise AnsibleLookupError("Query parameter was not passed")
-        if not isinstance(query_str, str):
-            raise AnsibleLookupError("Query parameter must be of type Str")
-        if graph_variables is not None and not isinstance(graph_variables, Dict):
-            raise AnsibleLookupError("graph_variables parameter must be a list of Dict")
+        if isinstance(query, str) or isinstance(query, Dict):
+            graphql_query = query
+        else:
+            raise AnsibleLookupError("Query parameter must be either a string or a Dictionary")
+        if graph_variables is not None:
+            if not isinstance(graph_variables, Dict):
+                raise AnsibleLookupError("graph_variables parameter must be a list of Dict")
 
         results = {}
         try:
-            self.display.v("Initializing Infrahub Client")
+            Display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
                 api_endpoint=api_endpoint,
                 token=token,
@@ -150,9 +155,10 @@ class LookupModule(LookupBase):
                 timeout=timeout,
             )
             processor = InfrahubQueryProcessor(client=client)
-            self.display.v("Processing Query")
-            results = processor.fetch_and_process(query=query_str, variables=graph_variables)
+            Display().v("Processing Query")
+            results = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
+
         except Exception as exp:
-            raise (AnsibleLookupError(str(exp)))
+            raise_from(AnsibleError(str(exp)), exp)
 
         return results

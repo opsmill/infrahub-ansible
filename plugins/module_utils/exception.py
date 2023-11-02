@@ -8,7 +8,7 @@ __metaclass__ = type
 
 
 try:
-    from infrahub_client.exceptions import (
+    from infrahub_sdk.exceptions import (
         FilterNotFound,
         GraphQLError,
         SchemaNotFound,
@@ -38,7 +38,8 @@ def handle_infrahub_exceptions(func):
         except GraphQLError:
             raise Exception("Database not Responsive")
         except SchemaNotFound:
-            pass  # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
+            raise Exception("Schema not Found")
+            # pass  # until we are able to return Generics Schema and Core Schema https://github.com/opsmill/infrahub/issues/1217
         except FilterNotFound:
             raise Exception(f"Filters not Found {kwargs}")
         except ServerNotReacheableError:

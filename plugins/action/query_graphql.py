@@ -11,7 +11,7 @@ from typing import Dict
 from ansible.errors import AnsibleError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.action import ActionBase
-from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
     INFRAHUBCLIENT_IMP_ERR,
     InfrahubclientWrapper,
@@ -37,10 +37,7 @@ class ActionModule(ActionBase):
         """
 
         if not HAS_INFRAHUBCLIENT:
-            raise_from(
-                AnsibleError("infrahub_client must be installed to use this plugin"),
-                INFRAHUBCLIENT_IMP_ERR,
-            )
+            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
 
         self._supports_check_mode = True
         self._supports_async = True

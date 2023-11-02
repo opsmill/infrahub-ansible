@@ -26,7 +26,7 @@
 
 .. Anchors
 
-.. _ansible_collections.infrahub.infrahub.lookup_lookup:
+.. _ansible_collections.opsmill.infrahub.lookup_lookup:
 
 .. Anchors: short name for ansible.builtin
 
@@ -36,17 +36,17 @@
 
 .. Title
 
-infrahub.infrahub.lookup lookup -- Queries and returns elements from Infrahub (using GraphQL)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+opsmill.infrahub.lookup lookup -- Queries and returns elements from Infrahub (using GraphQL)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This lookup plugin is part of the `infrahub.infrahub collection <https://galaxy.ansible.com/infrahub/infrahub>`_ (version 0.0.1).
+    This lookup plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.1).
 
-    To install it, use: :code:`ansible-galaxy collection install infrahub.infrahub`.
+    To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
 
-    To use it in a playbook, specify: :code:`infrahub.infrahub.lookup`.
+    To use it in a playbook, specify: :code:`opsmill.infrahub.lookup`.
 
 .. version_added
 
@@ -82,7 +82,7 @@ Keyword parameters
 ------------------
 
 This describes keyword parameters of the lookup. These are the values ``key1=value1``, ``key2=value2`` and so on in the following
-examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` and ``query('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)``
+examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` and ``query('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)``
 
 .. rst-class:: ansible-option-table
 
@@ -99,7 +99,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_endpoint"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-api_endpoint:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-api_endpoint:
 
       .. rst-class:: ansible-option-title
 
@@ -143,7 +143,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-branch"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-branch:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-branch:
 
       .. rst-class:: ansible-option-title
 
@@ -184,7 +184,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-graph_variables:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-graph_variables:
 
       .. rst-class:: ansible-option-title
 
@@ -225,7 +225,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-query"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-query:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-query:
 
       .. rst-class:: ansible-option-title
 
@@ -262,7 +262,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-timeout:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-timeout:
 
       .. rst-class:: ansible-option-title
 
@@ -303,7 +303,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-token:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-token:
 
       .. rst-class:: ansible-option-title
 
@@ -347,7 +347,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-validate_certs:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-validate_certs:
 
       .. rst-class:: ansible-option-title
 
@@ -443,7 +443,7 @@ Return Value
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-data"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__return-data:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__return-data:
 
       .. rst-class:: ansible-option-title
 

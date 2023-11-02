@@ -19,9 +19,9 @@ DOCUMENTATION = """
     options:
         plugin:
             description:
-                - token that ensures this is a source file for the 'infrahub.infrahub' plugin.
+                - token that ensures this is a source file for the 'opsmill.infrahub' plugin.
             required: True
-            choices: ['infrahub.infrahub.inventory']
+            choices: ['opsmill.infrahub.inventory']
         api_endpoint:
             description: Endpoint of the Infrahub API
             required: True
@@ -101,7 +101,7 @@ EXAMPLES = """
 # Add -vvvv to the command to also see the JSON response that comes back in the debug output.
 
 # Minimum required parameters
-plugin: infrahub.infrahub.inventory
+plugin: opsmill.infrahub.inventory
 api_endpoint: http://localhost:8000  # Can be omitted if the INFRAHUB_API environment variable is set
 token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN environment variable is set
 
@@ -112,7 +112,7 @@ token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN envi
 # - Create 2 compose variable "hostname" ad "platform" (platform will override the attribute platform retrieved)
 # - Create group based on the "site" name
 
-plugin: infrahub.infrahub.inventory
+plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 validate_certs: True
 
@@ -148,10 +148,12 @@ import json
 from typing import Any, Dict, Optional, Tuple
 
 from ansible.errors import AnsibleError
+from ansible.module_utils.six import raise_from
 from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
-from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
+    INFRAHUBCLIENT_IMP_ERR,
     InfrahubclientWrapper,
     InfrahubNodesProcessor,
 )
@@ -165,7 +167,7 @@ else:
 
 
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
-    NAME = "infrahub.infrahub.inventory"
+    NAME = "opsmill.infrahub.inventory"
 
     def verify_file(self, path: str) -> bool:
         """
@@ -268,7 +270,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def main(self):
         """Main function"""
         if not HAS_INFRAHUBCLIENT:
-            raise (AnsibleError("infrahub_client must be installed to use this plugin"))
+            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
 
         try:
             if not self.nodes:
@@ -291,7 +293,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 self.display.v("Processing Nodes request")
                 host_node_attributes = processor.fetch_and_process(nodes=self.nodes)
             except Exception as exp:
-                raise (AnsibleError(str(exp)))
+                raise_from(AnsibleError(str(exp)), exp)
 
         if not host_node_attributes:
             self.display.v("No nodes processed.")

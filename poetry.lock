@@ -1066,31 +1066,29 @@ docs = ["jaraco.packaging (>=8.2)", "rst.linker (>=1.9)", "sphinx"]
 testing = ["pytest (>=3.5,!=3.7.3)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=1.2.3)", "pytest-cov", "pytest-enabler", "pytest-flake8", "pytest-mypy"]
 
 [[package]]
-name = "infrahub"
-version = "0.7.2"
-description = ""
+name = "infrahub-sdk"
+version = "0.2.0"
+description = "Python Client to interact with Infrahub"
 optional = false
-python-versions = "^3.8, < 3.12"
-files = []
-develop = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "infrahub_sdk-0.2.0-py3-none-any.whl", hash = "sha256:7a57f44a0a0a10eef20e5c5dbbce24645646bcf12dfb02cb8a16da4a0aa269f0"},
+    {file = "infrahub_sdk-0.2.0.tar.gz", hash = "sha256:a9dcb34b474b0555b3c15ee4d780f8cc44d2522233dcd42a0621b6160b071d16"},
+]
 
 [package.dependencies]
-deepdiff = "^6.2"
+deepdiff = ">=6.2,<7.0"
 gitpython = "3.1.40"
-httpx = "^0.24"
-Jinja2 = "^3.1"
-jsonlines = "^3.1"
-pendulum = "~2.1"
-pydantic = "^1.10"
-pyyaml = "^6.0"
-rich = "^13.3"
-toml = "^0.10.2"
-typer = "^0.7"
-ujson = "^5.7"
-
-[package.source]
-type = "directory"
-url = "../infrahub"
+httpx = ">=0.24.0,<0.25.0"
+Jinja2 = ">=3.1,<4.0"
+jsonlines = ">=3.1,<4.0"
+pendulum = ">=2.1,<2.2"
+pydantic = ">=1.10,<2.0"
+pyyaml = ">=6.0,<7.0"
+rich = ">=13.3,<14.0"
+toml = ">=0.10.2,<0.11.0"
+typer = ">=0.7,<0.8"
+ujson = ">=5.7,<6.0"
 
 [[package]]
 name = "iniconfig"
@@ -2603,4 +2601,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "d5f11e87b94fe66724926bfb64c63329f7341c251ba5980127a91694bf6208b0"
+content-hash = "c855143394a822c0c0a42c0ad8e12000d625f131c19e9c2749e72ed15bd55aec"

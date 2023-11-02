@@ -26,7 +26,7 @@
 
 .. Anchors
 
-.. _ansible_collections.infrahub.infrahub.query_graphql_module:
+.. _ansible_collections.opsmill.infrahub.query_graphql_module:
 
 .. Anchors: short name for ansible.builtin
 
@@ -36,25 +36,25 @@
 
 .. Title
 
-infrahub.infrahub.query_graphql module -- Queries and returns elements from Infrahub GraphQL API
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+opsmill.infrahub.query_graphql module -- Queries and returns elements from Infrahub GraphQL API
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This module is part of the `infrahub.infrahub collection <https://galaxy.ansible.com/infrahub/infrahub>`_ (version 0.0.1).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.1).
 
-    To install it, use: :code:`ansible-galaxy collection install infrahub.infrahub`.
+    To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
     You need further requirements to be able to use this module,
-    see :ref:`Requirements <ansible_collections.infrahub.infrahub.query_graphql_module_requirements>` for details.
+    see :ref:`Requirements <ansible_collections.opsmill.infrahub.query_graphql_module_requirements>` for details.
 
-    To use it in a playbook, specify: :code:`infrahub.infrahub.query_graphql`.
+    To use it in a playbook, specify: :code:`opsmill.infrahub.query_graphql`.
 
 .. version_added
 
 .. rst-class:: ansible-version-added
 
-New in infrahub.infrahub 0.0.1
+New in opsmill.infrahub 0.0.1
 
 .. contents::
    :local:
@@ -78,7 +78,7 @@ Synopsis
 
 .. Requirements
 
-.. _ansible_collections.infrahub.infrahub.query_graphql_module_requirements:
+.. _ansible_collections.opsmill.infrahub.query_graphql_module_requirements:
 
 Requirements
 ------------
@@ -111,7 +111,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_endpoint"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-api_endpoint:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-api_endpoint:
 
       .. rst-class:: ansible-option-title
 
@@ -145,7 +145,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-branch"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-branch:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-branch:
 
       .. rst-class:: ansible-option-title
 
@@ -183,7 +183,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-filters"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-filters:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-filters:
 
       .. rst-class:: ansible-option-title
 
@@ -221,7 +221,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-query"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-query:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-query:
 
       .. rst-class:: ansible-option-title
 
@@ -255,7 +255,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-timeout:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-timeout:
 
       .. rst-class:: ansible-option-title
 
@@ -293,7 +293,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-token:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-token:
 
       .. rst-class:: ansible-option-title
 
@@ -327,7 +327,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-validate_certs:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-validate_certs:
 
       .. rst-class:: ansible-option-title
 
@@ -410,7 +410,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-data"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__return-data:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__return-data:
 
       .. rst-class:: ansible-option-title
 

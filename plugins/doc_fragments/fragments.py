@@ -10,7 +10,7 @@ __metaclass__ = type
 class ModuleDocFragment(object):
     BASE = r"""
 requirements:
-  - infrahub_client
+  - infrahub_sdk
 options:
   api_endpoint:
     description: Endpoint of the Infrahub API

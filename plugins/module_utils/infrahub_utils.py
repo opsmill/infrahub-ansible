@@ -5,17 +5,16 @@ __metaclass__ = type
 import traceback
 from typing import Any, Dict, List, Optional, Union
 
-from ansible_collections.infrahub.infrahub.plugins.module_utils.exception import (
+from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import (
     handle_infrahub_exceptions,
 )
 
 try:
-    from infrahub_client import Config, InfrahubClientSync
-    from infrahub_client.branch import InfrahubBranchManagerSync
-    from infrahub_client.data import BranchData
-    from infrahub_client.graphql import Query
-    from infrahub_client.node import InfrahubNodeSync
-    from infrahub_client.schema import (
+    from infrahub_sdk import Config, InfrahubClientSync
+    from infrahub_sdk.branch import BranchData, InfrahubBranchManagerSync
+    from infrahub_sdk.graphql import Query
+    from infrahub_sdk.node import InfrahubNodeSync
+    from infrahub_sdk.schema import (
         NodeSchema,
         RelationshipCardinality,
         RelationshipKind,
@@ -150,7 +149,7 @@ if HAS_INFRAHUBCLIENT:
             """
             return Query(query=query, variables=variables).render()
 
-        @handle_infrahub_exceptions
+        # @handle_infrahub_exceptions
         def execute_graphql(
             self, query: str, variables: Optional[Dict[str, Any]] = None, branch: Optional[str] = None
         ) -> Dict:
@@ -165,7 +164,9 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 Dict: The result of the executed GraphQL query.
             """
-            return self.client.execute_graphql(query=query, branch=branch)
+            # TODO :  Do something wit the variables ?
+            response = self.client.execute_graphql(query=query, variables=variables, branch_name=branch)
+            return response
 
     class InfrahubBaseProcessor:
         def __init__(self, client: InfrahubclientWrapper):
@@ -376,13 +377,17 @@ if HAS_INFRAHUBCLIENT:
             """
             if not query:
                 return None
-
+            
+            results = []
             if isinstance(query, Dict):
-                query_str = self.client._render_query(query=query)
+                query_str = self.client._render_query(query=query, variables=variables)
+
             elif isinstance(query, str):
                 query_str = query
+            else:
+                return results
+
             response = self.client.execute_graphql(query=query_str, variables=variables)
-            results = []
             for kind in response:
                 if response[kind]["edges"]:
                     results += response[kind]["edges"]

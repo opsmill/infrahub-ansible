@@ -1,10 +1,10 @@
 
 
 
-.. _plugins_in_infrahub.infrahub:
+.. _plugins_in_opsmill.infrahub:
 
-Infrahub.Infrahub
-=================
+Opsmill.Infrahub
+================
 
 Collection version 0.0.1
 
@@ -41,13 +41,13 @@ This is a collection of Infrahub Ansible modules
 Plugin Index
 ------------
 
-These are the plugins in the infrahub.infrahub collection:
+These are the plugins in the opsmill.infrahub collection:
 
 
 Modules
 ~~~~~~~
 
-* :ref:`query_graphql module <ansible_collections.infrahub.infrahub.query_graphql_module>` -- Queries and returns elements from Infrahub GraphQL API
+* :ref:`query_graphql module <ansible_collections.opsmill.infrahub.query_graphql_module>` -- Queries and returns elements from Infrahub GraphQL API
 
 .. toctree::
     :maxdepth: 1
@@ -59,7 +59,7 @@ Modules
 Inventory Plugins
 ~~~~~~~~~~~~~~~~~
 
-* :ref:`inventory inventory <ansible_collections.infrahub.infrahub.inventory_inventory>` -- Infrahub inventory source (using GraphQL)
+* :ref:`inventory inventory <ansible_collections.opsmill.infrahub.inventory_inventory>` -- Infrahub inventory source (using GraphQL)
 
 .. toctree::
     :maxdepth: 1
@@ -71,7 +71,7 @@ Inventory Plugins
 Lookup Plugins
 ~~~~~~~~~~~~~~
 
-* :ref:`lookup lookup <ansible_collections.infrahub.infrahub.lookup_lookup>` -- Queries and returns elements from Infrahub (using GraphQL)
+* :ref:`lookup lookup <ansible_collections.opsmill.infrahub.lookup_lookup>` -- Queries and returns elements from Infrahub (using GraphQL)
 
 .. toctree::
     :maxdepth: 1
