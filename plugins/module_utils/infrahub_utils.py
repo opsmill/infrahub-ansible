@@ -388,7 +388,6 @@ if HAS_INFRAHUBCLIENT:
                 return results
 
             response = self.client.execute_graphql(query=query_str, variables=variables)
-            print(f"response={response}")
             for kind in response:
                 if response[kind]["edges"]:
                     results += response[kind]["edges"]
