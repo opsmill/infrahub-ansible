@@ -10,7 +10,7 @@
           $location_name: jfk1
         query_string: |
           query ($location_name: String!) {
-            BuiltinLocation (name: $location_name) {
+            BuiltinLocation (name__value: $location_name) {
               edges {
                 node {
                   name {
@@ -24,4 +24,5 @@
     - name: Action Plugin
       opsmill.infrahub.query_graphql:
         query: "{{ query_string}}"
+        graph_variables: "{{ graph_variables }}"
         update_hostvars: yes

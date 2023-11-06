@@ -23,7 +23,7 @@
             edges:
               node:
                 name:
-                  value: None
+                  value:
   
     - name: Obtain list of sites from Infrahub
       set_fact:
