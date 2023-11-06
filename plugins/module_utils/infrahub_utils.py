@@ -31,7 +31,7 @@ else:
 if HAS_INFRAHUBCLIENT:
 
     class InfrahubclientWrapper:
-        def __init__(self, api_endpoint: str, branch: str, token: str, timeout: int):
+        def __init__(self, api_endpoint: str, branch: str, token: str, timeout: Optional[int] = 10):
             """
             Initializes InfrahubclientWrapper.
 
@@ -388,6 +388,7 @@ if HAS_INFRAHUBCLIENT:
                 return results
 
             response = self.client.execute_graphql(query=query_str, variables=variables)
+            print(f"response={response}")
             for kind in response:
                 if response[kind]["edges"]:
                     results += response[kind]["edges"]

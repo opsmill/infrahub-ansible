@@ -11,6 +11,7 @@ from typing import Dict
 from ansible.errors import AnsibleError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.action import ActionBase
+from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
     INFRAHUBCLIENT_IMP_ERR,
@@ -50,7 +51,7 @@ class ActionModule(ActionBase):
 
         if result.get("invocation", {}).get("module_args"):
             del result["invocation"]["module_args"]
-
+ 
         args = self._task.args
 
         api_endpoint = args.get("api_endpoint") or os.getenv("INFRAHUB_API")
@@ -69,18 +70,22 @@ class ActionModule(ActionBase):
         timeout = args.get("timeout", 10)
         branch = args.get("branch", "main")
 
-        query_str = args.get("query")
-        filters = args.get("filters")
-        if query_str is None:
+        query = args.get("query")
+        graph_variables = args.get("graph_variables")
+        update_hostvars = args.get("update_hostvars", False)
+        if query is None:
             raise AnsibleError("Query parameter was not passed")
-        if not isinstance(query_str, str):
-            raise AnsibleError("Query parameter must be of type Str")
-        if filters is not None and not isinstance(filters, Dict):
-            raise AnsibleError("Filters parameter must be a list of Dict")
+        if isinstance(query, str) or isinstance(query, Dict):
+            graphql_query = query
+        if graph_variables is not None and not isinstance(graph_variables, Dict):
+            raise AnsibleError("graph_variables parameter must be a list of Dict")
+        if not isinstance(update_hostvars, bool):
+            raise AnsibleError("update_hostvars must be a boolean")
+
 
         results = {}
         try:
-            self.display.v("Initializing Infrahub Client")
+            Display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
                 api_endpoint=api_endpoint,
                 token=token,
@@ -88,8 +93,12 @@ class ActionModule(ActionBase):
                 timeout=timeout,
             )
             processor = InfrahubQueryProcessor(client=client)
-            self.display.v("Processing Query")
-            results = processor.fetch_and_process(query=query_str, variables=filters)
+            Display().v("Processing Query")
+            response = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
+            results["data"] = response
+            if update_hostvars:
+                results["ansible_facts"] = response
+
         except Exception as exp:
             raise_from(AnsibleError(str(exp)), exp)
 

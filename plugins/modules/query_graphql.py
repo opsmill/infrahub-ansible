@@ -39,7 +39,7 @@ options:
         description:
             - GraphQL query parameters or filters to send to Infrahub to obtain desired data
         type: str
-    filters:
+    graph_variables:
         description:
             - Dictionary of keys/values to pass into the GraphQL query
         required: False
@@ -57,9 +57,36 @@ options:
         required: False
         type: bool
         default: True
+    update_hostvars:
+        description:
+            - Whether or not to populate data in the in the root (e.g. hostvars[inventory_hostname]) or within the
+              'data' key (e.g. hostvars[inventory_hostname]['data']). Beware, that the root keys provided by the query
+              will overwrite any root keys already present, leverage the GraphQL alias feature to avoid issues.
+        required: False
+        default: False
+        type: bool
 """
 
 EXAMPLES = """
+    # Make API Query without variables
+  - name: SET FACT OF STRING
+    set_fact:
+      query_string: |
+        query {
+          BuiltinLocation {
+            edges {
+              node {
+                name {
+                  value
+                }
+              }
+            }
+          }
+
+  # Make query to GraphQL Endpoint
+  - name: Obtain list of locations from Infrahub
+    opsmill.infrahub.query_graphql:
+      query: "{{ query_string }}"
 """
 
 RETURN = """
@@ -87,9 +114,10 @@ def main():
             validate_certs=dict(required=False, type="bool", default=True),
             branch=dict(required=False, type="str", default="main"),
             query=dict(required=True, type="str"),
-            filters=dict(required=False, type="dict", default={}),
+            graph_variables=dict(required=False, type="dict", default={}),
+            update_hostvars=dict(required=False, type="bool", default=False),
         ),
-        supports_check_mode=True,
+        supports_check_mode=False,
     )
 
 

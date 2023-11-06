@@ -63,9 +63,14 @@ EXAMPLES = """
     set_fact:
       query_string: |
         query {
-          location {
-            id
-            name
+          BuiltinLocation {
+            edges {
+              node {
+                name {
+                  value
+                }
+              }
+            }
           }
         }
 
