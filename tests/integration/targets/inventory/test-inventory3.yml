@@ -5,7 +5,7 @@
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 
-strict: False
+strict: false
 
 nodes:
   InfraDevice:

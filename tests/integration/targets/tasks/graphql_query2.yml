@@ -1,6 +1,6 @@
 ---
 - name: Infrahub action plugin
-  gather_facts: no
+  gather_facts: false
   hosts: localhost
 
   tasks:
@@ -15,7 +15,7 @@
                   value: null
                 description:
                   value: null
-  
+
     - name: Action Plugin
       opsmill.infrahub.query_graphql:
         query: "{{ query_dict}}"

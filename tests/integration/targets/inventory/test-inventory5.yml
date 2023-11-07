@@ -5,7 +5,7 @@
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 
-strict: True
+strict: true
 
 branch: "jfk1-update-edge-ips"
 

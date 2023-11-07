@@ -60,5 +60,6 @@ def format_isort(context: Context):
 def format_yaml(context: Context):
     """This will run yamllint to validate formatting of all yaml files."""
 
+    print(f" - [{NAMESPACE}] Format yaml with yamllint")
     exec_cmd = "yamllint ."
     context.run(exec_cmd, pty=True)

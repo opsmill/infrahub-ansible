@@ -4,18 +4,18 @@
 
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
-validate_certs: True
+validate_certs: true
 timeout: 30
 
-strict: True
+strict: true
 
 branch: "jfk1-update-edge-ips"
 
 nodes:
   InfraDevice:
     filters:
-      site__ids: "1791a399-7e43-13b5-3995-d8e9955c926e" #jfk1
-      role__ids: "1791a399-31c4-c688-3992-d8ebd2cca61f" #edge
+      site__ids: "1791a399-7e43-13b5-3995-d8e9955c926e"   # jfk1
+      role__ids: "1791a399-31c4-c688-3992-d8ebd2cca61f"   # edge
     include:
       - name
       - primary_address

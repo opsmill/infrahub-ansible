@@ -4,10 +4,10 @@
 
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
-validate_certs: True
+validate_certs: true
 timeout: 30
 
-strict: True
+strict: true
 
 nodes:
   InfraDevice:
