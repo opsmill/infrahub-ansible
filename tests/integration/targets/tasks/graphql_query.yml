@@ -6,23 +6,25 @@
   tasks:
     - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
       set_fact:
-        graph_variables:
-          $location_name: jfk1
-        query_string: |
-          query ($location_name: String!) {
-            BuiltinLocation (name__value: $location_name) {
-              edges {
-                node {
-                  name {
-                    value
-                  }
-                }
-              }
-            }
-          }
-  
+        variables:
+          device_name:  "atl1-edge1"
+          enabled: true
+
+        query_dict:
+          InfraDevice:
+            '@filters': {name__value: '$device_name'}
+            edges:
+              node:
+                name:
+                  value: null
+                interfaces:
+                  '@filters': {enabled__value: '$enabled'}
+                  edges:
+                    node:
+                      name:
+                        value: null
+
     - name: Action Plugin
       opsmill.infrahub.query_graphql:
-        query: "{{ query_string}}"
-        graph_variables: "{{ graph_variables }}"
-        update_hostvars: yes
+        query: "{{ query_dict}}"
+        graph_variables: "{{ variables }}"
