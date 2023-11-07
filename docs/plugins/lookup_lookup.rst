@@ -406,16 +406,21 @@ Examples
         set_fact:
           query_string: |
             query {
-              location {
-                id
-                name
+              BuiltinLocation {
+                edges {
+                  node {
+                    name {
+                      value
+                    }
+                  }
+                }
               }
             }
 
       # Make query to GraphQL Endpoint
       - name: Obtain list of sites from Infrahub
         set_fact:
-          query_response: "{{ query('infrahub.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
+          query_response: "{{ query('opsmill.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
 
 
 

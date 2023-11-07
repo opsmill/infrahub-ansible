@@ -181,17 +181,17 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-filters"></div>
+        <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
 
-      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-filters:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-graph_variables:
 
       .. rst-class:: ansible-option-title
 
-      **filters**
+      **graph_variables**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-filters" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-graph_variables" title="Permalink to this option"></a>
 
       .. rst-class:: ansible-option-type-line
 
@@ -325,6 +325,48 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-update_hostvars"></div>
+
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-update_hostvars:
+
+      .. rst-class:: ansible-option-title
+
+      **update_hostvars**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-update_hostvars" title="Permalink to this option"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Whether or not to populate data in the in the root (e.g. hostvars[inventory\_hostname]) or within the 'data' key (e.g. hostvars[inventory\_hostname]['data']). Beware, that the root keys provided by the query will overwrite any root keys already present, leverage the GraphQL alias feature to avoid issues.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry-default:`false` :ansible-option-choices-default-mark:`← (default)`
+      - :ansible-option-choices-entry:`true`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
       .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-validate_certs:
@@ -382,6 +424,25 @@ Examples
 .. code-block:: yaml+jinja
 
     
+        # Make API Query without variables
+      - name: SET FACT OF STRING
+        set_fact:
+          query_string: |
+            query {
+              BuiltinLocation {
+                edges {
+                  node {
+                    name {
+                      value
+                    }
+                  }
+                }
+              }
+
+      # Make query to GraphQL Endpoint
+      - name: Obtain list of locations from Infrahub
+        opsmill.infrahub.query_graphql:
+          query: "{{ query_string }}"
 
 
 
