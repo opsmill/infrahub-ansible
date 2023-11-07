@@ -58,10 +58,10 @@ RUN ansible-galaxy collection install community.general
 RUN ansible-galaxy collection build --output-path ./dist/ .
 
 # Install built library
-RUN ansible-galaxy collection install ./dist/infrahub*.tar.gz -p ${ANSIBLE_COLLECTIONS_PATH}
+RUN ansible-galaxy collection install ./dist/opsmill-infrahub*.tar.gz -p ${ANSIBLE_COLLECTIONS_PATH}
 
 # Switch to the collection path for tests
-WORKDIR ${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/infrahub/infrahub
+WORKDIR ${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/opsmill/infrahub
 
 # Run sanity tests
 RUN ansible-test sanity $ANSIBLE_SANITY_ARGS \
