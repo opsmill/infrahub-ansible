@@ -97,7 +97,6 @@ from ansible.plugins.lookup import LookupBase
 from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
-    INFRAHUBCLIENT_IMP_ERR,
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
 )

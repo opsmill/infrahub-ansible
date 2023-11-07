@@ -29,6 +29,7 @@ else:
     HAS_INFRAHUBCLIENT = True
 
 if HAS_INFRAHUBCLIENT:
+    TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
 
     class InfrahubclientWrapper:
         def __init__(self, api_endpoint: str, branch: str, token: str, timeout: Optional[int] = 10):
@@ -147,9 +148,16 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 Str: Graphql Query rendered as a string
             """
-            return Query(query=query, variables=variables).render()
+            if variables:
+                variables_type = {}
+                for key, value in variables.items():
+                    variables_type[key] = type(value)
+                query_str = Query(query=query, variables=variables_type).render()
+            else:
+                query_str = Query(query=query).render()
+            return query_str
 
-        # @handle_infrahub_exceptions
+        @handle_infrahub_exceptions
         def execute_graphql(
             self, query: str, variables: Optional[Dict[str, Any]] = None, branch: Optional[str] = None
         ) -> Dict:
@@ -377,15 +385,18 @@ if HAS_INFRAHUBCLIENT:
             """
             if not query:
                 return None
-            
+
             results = []
             if isinstance(query, Dict):
                 query_str = self.client._render_query(query=query, variables=variables)
-
             elif isinstance(query, str):
-                query_str = query
+                if variables:
+                    # TODO Need a rendering
+                    raise Exception("query need to be a dict if your are using variables")
+                else:
+                    query_str = query
             else:
-                return results
+                raise Exception("query is neither a string nor a Dict")
 
             response = self.client.execute_graphql(query=query_str, variables=variables)
             for kind in response:

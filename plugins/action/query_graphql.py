@@ -14,7 +14,6 @@ from ansible.plugins.action import ActionBase
 from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
-    INFRAHUBCLIENT_IMP_ERR,
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
 )
@@ -51,7 +50,7 @@ class ActionModule(ActionBase):
 
         if result.get("invocation", {}).get("module_args"):
             del result["invocation"]["module_args"]
- 
+
         args = self._task.args
 
         api_endpoint = args.get("api_endpoint") or os.getenv("INFRAHUB_API")
@@ -81,7 +80,6 @@ class ActionModule(ActionBase):
             raise AnsibleError("graph_variables parameter must be a list of Dict")
         if not isinstance(update_hostvars, bool):
             raise AnsibleError("update_hostvars must be a boolean")
-
 
         results = {}
         try:
