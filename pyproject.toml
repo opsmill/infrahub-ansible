@@ -120,6 +120,9 @@ select = [
     "W",
     "YTT",
 ]
+ignore = [
+"F811",
+]
 
 line-length = 170
 
