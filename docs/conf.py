@@ -11,12 +11,12 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import sys
 import re
 import stat
+import sys
 from pathlib import Path
-from antsibull_docs.cli import antsibull_docs
 
+from antsibull_docs.cli import antsibull_docs
 
 sys.path.insert(0, os.path.abspath("../"))
 
@@ -94,13 +94,15 @@ def create_antsibull_docs(files, plugin_type=None):
         file_path.mkdir(mode=744, exist_ok=True)
 
         if plugin_type is not None:
-            args_string = f"junk plugin --dest-dir {file_path} --plugin-type {plugin_type} networktocode.nautobot.{file_name}"
+            args_string = (
+                f"junk plugin --dest-dir {file_path} --plugin-type {plugin_type} networktocode.nautobot.{file_name}"
+            )
         else:
             args_string = f"junk plugin --dest-dir {file_path} --plugin-type module networktocode.nautobot.{file_name}"
         args = args_string.split(" ")
         try:
             antsibull_docs.run(args)
-        except Exception as e:
+        except Exception:
             sys.exit(1)
 
 

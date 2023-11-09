@@ -37,18 +37,10 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from pygments.lexer import (
-    LexerContext,
-    ExtendedRegexLexer,
-    DelegatingLexer,
-    RegexLexer,
-    bygroups,
-    include,
-)
-from pygments.lexers import DiffLexer
-from pygments import token
 
-import re
+from pygments import token
+from pygments.lexer import DelegatingLexer, RegexLexer, bygroups, include
+from pygments.lexers import DiffLexer
 
 
 class AnsibleOutputPrimaryLexer(RegexLexer):
@@ -91,11 +83,25 @@ class AnsibleOutputPrimaryLexer(RegexLexer):
             (r"\}", token.Punctuation, "#pop:2"),
         ],
         # a json object - { attr, attr, ... }
-        "objectvalue": [include("whitespace"), (r'"(\\\\|\\"|[^"])*"', token.Name.Tag, "objectattribute"), (r"\}", token.Punctuation, "#pop")],
+        "objectvalue": [
+            include("whitespace"),
+            (r'"(\\\\|\\"|[^"])*"', token.Name.Tag, "objectattribute"),
+            (r"\}", token.Punctuation, "#pop"),
+        ],
         # json array - [ value, value, ... }
-        "arrayvalue": [include("whitespace"), include("value"), (r",", token.Punctuation), (r"\]", token.Punctuation, "#pop")],
+        "arrayvalue": [
+            include("whitespace"),
+            include("value"),
+            (r",", token.Punctuation),
+            (r"\]", token.Punctuation, "#pop"),
+        ],
         # a json value - either a simple value or a complex value (object or array)
-        "value": [include("whitespace"), include("simplevalue"), (r"\{", token.Punctuation, "objectvalue"), (r"\[", token.Punctuation, "arrayvalue")],
+        "value": [
+            include("whitespace"),
+            include("simplevalue"),
+            (r"\{", token.Punctuation, "objectvalue"),
+            (r"\[", token.Punctuation, "arrayvalue"),
+        ],
         # #########################################
         # # END: states from JSON lexer ###########
         # #########################################
