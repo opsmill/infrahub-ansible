@@ -6,31 +6,47 @@
 .. |antsibull-internal-nbsp| unicode:: 0xA0
     :trim:
 
-.. meta::
-  :antsibull-docs: 2.5.0
+.. role:: ansible-attribute-support-label
+.. role:: ansible-attribute-support-property
+.. role:: ansible-attribute-support-full
+.. role:: ansible-attribute-support-partial
+.. role:: ansible-attribute-support-none
+.. role:: ansible-attribute-support-na
+.. role:: ansible-option-type
+.. role:: ansible-option-elements
+.. role:: ansible-option-required
+.. role:: ansible-option-versionadded
+.. role:: ansible-option-aliases
+.. role:: ansible-option-choices
+.. role:: ansible-option-choices-default-mark
+.. role:: ansible-option-default-bold
+.. role:: ansible-option-configuration
+.. role:: ansible-option-returned-bold
+.. role:: ansible-option-sample-bold
 
 .. Anchors
 
-.. _ansible_collections.infrahub.infrahub.lookup_lookup:
+.. _ansible_collections.opsmill.infrahub.lookup_lookup:
 
 .. Anchors: short name for ansible.builtin
 
+.. Anchors: aliases
+
+
+
 .. Title
 
-infrahub.infrahub.lookup lookup -- Queries and returns elements from Infrahub (using GraphQL)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+opsmill.infrahub.lookup lookup -- Queries and returns elements from Infrahub (using GraphQL)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This lookup plugin is part of the `infrahub.infrahub collection <https://galaxy.ansible.com/ui/repo/published/infrahub/infrahub/>`_ (version 0.0.1).
+    This lookup plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.1).
 
-    It is not included in ``ansible-core``.
-    To check whether it is installed, run :code:`ansible-galaxy collection list`.
+    To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
 
-    To install it, use: :code:`ansible-galaxy collection install infrahub.infrahub`.
-
-    To use it in a playbook, specify: :code:`infrahub.infrahub.lookup`.
+    To use it in a playbook, specify: :code:`opsmill.infrahub.lookup`.
 
 .. version_added
 
@@ -66,15 +82,14 @@ Keyword parameters
 ------------------
 
 This describes keyword parameters of the lookup. These are the values ``key1=value1``, ``key2=value2`` and so on in the following
-examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` and ``query('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)``
+examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` and ``query('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)``
 
-.. tabularcolumns:: \X{1}{3}\X{2}{3}
+.. rst-class:: ansible-option-table
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
-  :class: longtable ansible-option-table
 
   * - Parameter
     - Comments
@@ -84,7 +99,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_endpoint"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-api_endpoint:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-api_endpoint:
 
       .. rst-class:: ansible-option-title
 
@@ -94,9 +109,9 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <a class="ansibleOptionLink" href="#parameter-api_endpoint" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+      :ansible-option-type:`string` / :ansible-option-required:`required`
 
 
 
@@ -128,7 +143,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-branch"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-branch:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-branch:
 
       .. rst-class:: ansible-option-title
 
@@ -138,9 +153,9 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <a class="ansibleOptionLink" href="#parameter-branch" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -167,21 +182,21 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-filters"></div>
+        <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-filters:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-graph_variables:
 
       .. rst-class:: ansible-option-title
 
-      **filters**
+      **graph_variables**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-filters" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-graph_variables" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary`
+      :ansible-option-type:`dictionary`
 
 
 
@@ -210,7 +225,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-query"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-query:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-query:
 
       .. rst-class:: ansible-option-title
 
@@ -220,9 +235,9 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <a class="ansibleOptionLink" href="#parameter-query" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+      :ansible-option-type:`string` / :ansible-option-required:`required`
 
 
 
@@ -235,7 +250,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      GraphQL query parameters or filters to send to Infrahub to obtain desired data
+      GraphQL query to send to Infrahub to obtain desired data
 
 
       .. raw:: html
@@ -247,7 +262,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-timeout:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-timeout:
 
       .. rst-class:: ansible-option-title
 
@@ -257,9 +272,9 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <a class="ansibleOptionLink" href="#parameter-timeout" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`integer`
+      :ansible-option-type:`integer`
 
 
 
@@ -272,7 +287,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <div class="ansible-option-cell">
 
-      Timeout for Nautobot requests in seconds
+      Timeout for Infrahub requests in seconds
 
 
       .. rst-class:: ansible-option-line
@@ -288,7 +303,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-token:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-token:
 
       .. rst-class:: ansible-option-title
 
@@ -298,9 +313,9 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <a class="ansibleOptionLink" href="#parameter-token" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+      :ansible-option-type:`string` / :ansible-option-required:`required`
 
 
 
@@ -332,7 +347,7 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__parameter-validate_certs:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-validate_certs:
 
       .. rst-class:: ansible-option-title
 
@@ -342,9 +357,9 @@ examples: ``lookup('infrahub.infrahub.lookup', key1=value1, key2=value2, ...)`` 
 
         <a class="ansibleOptionLink" href="#parameter-validate_certs" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -391,16 +406,21 @@ Examples
         set_fact:
           query_string: |
             query {
-              location {
-                id
-                name
+              BuiltinLocation {
+                edges {
+                  node {
+                    name {
+                      value
+                    }
+                  }
+                }
               }
             }
 
       # Make query to GraphQL Endpoint
       - name: Obtain list of sites from Infrahub
         set_fact:
-          query_response: "{{ query('infrahub.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
+          query_response: "{{ query('opsmill.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
 
 
 
@@ -413,13 +433,12 @@ Examples
 Return Value
 ------------
 
-.. tabularcolumns:: \X{1}{3}\X{2}{3}
+.. rst-class:: ansible-option-table
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
-  :class: longtable ansible-option-table
 
   * - Key
     - Description
@@ -429,7 +448,7 @@ Return Value
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-data"></div>
 
-      .. _ansible_collections.infrahub.infrahub.lookup_lookup__return-data:
+      .. _ansible_collections.opsmill.infrahub.lookup_lookup__return-data:
 
       .. rst-class:: ansible-option-title
 
@@ -439,9 +458,9 @@ Return Value
 
         <a class="ansibleOptionLink" href="#return-data" title="Permalink to this return value"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary`
+      :ansible-option-type:`dictionary`
 
       .. raw:: html
 
@@ -484,15 +503,12 @@ Authors
 Collection links
 ~~~~~~~~~~~~~~~~
 
-.. ansible-links::
+.. raw:: html
 
-  - title: "Issue Tracker"
-    url: "https://github.com/opsmill/infrahub-ansible/issues"
-    external: true
-  - title: "Repository (Sources)"
-    url: "https://github.com/opsmill/infrahub-ansible"
-    external: true
-
+  <p class="ansible-links">
+    <a href="https://github.com/opsmill/infrahub-ansible/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
+    <a href="https://github.com/opsmill/infrahub-ansible" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
+  </p>
 
 .. Parsing errors
 

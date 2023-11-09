@@ -1,0 +1,99 @@
+---
+# yamllint disable rule:truthy rule:truthy rule:line-length
+name: "tests"
+on:  # yamllint disable
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "The OS to run the job on"
+        required: false
+        default: "ubuntu-22.04"
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUILDKITE_ANALYTICS_BRANCH: ${{ github.ref }}
+  BUILDKITE_BRANCH: ${{ github.ref }}
+  BUILDKITE_COMMIT: ${{ github.sha }}
+
+jobs:
+  files-changed:
+    name: Detect which file has changed
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    outputs:
+      python: ${{ steps.changes.outputs.python_all }}
+      yaml: ${{ steps.changes.outputs.yaml_all }}
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v3"
+      - name: Check for file changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+
+  yaml-lint:
+    if: needs.files-changed.outputs.yaml == 'true'
+    needs: ["files-changed"]
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v3"
+      - name: "Identify which files have changed"
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            src:
+              - '**.yml'
+              - '**.yaml'
+      - name: "Setup environment"
+        run: "pip install yamllint==1.29.0"
+      - name: "Linting: yamllint"
+        run: "yamllint ."
+
+  python-lint:
+    if: needs.files-changed.outputs.python == 'true'
+    needs: ["files-changed"]
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v3"
+      - name: "Setup environment"
+        run: "pip install black==23.10.1 ruff==0.1.0"
+      - name: "Linting: BLACK"
+        run: "black --check ."
+      - name: "Linting: ruff"
+        run: "ruff check ."
+
+  unit-tests:
+    if: |
+      always() && !cancelled() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    needs: ["files-changed", "yaml-lint", "python-lint"]
+    runs-on: "ubuntu-20.04"
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v3"
+
+      - name: "Install Invoke"
+        run: "pip install toml invoke"
+
+      - name: "Sanity Tests"
+        run: "invoke tests-sanity"
+
+      - name: "Unit Tests"
+        run: "invoke tests-unit"

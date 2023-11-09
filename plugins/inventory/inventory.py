@@ -19,9 +19,9 @@ DOCUMENTATION = """
     options:
         plugin:
             description:
-                - token that ensures this is a source file for the 'infrahub.infrahub' plugin.
+                - token that ensures this is a source file for the 'opsmill.infrahub' plugin.
             required: True
-            choices: ['infrahub.infrahub.inventory']
+            choices: ['opsmill.infrahub.inventory']
         api_endpoint:
             description: Endpoint of the Infrahub API
             required: True
@@ -35,7 +35,7 @@ DOCUMENTATION = """
                 - name: INFRAHUB_TOKEN
         timeout:
             required: False
-            description: Timeout for Nautobot requests in seconds
+            description: Timeout for Infrahub requests in seconds
             type: int
             default: 10
         nodes:
@@ -83,7 +83,7 @@ DOCUMENTATION = """
             required: False
             description:
                 - Create groups based on attributes or relationships.
-                - groups is created as attribute__value 
+                - groups is created as attribute__value
             type: list
             elements: str
             default: []
@@ -101,7 +101,7 @@ EXAMPLES = """
 # Add -vvvv to the command to also see the JSON response that comes back in the debug output.
 
 # Minimum required parameters
-plugin: infrahub.infrahub.inventory
+plugin: opsmill.infrahub.inventory
 api_endpoint: http://localhost:8000  # Can be omitted if the INFRAHUB_API environment variable is set
 token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN environment variable is set
 
@@ -112,7 +112,7 @@ token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN envi
 # - Create 2 compose variable "hostname" ad "platform" (platform will override the attribute platform retrieved)
 # - Create group based on the "site" name
 
-plugin: infrahub.infrahub.inventory
+plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 validate_certs: True
 
@@ -151,9 +151,10 @@ from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.module_utils.six import raise_from
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
-from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
-    fetch_and_process_nodes,
-    initialize_infrahub_client,
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
+    HAS_INFRAHUBCLIENT,
+    InfrahubclientWrapper,
+    InfrahubNodesProcessor,
 )
 
 try:
@@ -165,7 +166,7 @@ else:
 
 
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
-    NAME = "infrahub.infrahub.inventory"
+    NAME = "opsmill.infrahub.inventory"
 
     def verify_file(self, path: str) -> bool:
         """
@@ -267,25 +268,29 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def main(self):
         """Main function"""
+        if not HAS_INFRAHUBCLIENT:
+            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
+
         try:
             if not self.nodes:
                 raise ValueError("node' is undefined.")
         except ValueError as exp:
-            raise_from(AnsibleError(str(exp)), exp)
+            raise (AnsibleError(str(exp)))
 
         host_node_attributes, need_to_load_from_api = self._fetch_from_cache()
 
         if need_to_load_from_api:
             try:
                 self.display.v("Initializing Infrahub Client")
-                client = initialize_infrahub_client(
+                client = InfrahubclientWrapper(
                     api_endpoint=self.api_endpoint,
                     branch=self.branch,
                     token=self.token,
                     timeout=self.timeout,
                 )
+                processor = InfrahubNodesProcessor(client=client)
                 self.display.v("Processing Nodes request")
-                host_node_attributes = fetch_and_process_nodes(client=client, nodes=self.nodes)
+                host_node_attributes = processor.fetch_and_process(nodes=self.nodes)
             except Exception as exp:
                 raise_from(AnsibleError(str(exp)), exp)
 

@@ -1,11 +1,11 @@
 ---
 ### infrahub_inventory.yml file in YAML format
-### infrahub.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_TOKEN and INFRAHUB_API
+### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_TOKEN and INFRAHUB_API
 
-plugin: infrahub.infrahub.inventory
+plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 
-strict: False
+strict: false
 
 nodes:
   InfraDevice:

@@ -29,29 +29,72 @@ options:
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_TOKEN
         type: str
+    timeout:
+        required: False
+        description: Timeout for Infrahub requests in seconds
+        type: int
+        default: 10
     query:
         required: True
         description:
             - GraphQL query parameters or filters to send to Infrahub to obtain desired data
         type: str
-    filters:
-        required: False
+    graph_variables:
         description:
             - Dictionary of keys/values to pass into the GraphQL query
+        required: False
         type: dict
         default: {}
-    validate_certs:
+    branch:
         required: False
         description:
+            - Branch in which the request is made
+        type: str
+        default: main
+    validate_certs:
+        description:
             - Whether or not to validate SSL of the Infrahub instance
+        required: False
+        type: bool
         default: True
+    update_hostvars:
+        description:
+            - Whether or not to populate data in the in the root (e.g. hostvars[inventory_hostname]) or within the
+              'data' key (e.g. hostvars[inventory_hostname]['data']). Beware, that the root keys provided by the query
+              will overwrite any root keys already present, leverage the GraphQL alias feature to avoid issues.
+        required: False
+        default: False
         type: bool
 """
 
 EXAMPLES = """
+    # Make API Query without variables
+  - name: SET FACT OF STRING
+    set_fact:
+      query_string: |
+        query {
+          BuiltinLocation {
+            edges {
+              node {
+                name {
+                  value
+                }
+              }
+            }
+          }
+
+  # Make query to GraphQL Endpoint
+  - name: Obtain list of locations from Infrahub
+    opsmill.infrahub.query_graphql:
+      query: "{{ query_string }}"
 """
 
 RETURN = """
+  data:
+    description:
+      - Data result from the Infrahub GraphQL endpoint
+    type: dict
+    returned: success
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -67,11 +110,14 @@ def main():
         argument_spec=dict(
             api_endpoint=dict(required=False, type="str", default=None),
             token=dict(required=False, type="str", no_log=True, default=None),
+            timeout=dict(required=False, type="int", default=10),
             validate_certs=dict(required=False, type="bool", default=True),
+            branch=dict(required=False, type="str", default="main"),
             query=dict(required=True, type="str"),
-            filters=dict(required=False, type="dict", default={}),
+            graph_variables=dict(required=False, type="dict", default={}),
+            update_hostvars=dict(required=False, type="bool", default=False),
         ),
-        supports_check_mode=True,
+        supports_check_mode=False,
     )
 
 

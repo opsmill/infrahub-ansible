@@ -6,39 +6,55 @@
 .. |antsibull-internal-nbsp| unicode:: 0xA0
     :trim:
 
-.. meta::
-  :antsibull-docs: 2.5.0
+.. role:: ansible-attribute-support-label
+.. role:: ansible-attribute-support-property
+.. role:: ansible-attribute-support-full
+.. role:: ansible-attribute-support-partial
+.. role:: ansible-attribute-support-none
+.. role:: ansible-attribute-support-na
+.. role:: ansible-option-type
+.. role:: ansible-option-elements
+.. role:: ansible-option-required
+.. role:: ansible-option-versionadded
+.. role:: ansible-option-aliases
+.. role:: ansible-option-choices
+.. role:: ansible-option-choices-default-mark
+.. role:: ansible-option-default-bold
+.. role:: ansible-option-configuration
+.. role:: ansible-option-returned-bold
+.. role:: ansible-option-sample-bold
 
 .. Anchors
 
-.. _ansible_collections.infrahub.infrahub.query_graphql_module:
+.. _ansible_collections.opsmill.infrahub.query_graphql_module:
 
 .. Anchors: short name for ansible.builtin
 
+.. Anchors: aliases
+
+
+
 .. Title
 
-infrahub.infrahub.query_graphql module -- Queries and returns elements from Infrahub GraphQL API
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+opsmill.infrahub.query_graphql module -- Queries and returns elements from Infrahub GraphQL API
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This module is part of the `infrahub.infrahub collection <https://galaxy.ansible.com/ui/repo/published/infrahub/infrahub/>`_ (version 0.0.1).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.1).
 
-    It is not included in ``ansible-core``.
-    To check whether it is installed, run :code:`ansible-galaxy collection list`.
-
-    To install it, use: :code:`ansible-galaxy collection install infrahub.infrahub`.
+    To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
     You need further requirements to be able to use this module,
-    see :ref:`Requirements <ansible_collections.infrahub.infrahub.query_graphql_module_requirements>` for details.
+    see :ref:`Requirements <ansible_collections.opsmill.infrahub.query_graphql_module_requirements>` for details.
 
-    To use it in a playbook, specify: :code:`infrahub.infrahub.query_graphql`.
+    To use it in a playbook, specify: :code:`opsmill.infrahub.query_graphql`.
 
 .. version_added
 
 .. rst-class:: ansible-version-added
 
-New in infrahub.infrahub 0.0.1
+New in opsmill.infrahub 0.0.1
 
 .. contents::
    :local:
@@ -62,7 +78,7 @@ Synopsis
 
 .. Requirements
 
-.. _ansible_collections.infrahub.infrahub.query_graphql_module_requirements:
+.. _ansible_collections.opsmill.infrahub.query_graphql_module_requirements:
 
 Requirements
 ------------
@@ -80,13 +96,12 @@ The below requirements are needed on the host that executes this module.
 Parameters
 ----------
 
-.. tabularcolumns:: \X{1}{3}\X{2}{3}
+.. rst-class:: ansible-option-table
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
-  :class: longtable ansible-option-table
 
   * - Parameter
     - Comments
@@ -96,7 +111,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_endpoint"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-api_endpoint:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-api_endpoint:
 
       .. rst-class:: ansible-option-title
 
@@ -106,9 +121,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-api_endpoint" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -128,21 +143,59 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-filters"></div>
+        <div class="ansibleOptionAnchor" id="parameter-branch"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-filters:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-branch:
 
       .. rst-class:: ansible-option-title
 
-      **filters**
+      **branch**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-filters" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-branch" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary`
+      :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Branch in which the request is made
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`"main"`
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
+
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-graph_variables:
+
+      .. rst-class:: ansible-option-title
+
+      **graph_variables**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-graph_variables" title="Permalink to this option"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`dictionary`
 
       .. raw:: html
 
@@ -168,7 +221,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-query"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-query:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-query:
 
       .. rst-class:: ansible-option-title
 
@@ -178,9 +231,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-query" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+      :ansible-option-type:`string` / :ansible-option-required:`required`
 
       .. raw:: html
 
@@ -200,9 +253,47 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
+
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-timeout:
+
+      .. rst-class:: ansible-option-title
+
+      **timeout**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-timeout" title="Permalink to this option"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`integer`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Timeout for Infrahub requests in seconds
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`10`
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-token:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-token:
 
       .. rst-class:: ansible-option-title
 
@@ -212,9 +303,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-token" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -234,9 +325,51 @@ Parameters
   * - .. raw:: html
 
         <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-update_hostvars"></div>
+
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-update_hostvars:
+
+      .. rst-class:: ansible-option-title
+
+      **update_hostvars**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-update_hostvars" title="Permalink to this option"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`boolean`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Whether or not to populate data in the in the root (e.g. hostvars[inventory\_hostname]) or within the 'data' key (e.g. hostvars[inventory\_hostname]['data']). Beware, that the root keys provided by the query will overwrite any root keys already present, leverage the GraphQL alias feature to avoid issues.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry-default:`false` :ansible-option-choices-default-mark:`← (default)`
+      - :ansible-option-choices-entry:`true`
+
+
+      .. raw:: html
+
+        </div>
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
-      .. _ansible_collections.infrahub.infrahub.query_graphql_module__parameter-validate_certs:
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__parameter-validate_certs:
 
       .. rst-class:: ansible-option-title
 
@@ -246,9 +379,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-validate_certs" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`boolean`
+      :ansible-option-type:`boolean`
 
       .. raw:: html
 
@@ -291,6 +424,25 @@ Examples
 .. code-block:: yaml+jinja
 
     
+        # Make API Query without variables
+      - name: SET FACT OF STRING
+        set_fact:
+          query_string: |
+            query {
+              BuiltinLocation {
+                edges {
+                  node {
+                    name {
+                      value
+                    }
+                  }
+                }
+              }
+
+      # Make query to GraphQL Endpoint
+      - name: Obtain list of locations from Infrahub
+        opsmill.infrahub.query_graphql:
+          query: "{{ query_string }}"
 
 
 
@@ -299,6 +451,60 @@ Examples
 
 
 .. Return values
+
+Return Values
+-------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
+
+.. rst-class:: ansible-option-table
+
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+
+  * - Key
+    - Description
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-data"></div>
+
+      .. _ansible_collections.opsmill.infrahub.query_graphql_module__return-data:
+
+      .. rst-class:: ansible-option-title
+
+      **data**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-data" title="Permalink to this return value"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`dictionary`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Data result from the Infrahub GraphQL endpoint
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` success
+
+
+      .. raw:: html
+
+        </div>
+
 
 
 ..  Status (Presently only deprecated)
@@ -318,15 +524,12 @@ Authors
 Collection links
 ~~~~~~~~~~~~~~~~
 
-.. ansible-links::
+.. raw:: html
 
-  - title: "Issue Tracker"
-    url: "https://github.com/opsmill/infrahub-ansible/issues"
-    external: true
-  - title: "Repository (Sources)"
-    url: "https://github.com/opsmill/infrahub-ansible"
-    external: true
-
+  <p class="ansible-links">
+    <a href="https://github.com/opsmill/infrahub-ansible/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
+    <a href="https://github.com/opsmill/infrahub-ansible" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
+  </p>
 
 .. Parsing errors
 

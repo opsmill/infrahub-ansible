@@ -1,0 +1,30 @@
+---
+- name: Infrahub action plugin
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
+      set_fact:
+        variables:
+          device_name: "atl1-edge1"
+          enabled: true
+
+        query_dict:
+          InfraDevice:
+            '@filters': {name__value: '$device_name'}
+            edges:
+              node:
+                name:
+                  value: null
+                interfaces:
+                  '@filters': {enabled__value: '$enabled'}
+                  edges:
+                    node:
+                      name:
+                        value: null
+
+    - name: Action Plugin
+      opsmill.infrahub.query_graphql:
+        query: "{{ query_dict}}"
+        graph_variables: "{{ variables }}"

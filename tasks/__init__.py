@@ -20,22 +20,9 @@ ns.add_collection(galaxy)
 ns.add_collection(tests)
 
 
-@task
-def yamllint(context: Context):
-    """This will run yamllint to validate formatting of all yaml files."""
-
-    exec_cmd = "yamllint ."
-    context.run(exec_cmd, pty=True)
-
-
 @task(name="format")
 def format_all(context: Context):
     linter.format_all(context)
-
-
-@task(name="lint")
-def lint_all(context: Context):
-    yamllint(context)
 
 
 @task(name="tests-all")
@@ -74,8 +61,6 @@ def galaxy_build(context: Context, force=False):
 
 
 ns.add_task(format_all)
-ns.add_task(lint_all)
-ns.add_task(yamllint)
 ns.add_task(test_all)
 ns.add_task(tests_sanity)
 ns.add_task(tests_unit)

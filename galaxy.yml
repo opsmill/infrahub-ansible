@@ -4,7 +4,7 @@
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
 # content lives. May only contain alphanumeric characters and underscores. Additionally namespaces cannot start with
 # underscores or numbers and cannot contain consecutive underscores
-namespace: infrahub
+namespace: opsmill
 
 # The name of the collection. Has the same character restrictions as 'namespace'
 name: infrahub
@@ -23,7 +23,7 @@ authors:
 ### OPTIONAL but strongly recommended
 
 # A short summary description of the collection
-description: This is a collection of Nautobot Ansible modules
+description: This is a collection of Infrahub Ansible modules
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'

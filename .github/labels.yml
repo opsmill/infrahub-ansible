@@ -1,0 +1,67 @@
+---
+# Labels names are important as they are used by Release Drafter to decide
+# regarding where to record them in changelog or if to skip them.
+#
+# The repository labels will be automatically configured using this file and
+# the GitHub Action https://github.com/marketplace/actions/github-labeler.
+
+# ----------------------------------
+# TYPE
+# ----------------------------------
+- name: "type/feature"
+  description: "New feature or request"
+  color: "a2eeef"
+
+- name: "type/bug"
+  description: "Something isn't working as expected"
+  color: "d73a4a"
+
+- name: "type/documentation"
+  description: "Improvements or additions to documentation"
+  color: "0075ca"
+
+- name: "type/housekeeping"
+  description: "Maintenance task"
+  color: "fef2c0"
+
+- name: "type/question"
+  description: "Question or discussion"
+  color: "d876e3"
+
+- name: "type/duplicate"
+  description: "This issue or pull request already exists"
+  color: "cfd3d7"
+
+# ----------------------------------
+# EFFORT
+# ----------------------------------
+- name: "effort/high"
+  description: "This issue should be completed in more than a day"
+  color: "c80464"
+
+- name: "effort/medium"
+  description: "This issue should be completed in a less than a day"
+  color: "676a43"
+
+- name: "effort/low"
+  description: "This issue should be completed in a couple of hours"
+  color: "eafee4"
+
+# ----------------------------------
+# STATUS
+# ----------------------------------
+- name: "state/blocked"
+  description: "The issue is currently blocked and cannot be resolved."
+  color: "e34918"
+
+- name: "state/draft"
+  description: "The redaction of the issue is still a work in progress"
+  color: "dcb518"
+
+# ----------------------------------
+# CI
+# ----------------------------------
+
+- name: "ci/skip-changelog"
+  description: "Don't include this PR in the changelog"
+  color: "c30664"

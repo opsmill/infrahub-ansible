@@ -30,15 +30,15 @@ DOCUMENTATION = """
                 - name: INFRAHUB_TOKEN
         timeout:
             required: False
-            description: Timeout for Nautobot requests in seconds
+            description: Timeout for Infrahub requests in seconds
             type: int
             default: 10
         query:
             required: True
             description:
-                - GraphQL query parameters or filters to send to Infrahub to obtain desired data
+                - GraphQL query to send to Infrahub to obtain desired data
             type: str
-        filters:
+        graph_variables:
             description:
                 - Dictionary of keys/values to pass into the GraphQL query
             required: False
@@ -63,16 +63,21 @@ EXAMPLES = """
     set_fact:
       query_string: |
         query {
-          location {
-            id
-            name
+          BuiltinLocation {
+            edges {
+              node {
+                name {
+                  value
+                }
+              }
+            }
           }
         }
 
   # Make query to GraphQL Endpoint
   - name: Obtain list of sites from Infrahub
     set_fact:
-      query_response: "{{ query('infrahub.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
+      query_response: "{{ query('opsmill.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
 """
 
 RETURN = """
@@ -84,61 +89,28 @@ RETURN = """
 
 
 import os
-from typing import Any, Dict, Optional
+from typing import Dict
 
 from ansible.errors import AnsibleError, AnsibleLookupError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
-from ansible_collections.infrahub.infrahub.plugins.module_utils.infrahub_utils import (
-    initialize_infrahub_client,
+from ansible.utils.display import Display
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
+    HAS_INFRAHUBCLIENT,
+    InfrahubclientWrapper,
+    InfrahubQueryProcessor,
 )
-
-try:
-    from infrahub_client import InfrahubClientSync
-except ImportError as imp_exc:
-    INFRAHUBCLIENT_IMPORT_ERROR = imp_exc
-else:
-    INFRAHUBCLIENT_IMPORT_ERROR = None
-
-if INFRAHUBCLIENT_IMPORT_ERROR:
-    class InfrahubClientSync:
-        pass
-
-def infrahub_lookup_graphql(
-    client: InfrahubClientSync,
-    query: str = None,
-    filters: Optional[Dict[str, str]] = None,
-) -> Optional[Dict[str, Any]]:
-    """Lookup functionality, broken out to assist with testing
-
-    Returns:
-        Optional[Dict[str, Any]]: A dictionary with processed node attributes, or None if no nodes were processed.
-    """
-
-    if query is None:
-        raise AnsibleLookupError("Query parameter was not passed. Please verify that query is passed.")
-    if not isinstance(query, str):
-        raise AnsibleLookupError("Query parameter must be of type Str. Please see docs for examples.")
-    if filters is not None and not isinstance(filters, Dict):
-        raise AnsibleLookupError("Filters parameter must be a list of Dict. Please see docs for examples.")
-
-    # Init API Call
-    # -> "builb" infrahub GraphQL request = XX
-    # -> "builb" infrahub GraphQL response = XX
-
-    # -> Check GraphQL responses (Exception or Records)
-
-    results = None
-
-    return [results]
 
 
 class LookupModule(LookupBase):
     """
     LookupModule(LookupBase) is defined by Ansible
+
+    Parameters:
+        LookupBase (LookupBase): Ansible Lookup Plugin
     """
 
-    def run(self, terms, variables=None, filters=None, **kwargs):
+    def run(self, terms, variables=None, query=None, graph_variables=None, **kwargs):
         """Runs Ansible Lookup Plugin for using Infrahub GraphQL endpoint
 
         Raises:
@@ -148,11 +120,8 @@ class LookupModule(LookupBase):
         Returns:
             dict: Data returned from Infrahub endpoint
         """
-        if INFRAHUBCLIENT_IMPORT_ERROR:
-            raise_from(
-                AnsibleError("infrahub_client must be installed to use this plugin"),
-                INFRAHUBCLIENT_IMPORT_ERROR,
-            )
+        if not HAS_INFRAHUBCLIENT:
+            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
 
         api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_API")
         token = kwargs.get("token") or os.getenv("INFRAHUB_TOKEN")
@@ -167,17 +136,33 @@ class LookupModule(LookupBase):
         if not isinstance(validate_certs, bool):
             raise AnsibleLookupError("validate_certs must be a boolean")
 
-        kwargs.get("timeout", 10)
-        kwargs.get("branch", "main")
+        timeout = kwargs.get("timeout", 10)
+        branch = kwargs.get("branch", "main")
 
-        client = initialize_infrahub_client(
-            api_endpoint=api_endpoint,
-            branch=self.branch,
-            token=self.token,
-            timeout=self.timeout,
-        )
+        if query is None:
+            raise AnsibleLookupError("Query parameter was not passed")
+        if isinstance(query, str) or isinstance(query, Dict):
+            graphql_query = query
+        else:
+            raise AnsibleLookupError("Query parameter must be either a string or a Dictionary")
+        if graph_variables is not None:
+            if not isinstance(graph_variables, Dict):
+                raise AnsibleLookupError("graph_variables parameter must be a list of Dict")
 
-        lookup_info = infrahub_lookup_graphql(client=client, query=terms[0], filters=filters)
+        results = {}
+        try:
+            Display().v("Initializing Infrahub Client")
+            client = InfrahubclientWrapper(
+                api_endpoint=api_endpoint,
+                token=token,
+                branch=branch,
+                timeout=timeout,
+            )
+            processor = InfrahubQueryProcessor(client=client)
+            Display().v("Processing Query")
+            results = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
 
-        # Results should be the data response of the query to be returned as a lookup
-        return lookup_info
+        except Exception as exp:
+            raise_from(AnsibleError(str(exp)), exp)
+
+        return results

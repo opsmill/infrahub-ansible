@@ -6,31 +6,47 @@
 .. |antsibull-internal-nbsp| unicode:: 0xA0
     :trim:
 
-.. meta::
-  :antsibull-docs: 2.5.0
+.. role:: ansible-attribute-support-label
+.. role:: ansible-attribute-support-property
+.. role:: ansible-attribute-support-full
+.. role:: ansible-attribute-support-partial
+.. role:: ansible-attribute-support-none
+.. role:: ansible-attribute-support-na
+.. role:: ansible-option-type
+.. role:: ansible-option-elements
+.. role:: ansible-option-required
+.. role:: ansible-option-versionadded
+.. role:: ansible-option-aliases
+.. role:: ansible-option-choices
+.. role:: ansible-option-choices-default-mark
+.. role:: ansible-option-default-bold
+.. role:: ansible-option-configuration
+.. role:: ansible-option-returned-bold
+.. role:: ansible-option-sample-bold
 
 .. Anchors
 
-.. _ansible_collections.infrahub.infrahub.inventory_inventory:
+.. _ansible_collections.opsmill.infrahub.inventory_inventory:
 
 .. Anchors: short name for ansible.builtin
 
+.. Anchors: aliases
+
+
+
 .. Title
 
-infrahub.infrahub.inventory inventory -- Infrahub inventory source (using GraphQL)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+opsmill.infrahub.inventory inventory -- Infrahub inventory source (using GraphQL)
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This inventory plugin is part of the `infrahub.infrahub collection <https://galaxy.ansible.com/ui/repo/published/infrahub/infrahub/>`_ (version 0.0.1).
+    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.1).
 
-    It is not included in ``ansible-core``.
-    To check whether it is installed, run :code:`ansible-galaxy collection list`.
+    To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
 
-    To install it, use: :code:`ansible-galaxy collection install infrahub.infrahub`.
-
-    To use it in a playbook, specify: :code:`infrahub.infrahub.inventory`.
+    To use it in a playbook, specify: :code:`opsmill.infrahub.inventory`.
 
 .. version_added
 
@@ -65,13 +81,12 @@ Synopsis
 Parameters
 ----------
 
-.. tabularcolumns:: \X{1}{3}\X{2}{3}
+.. rst-class:: ansible-option-table
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
-  :class: longtable ansible-option-table
 
   * - Parameter
     - Comments
@@ -81,7 +96,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_endpoint"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-api_endpoint:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-api_endpoint:
 
       .. rst-class:: ansible-option-title
 
@@ -91,9 +106,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-api_endpoint" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+      :ansible-option-type:`string` / :ansible-option-required:`required`
 
 
 
@@ -125,7 +140,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-branch"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-branch:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-branch:
 
       .. rst-class:: ansible-option-title
 
@@ -135,9 +150,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-branch" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -166,7 +181,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-cache"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-cache:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-cache:
 
       .. rst-class:: ansible-option-title
 
@@ -176,9 +191,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-cache" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`boolean`
+      :ansible-option-type:`boolean`
 
 
 
@@ -226,7 +241,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-cache_connection"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-cache_connection:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-cache_connection:
 
       .. rst-class:: ansible-option-title
 
@@ -236,9 +251,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-cache_connection" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -287,7 +302,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-cache_plugin"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-cache_plugin:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-cache_plugin:
 
       .. rst-class:: ansible-option-title
 
@@ -297,9 +312,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-cache_plugin" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -352,7 +367,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-cache_prefix"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-cache_prefix:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-cache_prefix:
 
       .. rst-class:: ansible-option-title
 
@@ -362,9 +377,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-cache_prefix" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -432,7 +447,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-cache_timeout"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-cache_timeout:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-cache_timeout:
 
       .. rst-class:: ansible-option-title
 
@@ -442,9 +457,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-cache_timeout" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`integer`
+      :ansible-option-type:`integer`
 
 
 
@@ -497,7 +512,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-compose"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-compose:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-compose:
 
       .. rst-class:: ansible-option-title
 
@@ -507,9 +522,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-compose" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary`
+      :ansible-option-type:`dictionary`
 
 
 
@@ -538,7 +553,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-groups"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-groups:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-groups:
 
       .. rst-class:: ansible-option-title
 
@@ -548,9 +563,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-groups" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary`
+      :ansible-option-type:`dictionary`
 
 
 
@@ -579,7 +594,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-keyed_groups"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-keyed_groups:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-keyed_groups:
 
       .. rst-class:: ansible-option-title
 
@@ -589,9 +604,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-keyed_groups" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+      :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
 
 
 
@@ -622,11 +637,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-keyed_groups/default_value"></div>
 
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-keyed_groups/default_value:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-keyed_groups/default_value:
 
       .. rst-class:: ansible-option-title
 
@@ -636,9 +647,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-keyed_groups/default_value" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
       :ansible-option-versionadded:`added in ansible-core 2.12`
 
@@ -649,10 +660,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -672,11 +679,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-keyed_groups/key"></div>
 
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-keyed_groups/key:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-keyed_groups/key:
 
       .. rst-class:: ansible-option-title
 
@@ -686,9 +689,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-keyed_groups/key" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -696,10 +699,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -717,11 +716,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-keyed_groups/parent_group"></div>
 
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-keyed_groups/parent_group:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-keyed_groups/parent_group:
 
       .. rst-class:: ansible-option-title
 
@@ -731,9 +726,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-keyed_groups/parent_group" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -741,10 +736,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -762,11 +753,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-keyed_groups/prefix"></div>
 
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-keyed_groups/prefix:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-keyed_groups/prefix:
 
       .. rst-class:: ansible-option-title
 
@@ -776,9 +763,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-keyed_groups/prefix" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -786,10 +773,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -811,11 +794,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-keyed_groups/separator"></div>
 
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-keyed_groups/separator:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-keyed_groups/separator:
 
       .. rst-class:: ansible-option-title
 
@@ -825,9 +804,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-keyed_groups/separator" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -835,10 +814,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -860,11 +835,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-keyed_groups/trailing_separator"></div>
 
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-keyed_groups/trailing_separator:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-keyed_groups/trailing_separator:
 
       .. rst-class:: ansible-option-title
 
@@ -874,9 +845,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-keyed_groups/trailing_separator" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`boolean`
+      :ansible-option-type:`boolean`
 
       :ansible-option-versionadded:`added in ansible-core 2.12`
 
@@ -887,10 +858,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -919,7 +886,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-leading_separator"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-leading_separator:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-leading_separator:
 
       .. rst-class:: ansible-option-title
 
@@ -929,9 +896,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-leading_separator" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`boolean`
+      :ansible-option-type:`boolean`
 
       :ansible-option-versionadded:`added in ansible-core 2.11`
 
@@ -977,7 +944,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-nodes"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-nodes:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-nodes:
 
       .. rst-class:: ansible-option-title
 
@@ -987,9 +954,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-nodes" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary` / :ansible-option-required:`required`
+      :ansible-option-type:`dictionary` / :ansible-option-required:`required`
 
 
 
@@ -1016,11 +983,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-nodes/node_type"></div>
 
-      .. raw:: latex
-
-        \hspace{0.02\textwidth}\begin{minipage}[t]{0.3\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-nodes/node_type:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-nodes/node_type:
 
       .. rst-class:: ansible-option-title
 
@@ -1030,9 +993,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-nodes/node_type" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary`
+      :ansible-option-type:`dictionary`
 
 
 
@@ -1040,10 +1003,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -1063,11 +1022,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-nodes/node_type/exclude"></div>
 
-      .. raw:: latex
-
-        \hspace{0.04\textwidth}\begin{minipage}[t]{0.28\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-nodes/node_type/exclude:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-nodes/node_type/exclude:
 
       .. rst-class:: ansible-option-title
 
@@ -1077,9 +1032,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-nodes/node_type/exclude" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+      :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
 
 
 
@@ -1087,10 +1042,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -1112,11 +1063,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-nodes/node_type/filters"></div>
 
-      .. raw:: latex
-
-        \hspace{0.04\textwidth}\begin{minipage}[t]{0.28\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-nodes/node_type/filters:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-nodes/node_type/filters:
 
       .. rst-class:: ansible-option-title
 
@@ -1126,9 +1073,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-nodes/node_type/filters" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`dictionary`
+      :ansible-option-type:`dictionary`
 
 
 
@@ -1136,10 +1083,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -1161,11 +1104,7 @@ Parameters
         <div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-nodes/node_type/include"></div>
 
-      .. raw:: latex
-
-        \hspace{0.04\textwidth}\begin{minipage}[t]{0.28\textwidth}
-
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-nodes/node_type/include:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-nodes/node_type/include:
 
       .. rst-class:: ansible-option-title
 
@@ -1175,9 +1114,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-nodes/node_type/include" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+      :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
 
 
 
@@ -1185,10 +1124,6 @@ Parameters
       .. raw:: html
 
         </div>
-
-      .. raw:: latex
-
-        \end{minipage}
 
     - .. raw:: html
 
@@ -1212,7 +1147,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-plugin"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-plugin:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-plugin:
 
       .. rst-class:: ansible-option-title
 
@@ -1222,9 +1157,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-plugin" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+      :ansible-option-type:`string` / :ansible-option-required:`required`
 
 
 
@@ -1237,14 +1172,14 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      token that ensures this is a source file for the 'infrahub.infrahub' plugin.
+      token that ensures this is a source file for the 'opsmill.infrahub' plugin.
 
 
       .. rst-class:: ansible-option-line
 
       :ansible-option-choices:`Choices:`
 
-      - :ansible-option-choices-entry:`"infrahub.infrahub.inventory"`
+      - :ansible-option-choices-entry:`"opsmill.infrahub.inventory"`
 
 
       .. raw:: html
@@ -1256,7 +1191,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-strict"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-strict:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-strict:
 
       .. rst-class:: ansible-option-title
 
@@ -1266,9 +1201,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-strict" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`boolean`
+      :ansible-option-type:`boolean`
 
 
 
@@ -1303,7 +1238,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-timeout:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-timeout:
 
       .. rst-class:: ansible-option-title
 
@@ -1313,9 +1248,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-timeout" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`integer`
+      :ansible-option-type:`integer`
 
 
 
@@ -1328,7 +1263,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Timeout for Nautobot requests in seconds
+      Timeout for Infrahub requests in seconds
 
 
       .. rst-class:: ansible-option-line
@@ -1344,7 +1279,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-token:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-token:
 
       .. rst-class:: ansible-option-title
 
@@ -1354,9 +1289,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-token" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
+      :ansible-option-type:`string` / :ansible-option-required:`required`
 
 
 
@@ -1388,7 +1323,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-use_extra_vars"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-use_extra_vars:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-use_extra_vars:
 
       .. rst-class:: ansible-option-title
 
@@ -1398,9 +1333,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-use_extra_vars" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`boolean`
+      :ansible-option-type:`boolean`
 
       :ansible-option-versionadded:`added in ansible-core 2.11`
 
@@ -1451,7 +1386,7 @@ Parameters
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__parameter-validate_certs:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__parameter-validate_certs:
 
       .. rst-class:: ansible-option-title
 
@@ -1461,9 +1396,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-validate_certs" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`string`
+      :ansible-option-type:`string`
 
 
 
@@ -1511,7 +1446,7 @@ Examples
     # Add -vvvv to the command to also see the JSON response that comes back in the debug output.
 
     # Minimum required parameters
-    plugin: infrahub.infrahub.inventory
+    plugin: opsmill.infrahub.inventory
     api_endpoint: http://localhost:8000  # Can be omitted if the INFRAHUB_API environment variable is set
     token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN environment variable is set
 
@@ -1522,7 +1457,7 @@ Examples
     # - Create 2 compose variable "hostname" ad "platform" (platform will override the attribute platform retrieved)
     # - Create group based on the "site" name
 
-    plugin: infrahub.infrahub.inventory
+    plugin: opsmill.infrahub.inventory
     api_endpoint: "http://localhost:8000"
     validate_certs: True
 
@@ -1559,13 +1494,12 @@ Return Values
 -------------
 Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this inventory:
 
-.. tabularcolumns:: \X{1}{3}\X{2}{3}
+.. rst-class:: ansible-option-table
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
-  :class: longtable ansible-option-table
 
   * - Key
     - Description
@@ -1575,7 +1509,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="return-_list"></div>
 
-      .. _ansible_collections.infrahub.infrahub.inventory_inventory__return-_list:
+      .. _ansible_collections.opsmill.infrahub.inventory_inventory__return-_list:
 
       .. rst-class:: ansible-option-title
 
@@ -1585,9 +1519,9 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
         <a class="ansibleOptionLink" href="#return-_list" title="Permalink to this return value"></a>
 
-      .. ansible-option-type-line::
+      .. rst-class:: ansible-option-type-line
 
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
+      :ansible-option-type:`list` / :ansible-option-elements:`elements=string`
 
       .. raw:: html
 
@@ -1630,15 +1564,12 @@ Authors
 Collection links
 ~~~~~~~~~~~~~~~~
 
-.. ansible-links::
+.. raw:: html
 
-  - title: "Issue Tracker"
-    url: "https://github.com/opsmill/infrahub-ansible/issues"
-    external: true
-  - title: "Repository (Sources)"
-    url: "https://github.com/opsmill/infrahub-ansible"
-    external: true
-
+  <p class="ansible-links">
+    <a href="https://github.com/opsmill/infrahub-ansible/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
+    <a href="https://github.com/opsmill/infrahub-ansible" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
+  </p>
 
 .. Parsing errors
 

@@ -1,21 +1,21 @@
 ---
 ### infrahub_inventory.yml file in YAML format
-### infrahub.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_TOKEN and INFRAHUB_API
+### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_TOKEN and INFRAHUB_API
 
-plugin: infrahub.infrahub.inventory
+plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
-validate_certs: True
+validate_certs: true
 timeout: 30
 
-strict: True
+strict: true
 
 branch: "jfk1-update-edge-ips"
 
 nodes:
   InfraDevice:
     filters:
-      site__ids: "17910a95-d53b-7d4c-3371-d8eb2ff0efbf" #jfk1
-      role__ids: "17910a95-6e4d-e316-3373-d8e037fc39db" #edge
+      site__ids: "1791a399-7e43-13b5-3995-d8e9955c926e"   # jfk1
+      role__ids: "1791a399-31c4-c688-3992-d8ebd2cca61f"   # edge
     include:
       - name
       - primary_address

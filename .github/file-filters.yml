@@ -1,0 +1,20 @@
+---
+ci_config: &ci_config
+  - ".github/workflows/ci.yml"
+  - ".github/file-filters.yml"
+
+ansible_plugins: &ansible_plugins
+  - "plugins/**"
+
+ansible_docs: &ansible_docs
+  - "ansible_docs/**"
+
+python_all: &python_all
+  - "**/*.py"
+
+yaml_all: &yaml_all
+  - "**/*.{yml,yaml}"
+
+ansible_all:
+  - *ansible_plugins
+  - *ansible_docs

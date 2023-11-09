@@ -33,10 +33,10 @@ sphinx_rtd_theme = "*"
 hypothesis = "^6.8.0"
 pytest-pythonpath = "^0.7.3"
 parameterized = "^0.8.1"
-invoke = "^1.6.0"
+invoke = "^2.2.0"
 bandit = "^1.7.0"
 antsibull-docs = "^1.7.3"
-infrahub = { path = "../infrahub/" }
+infrahub_sdk = "^0.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -60,22 +60,82 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+known_first_party = [ "infrahub_sdk" ]
 
-[tool.ruff]
-
-select = [
-    "C90",
-    "DTZ",
-    "E",
-    "F",
-    "ICN",
-    "TCH",
-    "T10",
-    "Q",
-    "W",
-    "YTT",
+[tool.pylint.general]
+extension-pkg-whitelist = [
+    "pydantic",
+    "ujson",
 ]
 
+[tool.pylint.format]
+disable = "logging-fstring-interpolation"
+
+[tool.pylint.basic]
+# No docstrings required for private methods (Pylint default), or for test_ functions.
+no-docstring-rgx="^(_|test_)"
+
+[tool.pylint.messages_control]
+# Line length is enforced by Black, so pylint doesn't need to check it.
+# Pylint and Black disagree about how to format multi-line arrays; Black wins.
+disable = """,
+    line-too-long,
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    consider-using-from-import,
+    invalid-name,
+    too-many-arguments,
+    too-many-locals,
+    keyword-arg-before-vararg,
+    too-few-public-methods,
+    too-many-instance-attributes,
+    fixme,
+    consider-using-f-string,
+    protected-access,
+    import-self,
+    wrong-import-order,
+    """
+
+[tool.pylint.miscellaneous]
+notes = """,
+    FIXME,
+    XXX,
+    """
+
+[tool.pylint.similarities]
+min-similarity-lines = 20
+
+[tool.ruff.lint]
+select = [
+    # mccabe
+    "C90",
+    # pycodestyle (Error)
+    "E",
+    # pycodestyle (Warning)
+    "W",
+    # Pyflakes
+    "F",
+    # isort
+    "I",
+    # flake8-datetimez
+    "DTZ",
+    # flake8-import-conventions
+    "ICN",
+    # flake8-type-checking
+    "TCH",
+    # flake8-debugger
+    "T10",
+    # flake8-quotes
+    "Q",
+    # flake8-2020
+    "YTT",
+]
+ignore = [
+    "E402",
+    "F811",
+]
+[tool.ruff]
 line-length = 170
 
 [tool.ruff.mccabe]

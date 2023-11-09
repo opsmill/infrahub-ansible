@@ -1,0 +1,21 @@
+---
+- name: Infrahub action plugin
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
+      set_fact:
+        query_dict:
+          BuiltinLocation:
+            '@filters': {name__value: "jfk1"}
+            edges:
+              node:
+                name:
+                  value: null
+                description:
+                  value: null
+
+    - name: Action Plugin
+      opsmill.infrahub.query_graphql:
+        query: "{{ query_dict}}"
