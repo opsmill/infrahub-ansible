@@ -83,7 +83,7 @@ DOCUMENTATION = """
             required: False
             description:
                 - Create groups based on attributes or relationships.
-                - groups is created as attribute__value 
+                - groups is created as attribute__value
             type: list
             elements: str
             default: []

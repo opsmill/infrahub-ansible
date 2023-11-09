@@ -207,7 +207,7 @@ if HAS_INFRAHUBCLIENT:
 
                 if attr in node._schema.relationship_names:
                     # Workaround if peer are generics, we load the nodes inherited from it via fetch
-                    if not node_attr.schema.peer in schemas:
+                    if node_attr.schema.peer not in schemas:
                         node_attr.fetch()
                     elif node_attr.schema.peer in schemas:
                         if not schemas[node_attr.schema.peer]:

@@ -106,24 +106,36 @@ notes = """,
 [tool.pylint.similarities]
 min-similarity-lines = 20
 
-[tool.ruff]
-
+[tool.ruff.lint]
 select = [
+    # mccabe
     "C90",
-    "DTZ",
+    # pycodestyle (Error)
     "E",
-    "F",
-    "ICN",
-    "TCH",
-    "T10",
-    "Q",
+    # pycodestyle (Warning)
     "W",
+    # Pyflakes
+    "F",
+    # isort
+    "I",
+    # flake8-datetimez
+    "DTZ",
+    # flake8-import-conventions
+    "ICN",
+    # flake8-type-checking
+    "TCH",
+    # flake8-debugger
+    "T10",
+    # flake8-quotes
+    "Q",
+    # flake8-2020
     "YTT",
 ]
 ignore = [
-"F811",
+    "E402",
+    "F811",
 ]
-
+[tool.ruff]
 line-length = 170
 
 [tool.ruff.mccabe]

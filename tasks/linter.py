@@ -13,6 +13,7 @@ def format_all(context: Context):
     format_isort(context)
     format_autoflake(context)
     format_black(context)
+    format_ruff(context)
     format_yaml(context)
 
     print(f" - [{NAMESPACE}] All formatters have been executed!")
@@ -47,6 +48,26 @@ def format_isort(context: Context):
 
     print(f" - [{NAMESPACE}] Format code with isort")
     exec_cmd = f"isort {MAIN_DIRECTORY}"
+    with context.cd(ESCAPED_REPO_PATH):
+        context.run(exec_cmd)
+
+
+@task
+def format_pylint(context: Context):
+    """This will run pylint for the specified name and Python version."""
+
+    print(f" - [{NAMESPACE}] Check code with pylint")
+    exec_cmd = f"pylint {MAIN_DIRECTORY}"
+    with context.cd(ESCAPED_REPO_PATH):
+        context.run(exec_cmd)
+
+
+@task
+def format_ruff(context: Context):
+    """This will run ruff."""
+
+    print(f" - [{NAMESPACE}] Check code with ruff")
+    exec_cmd = f"ruff check {MAIN_DIRECTORY}"
     with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 
