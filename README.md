@@ -8,9 +8,9 @@ To keep the code simple, we only officially support the two latest releases of I
 Requirements
 
 - The two latest Infrahub releases
-- Python 3.9+
+- Python >=3.9, <3.12
 - Python modules:
-  - TODO
+  - infrahub_sdk >= 0.2.0
 - Ansible 2.12+
 - Infrahub write-enabled token when using modules or read-only token for `lookup/inventory`
 
@@ -26,6 +26,6 @@ We plan to regularly release new minor or bugfix versions once new features or b
 
 Releasing the current major version happens from the `develop` branch with a release.
 
-If backwards incompatible changes are able, we plan to deprecate the old behavior as early as possible. We also plan to backport at least bugfixes for the old major version for some time after releasing a new major version. We will not block community members from backporting other bugfixes and features from the latest stable version to older release branches, under the condition that these backports are of reasonable quality. Some changes may not be able to be back ported.
+If backward incompatible changes are possible, we plan to deprecate the old behavior as early as possible. We also plan to backport at least bug fixes for the old major version for some time after releasing a new major version. We will not block community members from backporting other bugfixes and features from the latest stable version to older release branches, under the condition that these backports are of reasonable quality. Some changes may not be able to be backported.
 
 > Some changes that would require immediate patching that are breaking changes will fall to SemVer and constitute a breaking change. These will only be done when necessary, such as to support working with the most recent 3 versions of Ansible. Backporting these changes may not be possible.
