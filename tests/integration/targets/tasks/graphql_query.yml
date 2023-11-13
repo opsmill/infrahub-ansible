@@ -26,5 +26,5 @@
 
     - name: Action Plugin
       opsmill.infrahub.query_graphql:
-        query: "{{ query_dict}}"
+        query: "{{ query_dict }}"
         graph_variables: "{{ variables }}"

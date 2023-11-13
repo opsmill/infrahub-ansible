@@ -15,9 +15,9 @@ author:
 version_added: "0.0.1"
 short_description: Queries and returns elements from Infrahub GraphQL API
 description:
-    - Queries Infrahub via its GraphQL API through pyinfrahub
+    - Queries Infrahub via its GraphQL API through Infrahub SDK
 requirements:
-    - pyinfrahub
+    - infrahub-sdk
 options:
     api_endpoint:
         required: False
