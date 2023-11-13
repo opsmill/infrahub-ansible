@@ -315,7 +315,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 Optional[Dict[str, Any]]: A dictionary with processed host node attributes, or None if no nodes were processed.
             """
-            all_nodes = []
+            all_nodes: List[InfrahubNodeSync] = []
             schema_dict = {}
             node_attributes_dict = {}
 
@@ -364,6 +364,7 @@ if HAS_INFRAHUBCLIENT:
                         schemas=schema_dict,
                     )
                     if result:
+                        result["id"] = host_node.id
                         host_node_attributes[str(host_node)] = result
 
             return host_node_attributes
