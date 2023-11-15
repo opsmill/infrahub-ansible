@@ -1,13 +1,11 @@
 ---
 name: "Release"
 on: # yamllint disable
-  release:
-    types: [published]
+  create:
+    tags:
+      - "v*"
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml
-
   publish_github:
     name: "Publish to GitHub"
     runs-on: "ubuntu-22.04"
@@ -33,7 +31,7 @@ jobs:
           tag: "${{ github.ref }}"
           overwrite: true
           file_glob: true
-    
+
   publish_galaxy:
     name: "Publish to Ansible Galaxy"
     runs-on: "ubuntu-22.04"
