@@ -6,7 +6,7 @@
 Opsmill.Infrahub
 ================
 
-Collection version 0.0.4
+Collection version 0.1.5
 
 .. contents::
    :local:

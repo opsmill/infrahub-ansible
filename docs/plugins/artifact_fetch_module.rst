@@ -42,7 +42,7 @@ opsmill.infrahub.artifact_fetch module -- Fetch the content of an artifact from 
 .. Collection note
 
 .. note::
-    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.4).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.1.5).
 
     To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
     You need further requirements to be able to use this module,

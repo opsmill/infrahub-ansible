@@ -42,7 +42,7 @@ opsmill.infrahub.lookup lookup -- Queries and returns elements from Infrahub (us
 .. Collection note
 
 .. note::
-    This lookup plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.4).
+    This lookup plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.1.5).
 
     To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
 
