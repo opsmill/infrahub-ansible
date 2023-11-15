@@ -4,6 +4,7 @@ extends: default
 ignore: |
   /.venv
   /examples
+  /tests/**/output*
 
 rules:
   new-lines: disable

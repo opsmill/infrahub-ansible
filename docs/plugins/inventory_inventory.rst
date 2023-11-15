@@ -42,7 +42,7 @@ opsmill.infrahub.inventory inventory -- Infrahub inventory source (using GraphQL
 .. Collection note
 
 .. note::
-    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.1).
+    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.4).
 
     To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
 

@@ -50,6 +50,111 @@ if HAS_INFRAHUBCLIENT:
             self.branch_manager = InfrahubBranchManagerSync(self.client)
 
         @handle_infrahub_exceptions
+        def fetch_single_artifact(
+            self,
+            filters: Optional[Dict[str, str]] = None,
+            branch: Optional[str] = None,
+        ) -> List[InfrahubNodeSync]:
+            """
+            Retrieve all artifact content
+
+            Parameters:
+                filters (Optional[Dict[str, str]]): Dict of filters to apply on the query
+                branch (Optional[str]): Name of the branch to query from. Defaults to default_branch.
+
+            Returns:
+                Dict: Artifact Content
+            """
+            result = {
+                "json": None,
+                "text": None,
+            }
+            node = self.fetch_single_node(
+                kind="CoreArtifact",
+                filters=filters,
+                branch=branch,
+            )
+            resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")
+            if node.content_type.value == "application/json":
+                result["json"] = resp.json()
+            else:
+                result["text"] = resp.text
+
+            return result
+
+        @handle_infrahub_exceptions
+        def fetch_artifacts(
+            self,
+            filters: Optional[Dict[str, str]] = None,
+            branch: Optional[str] = None,
+        ) -> List[InfrahubNodeSync]:
+            """
+            Retrieve all artifact content
+
+            Parameters:
+                filters (Optional[Dict[str, str]]): Dict of filters to apply on the query
+                branch (Optional[str]): Name of the branch to query from. Defaults to default_branch.
+
+            Returns:
+                List[Dict]: List of Artifact Content
+            """
+            result = {
+                "json": None,
+                "text": None,
+            }
+            results = List[result]
+            nodes = self.fetch_nodes(
+                kind="CoreArtifact",
+                filters=filters,
+                branch=branch,
+            )
+            for node in nodes:
+                resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")
+
+                if node.value == "application/json":
+                    result["json"] = resp.json()
+                else:
+                    result["text"] = resp.text
+
+                results.append(result)
+            return results
+
+        @handle_infrahub_exceptions
+        def fetch_single_node(
+            self,
+            kind: str,
+            include: Optional[List[str]] = None,
+            exclude: Optional[List[str]] = None,
+            filters: Optional[Dict[str, str]] = None,
+            branch: Optional[str] = None,
+        ) -> InfrahubNodeSync:
+            """
+            Retrieve a single node of a given kind based on filters
+
+            Parameters:
+                kind (str): kind of the nodes to query
+                include (Optional[List[str]]): list of attributes/relationship to retrieve
+                exclude (Optional[List[str]]): list of attributes/relationship to ignore
+                filters (Optional[Dict[str, str]]): Dict of filters to apply on the query
+                branch (Optional[str]): Name of the branch to query from. Defaults to default_branch.
+
+            Returns:
+                InfrahubNodeSync: Single Infrahub Node
+            """
+            if not filters:
+                raise Exception("At least one filter must be provided")
+
+            node = self.client.get(
+                kind=kind,
+                include=include,
+                populate_store=True,
+                exclude=exclude,
+                branch=branch,
+                **filters,
+            )
+            return node
+
+        @handle_infrahub_exceptions
         def fetch_nodes(
             self,
             kind: str,

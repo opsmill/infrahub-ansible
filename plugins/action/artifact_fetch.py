@@ -13,8 +13,9 @@ from ansible.plugins.action import ActionBase
 from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
+    InfrahubclientWrapper,
 )
-from infrahub_sdk import InfrahubClientSync, Config
+
 
 class ActionModule(ActionBase):
     """
@@ -69,30 +70,23 @@ class ActionModule(ActionBase):
         artifact_name = args.get("artifact_name")
         target_id = args.get("target_id")
 
-        results = {
-            "json": None,
-            "text": None,
+        filters = {
+            "name__value": artifact_name,
+            "object__ids": [target_id],
         }
 
         try:
             Display().v("Initializing Infrahub Client")
-
-            client = InfrahubClientSync(
-                address=api_endpoint,
-                default_branch=branch,
-                config=Config(api_token=token, timeout=timeout),
+            client = InfrahubclientWrapper(
+                api_endpoint=api_endpoint,
+                token=token,
+                branch=branch,
+                timeout=timeout,
             )
-
-            artifact_node = client.get(kind="CoreArtifact", name__value=artifact_name, object__ids=[target_id])
-
-            resp = client._get(url=f"{client.address}/api/storage/object/{artifact_node.storage_id.value}")
-
-            if artifact_node.content_type.value == "application/json":
-                results["json"] = resp.json()
-            else:
-                results["text"] = resp.text
+            Display().v("Fetch Artifacts")
+            result = client.fetch_single_artifact(filters=filters)
 
         except Exception as exp:
             raise_from(AnsibleError(str(exp)), exp)
 
-        return results
+        return result
