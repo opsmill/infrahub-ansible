@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "infrahub_ansible_modules"
-version = "0.0.4"
+version = "0.1.5"
 description = "Ansible collection to interact with Infrahub's API"
 authors = ["OpsMill <info@opsmill.com>"]
 license = "GPLv3"
@@ -130,6 +130,11 @@ select = [
     "Q",
     # flake8-2020
     "YTT",
+]
+
+ignore = [
+    # module-import-not-at-top-of-file
+    "E402",
 ]
 
 #https://docs.astral.sh/ruff/formatter/black/

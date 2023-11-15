@@ -8,11 +8,20 @@ NAMESPACE = "INFRAHUB-ANSIBLE-LINT"
 
 @task(name="format")
 def lint_all(context: Context):
-    """This will run all formatter."""
+    """This will run all linter."""
 
     lint_autoflake(context)
     lint_ruff(context)
     lint_yaml(context)
+
+    print(f" - [{NAMESPACE}] All linter have been executed!")
+
+
+@task(name="format")
+def format_all(context: Context):
+    """This will run all formatter."""
+
+    format_ruff(context)
 
     print(f" - [{NAMESPACE}] All formatters have been executed!")
 

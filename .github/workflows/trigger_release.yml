@@ -7,59 +7,45 @@ on: # yamllint disable
 jobs:
   tests:
     uses: ./.github/workflows/tests.yml
-  # publish_github:
-  #   name: "Publish to GitHub"
-  #   runs-on: "ubuntu-22.04"
-  #   if: "startsWith(github.ref, 'refs/tags/v')"
-  #   needs:
-  #     - "tests"
-  #   steps:
-  #     - name: "Check out repository code"
-  #       uses: "actions/checkout@v3"
-  #     - name: "Set up Python"
-  #       uses: "actions/setup-python@v3"
-  #       with:
-  #         python-version: "3.9"
-  #     - name: "Install Python Packages"
-  #       run: "pip install ansible-core"
-  #     - name: "Build the collection"
-  #       run: "ansible-galaxy collection build --output-path build"
-  #     - name: "Upload binaries to release"
-  #       uses: "svenstaro/upload-release-action@v2"
-  #       with:
-  #         repo_token: "${{ secrets.GH_INFRAHUB_BOT_TOKEN }}"
-  #         file: "build/*"
-  #         tag: "${{ github.ref }}"
-  #         overwrite: true
-  #         file_glob: true
+
+  publish_github:
+    name: "Publish to GitHub"
+    runs-on: "ubuntu-22.04"
+    if: "startsWith(github.ref, 'refs/tags/v')"
+    needs:
+      - "tests"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v3"
+        with:
+          python-version: "3.11"
+      - name: "Install Python Packages"
+        run: "pip install ansible-core"
+      - name: "Build the collection"
+        run: "ansible-galaxy collection build --output-path build"
+      - name: "Upload binaries to release"
+        uses: "svenstaro/upload-release-action@v2"
+        with:
+          repo_token: "${{ secrets.GH_INFRAHUB_BOT_TOKEN }}"
+          file: "build/*"
+          tag: "${{ github.ref }}"
+          overwrite: true
+          file_glob: true
     
-  # publish_galaxy:
-  #   name: "Publish to Ansible Galaxy"
-  #   runs-on: "ubuntu-22.04"
-  #   if: "startsWith(github.ref, 'refs/tags/v')"
-  #   needs:
-  #     - "tests"
-  #   steps:
-  #     - name: "Check out repository code"
-  #       uses: "actions/checkout@v3"
-  #     - name: "Set up Python"
-  #       uses: "actions/setup-python@v3"
-  #       with:
-  #         python-version: "3.9"
-  #     - name: "Install Python Packages"
-  #       run: "pip install ansible-core"
-  #     - name: "Create the ansible.cfg file"
-  #       run: |
-  #         cat << EOF > ansible.cfg
-  #         [galaxy]
-  #         server_list = published
-  #         [galaxy_server.published]
-  #         url=https://galaxy.ansible.com/api/
-  #         token=${{ secrets.INFRAHUB_GALAXY_API_TOKEN }}
-  #         EOF
-  #       shell: bash
-  #     - name: "Build the collection"
-  #       run: "ansible-galaxy collection build --output-path build"
-  #     - name: "Publish the collection"
-  #       run: "ansible-galaxy collection publish build/*"
+  publish_galaxy:
+    name: "Publish to Ansible Galaxy"
+    runs-on: "ubuntu-22.04"
+    if: "startsWith(github.ref, 'refs/tags/v')"
+    needs:
+      - "tests"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+
+      - name: Build and Deploy Collection
+        uses: artis3n/ansible_galaxy_collection@v2
+        with:
+          api_key: "${{ secrets.GALAXY_API_KEY }}"
   
