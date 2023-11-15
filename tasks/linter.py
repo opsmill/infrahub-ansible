@@ -10,9 +10,7 @@ NAMESPACE = "INFRAHUB-ANSIBLE-LINT"
 def format_all(context: Context):
     """This will run all formatter."""
 
-    format_isort(context)
     format_autoflake(context)
-    format_black(context)
     format_ruff(context)
     format_yaml(context)
 
@@ -67,7 +65,8 @@ def format_ruff(context: Context):
     """This will run ruff."""
 
     print(f" - [{NAMESPACE}] Check code with ruff")
-    exec_cmd = f"ruff check {MAIN_DIRECTORY}"
+    exec_cmd = f"ruff check --diff {MAIN_DIRECTORY} && "
+    exec_cmd += f"ruff format --diff {MAIN_DIRECTORY}"
     with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 

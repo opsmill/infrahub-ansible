@@ -12,7 +12,7 @@ DOCUMENTATION = """
 module: artifact_fetch
 author:
     - Damien Garros (@dgarros)
-version_added: "0.0.1"
+version_added: "0.0.3"
 short_description: Fetch the content of an artifact from Infrahub
 description:
     - Fetch the content of an artifact from Infrahub through Infrahub SDK
@@ -59,25 +59,6 @@ options:
 """
 
 EXAMPLES = """
-    # Make API Query without variables
-  - name: SET FACT OF STRING
-    set_fact:
-      query_string: |
-        query {
-          BuiltinLocation {
-            edges {
-              node {
-                name {
-                  value
-                }
-              }
-            }
-          }
-
-  # Make query to GraphQL Endpoint
-  - name: Obtain list of locations from Infrahub
-    opsmill.infrahub.query_graphql:
-      query: "{{ query_string }}"
 """
 
 RETURN = """
