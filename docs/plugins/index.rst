@@ -6,7 +6,7 @@
 Opsmill.Infrahub
 ================
 
-Collection version 0.0.1
+Collection version 0.0.4
 
 .. contents::
    :local:
@@ -19,7 +19,7 @@ This is a collection of Infrahub Ansible modules
 
 **Author:**
 
-* Benoit Kohler <benoit@opsmill.com>
+* OpsMill <info@opsmill.com>
 
 **Supported ansible-core versions:**
 
@@ -47,12 +47,14 @@ These are the plugins in the opsmill.infrahub collection:
 Modules
 ~~~~~~~
 
+* :ref:`artifact_fetch module <ansible_collections.opsmill.infrahub.artifact_fetch_module>` -- Fetch the content of an artifact from Infrahub
 * :ref:`query_graphql module <ansible_collections.opsmill.infrahub.query_graphql_module>` -- Queries and returns elements from Infrahub GraphQL API
 
 .. toctree::
     :maxdepth: 1
     :hidden:
 
+    artifact_fetch_module
     query_graphql_module
 
 

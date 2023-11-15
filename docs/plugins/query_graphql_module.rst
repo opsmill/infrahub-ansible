@@ -42,7 +42,7 @@ opsmill.infrahub.query_graphql module -- Queries and returns elements from Infra
 .. Collection note
 
 .. note::
-    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.1).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.4).
 
     To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
     You need further requirements to be able to use this module,
@@ -68,7 +68,7 @@ Synopsis
 
 .. Description
 
-- Queries Infrahub via its GraphQL API through pyinfrahub
+- Queries Infrahub via its GraphQL API through Infrahub SDK
 
 .. note::
     This module has a corresponding :ref:`action plugin <action_plugins>`.
@@ -84,7 +84,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- pyinfrahub
+- infrahub-sdk
 
 
 

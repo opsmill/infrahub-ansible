@@ -20,6 +20,6 @@ nodes:
 compose:
   hostname: name
   platform: platform.ansible_network_os
-  ansible_host: primary_address.address
+  ansible_host: primary_address.address | ansible.utils.ipaddr('address')
 
 keyed_groups:

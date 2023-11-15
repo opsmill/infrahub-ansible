@@ -20,6 +20,11 @@ ns.add_collection(galaxy)
 ns.add_collection(tests)
 
 
+@task(name="lint")
+def lint_all(context: Context):
+    linter.lint_all(context)
+
+
 @task(name="format")
 def format_all(context: Context):
     linter.format_all(context)
@@ -60,6 +65,7 @@ def galaxy_build(context: Context, force=False):
     galaxy.galaxy_build(context, force=force)
 
 
+ns.add_task(lint_all)
 ns.add_task(format_all)
 ns.add_task(test_all)
 ns.add_task(tests_sanity)

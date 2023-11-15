@@ -26,7 +26,7 @@
 
 .. Anchors
 
-.. _ansible_collections.opsmill.infrahub.lookup_lookup:
+.. _ansible_collections.opsmill.infrahub.artifact_fetch_module:
 
 .. Anchors: short name for ansible.builtin
 
@@ -36,20 +36,25 @@
 
 .. Title
 
-opsmill.infrahub.lookup lookup -- Queries and returns elements from Infrahub (using GraphQL)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+opsmill.infrahub.artifact_fetch module -- Fetch the content of an artifact from Infrahub
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. Collection note
 
 .. note::
-    This lookup plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.4).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 0.0.4).
 
     To install it, use: :code:`ansible-galaxy collection install opsmill.infrahub`.
+    You need further requirements to be able to use this module,
+    see :ref:`Requirements <ansible_collections.opsmill.infrahub.artifact_fetch_module_requirements>` for details.
 
-    To use it in a playbook, specify: :code:`opsmill.infrahub.lookup`.
+    To use it in a playbook, specify: :code:`opsmill.infrahub.artifact_fetch`.
 
 .. version_added
 
+.. rst-class:: ansible-version-added
+
+New in opsmill.infrahub 0.0.3
 
 .. contents::
    :local:
@@ -63,13 +68,23 @@ Synopsis
 
 .. Description
 
-- Get inventory hosts from Infrahub
+- Fetch the content of an artifact from Infrahub through Infrahub SDK
 
+.. note::
+    This module has a corresponding :ref:`action plugin <action_plugins>`.
 
 .. Aliases
 
 
 .. Requirements
+
+.. _ansible_collections.opsmill.infrahub.artifact_fetch_module_requirements:
+
+Requirements
+------------
+The below requirements are needed on the host that executes this module.
+
+- infrahub-sdk
 
 
 
@@ -78,11 +93,8 @@ Synopsis
 
 .. Options
 
-Keyword parameters
-------------------
-
-This describes keyword parameters of the lookup. These are the values ``key1=value1``, ``key2=value2`` and so on in the following
-examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` and ``query('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)``
+Parameters
+----------
 
 .. rst-class:: ansible-option-table
 
@@ -99,7 +111,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-api_endpoint"></div>
 
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-api_endpoint:
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__parameter-api_endpoint:
 
       .. rst-class:: ansible-option-title
 
@@ -111,10 +123,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
       .. rst-class:: ansible-option-type-line
 
-      :ansible-option-type:`string` / :ansible-option-required:`required`
-
-
-
+      :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -124,14 +133,41 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
         <div class="ansible-option-cell">
 
-      Endpoint of the Infrahub API
+      Endpoint of the Infrahub API, optional env=INFRAHUB\_API
 
 
-      .. rst-class:: ansible-option-line
+      .. raw:: html
 
-      :ansible-option-configuration:`Configuration:`
+        </div>
 
-      - Environment variable: :envvar:`INFRAHUB\_API`
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="parameter-artifact_name"></div>
+
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__parameter-artifact_name:
+
+      .. rst-class:: ansible-option-title
+
+      **artifact_name**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-artifact_name" title="Permalink to this option"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`string` / :ansible-option-required:`required`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Name of the artifact
 
 
       .. raw:: html
@@ -143,7 +179,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-branch"></div>
 
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-branch:
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__parameter-branch:
 
       .. rst-class:: ansible-option-title
 
@@ -156,9 +192,6 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
       .. rst-class:: ansible-option-type-line
 
       :ansible-option-type:`string`
-
-
-
 
       .. raw:: html
 
@@ -182,66 +215,22 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-graph_variables"></div>
+        <div class="ansibleOptionAnchor" id="parameter-target_id"></div>
 
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-graph_variables:
-
-      .. rst-class:: ansible-option-title
-
-      **graph_variables**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-graph_variables" title="Permalink to this option"></a>
-
-      .. rst-class:: ansible-option-type-line
-
-      :ansible-option-type:`dictionary`
-
-
-
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Dictionary of keys/values to pass into the GraphQL query
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`{}`
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-query"></div>
-
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-query:
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__parameter-target_id:
 
       .. rst-class:: ansible-option-title
 
-      **query**
+      **target_id**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-query" title="Permalink to this option"></a>
+        <a class="ansibleOptionLink" href="#parameter-target_id" title="Permalink to this option"></a>
 
       .. rst-class:: ansible-option-type-line
 
       :ansible-option-type:`string` / :ansible-option-required:`required`
 
-
-
-
       .. raw:: html
 
         </div>
@@ -250,7 +239,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
         <div class="ansible-option-cell">
 
-      GraphQL query to send to Infrahub to obtain desired data
+      Id of the target for this artifact
 
 
       .. raw:: html
@@ -262,7 +251,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
 
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-timeout:
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__parameter-timeout:
 
       .. rst-class:: ansible-option-title
 
@@ -275,9 +264,6 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
       .. rst-class:: ansible-option-type-line
 
       :ansible-option-type:`integer`
-
-
-
 
       .. raw:: html
 
@@ -303,7 +289,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-token"></div>
 
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-token:
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__parameter-token:
 
       .. rst-class:: ansible-option-title
 
@@ -315,10 +301,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
       .. rst-class:: ansible-option-type-line
 
-      :ansible-option-type:`string` / :ansible-option-required:`required`
-
-
-
+      :ansible-option-type:`string`
 
       .. raw:: html
 
@@ -328,14 +311,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
         <div class="ansible-option-cell">
 
-      Infrahub API token to be able to read against Infrahub.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-configuration:`Configuration:`
-
-      - Environment variable: :envvar:`INFRAHUB\_TOKEN`
+      The API token created through Infrahub, optional env=INFRAHUB\_TOKEN
 
 
       .. raw:: html
@@ -347,7 +323,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
         <div class="ansible-option-cell">
         <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
 
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__parameter-validate_certs:
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__parameter-validate_certs:
 
       .. rst-class:: ansible-option-title
 
@@ -359,10 +335,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
       .. rst-class:: ansible-option-type-line
 
-      :ansible-option-type:`string`
-
-
-
+      :ansible-option-type:`boolean`
 
       .. raw:: html
 
@@ -377,7 +350,11 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`true`
+      :ansible-option-choices:`Choices:`
+
+      - :ansible-option-choices-entry:`false`
+      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
+
 
       .. raw:: html
 
@@ -401,26 +378,6 @@ Examples
 .. code-block:: yaml+jinja
 
     
-    # Make API Query without variables
-      - name: SET FACT OF STRING
-        set_fact:
-          query_string: |
-            query {
-              BuiltinLocation {
-                edges {
-                  node {
-                    name {
-                      value
-                    }
-                  }
-                }
-              }
-            }
-
-      # Make query to GraphQL Endpoint
-      - name: Obtain list of sites from Infrahub
-        set_fact:
-          query_response: "{{ query('opsmill.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
 
 
 
@@ -430,8 +387,9 @@ Examples
 
 .. Return values
 
-Return Value
-------------
+Return Values
+-------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
 
 .. rst-class:: ansible-option-table
 
@@ -446,17 +404,17 @@ Return Value
   * - .. raw:: html
 
         <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-data"></div>
+        <div class="ansibleOptionAnchor" id="return-json"></div>
 
-      .. _ansible_collections.opsmill.infrahub.lookup_lookup__return-data:
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__return-json:
 
       .. rst-class:: ansible-option-title
 
-      **data**
+      **json**
 
       .. raw:: html
 
-        <a class="ansibleOptionLink" href="#return-data" title="Permalink to this return value"></a>
+        <a class="ansibleOptionLink" href="#return-json" title="Permalink to this return value"></a>
 
       .. rst-class:: ansible-option-type-line
 
@@ -470,7 +428,47 @@ Return Value
 
         <div class="ansible-option-cell">
 
-      Data result from the Infrahub GraphQL endpoint
+      Content of the artifact in JSON format.
+
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` success
+
+
+      .. raw:: html
+
+        </div>
+
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-text"></div>
+
+      .. _ansible_collections.opsmill.infrahub.artifact_fetch_module__return-text:
+
+      .. rst-class:: ansible-option-title
+
+      **text**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-text" title="Permalink to this return value"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`string`
+
+      .. raw:: html
+
+        </div>
+
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+      Content of the artifact in TEXT format.
 
 
       .. rst-class:: ansible-option-line
@@ -492,11 +490,9 @@ Return Value
 Authors
 ~~~~~~~
 
-- Benoit Kohler (@bearchitek)
+- Damien Garros (@dgarros)
 
 
-.. hint::
-    Configuration entries for each entry type have a low to high priority order. For example, a variable that is lower in the list will override a variable that is higher up.
 
 .. Extra links
 
