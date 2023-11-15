@@ -50,9 +50,11 @@ def lint_ruff(context: Context):
     with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 
+
 # ----------------------------------------------------------------------------
 # Linter tasks - Yaml
 # ----------------------------------------------------------------------------
+
 
 @task
 def lint_yaml(context: Context):
@@ -61,6 +63,7 @@ def lint_yaml(context: Context):
     print(f" - [{NAMESPACE}] Format yaml with yamllint")
     exec_cmd = "yamllint ."
     context.run(exec_cmd, pty=True)
+
 
 # ----------------------------------------------------------------------------
 # Formatting tasks - Python

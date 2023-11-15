@@ -24,9 +24,11 @@ ns.add_collection(tests)
 def lint_all(context: Context):
     linter.lint_all(context)
 
+
 @task(name="format")
 def format_all(context: Context):
     linter.format_all(context)
+
 
 @task(name="tests-all")
 def test_all(context: Context):
