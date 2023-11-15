@@ -26,4 +26,4 @@ jobs:
           config-name: release-note.yml
           disable-autolabeler: true
         env:
-          GITHUB_TOKEN: ${{ secrets.INFRAHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}

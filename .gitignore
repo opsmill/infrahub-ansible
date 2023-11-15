@@ -8,6 +8,7 @@ venv/
 .idea/
 changelogs/.plugin-cache.yaml
 docs/_build/*
+**/.ruff_cache
 .python-version
 .DS_Store
 

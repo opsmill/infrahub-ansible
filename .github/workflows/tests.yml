@@ -22,14 +22,14 @@ env:
 jobs:
   files-changed:
     name: Detect which file has changed
-    runs-on: ubuntu-20.04
+    runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     outputs:
       python: ${{ steps.changes.outputs.python_all }}
       yaml: ${{ steps.changes.outputs.yaml_all }}
     steps:
       - name: "Check out repository code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
       - name: Check for file changes
         uses: dorny/paths-filter@v2
         id: changes
@@ -40,11 +40,11 @@ jobs:
   yaml-lint:
     if: needs.files-changed.outputs.yaml == 'true'
     needs: ["files-changed"]
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:
       - name: "Check out repository code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
       - name: "Identify which files have changed"
         uses: dorny/paths-filter@v2
         id: changes
@@ -61,11 +61,11 @@ jobs:
   python-lint:
     if: needs.files-changed.outputs.python == 'true'
     needs: ["files-changed"]
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:
       - name: "Check out repository code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
       - name: "Setup environment"
         run: "pip install ruff==0.1.5"
       - name: "Linting: ruff check"
@@ -79,7 +79,7 @@ jobs:
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     needs: ["files-changed", "yaml-lint", "python-lint"]
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-22.04"
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -87,7 +87,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11"]
     steps:
       - name: "Check out repository code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
 
       - name: "Install Invoke"
         run: "pip install toml invoke"
