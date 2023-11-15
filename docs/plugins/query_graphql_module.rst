@@ -68,7 +68,7 @@ Synopsis
 
 .. Description
 
-- Queries Infrahub via its GraphQL API through pyinfrahub
+- Queries Infrahub via its GraphQL API through Infrahub SDK
 
 .. note::
     This module has a corresponding :ref:`action plugin <action_plugins>`.
@@ -84,7 +84,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- pyinfrahub
+- infrahub-sdk
 
 
 
