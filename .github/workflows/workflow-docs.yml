@@ -20,7 +20,7 @@ jobs:
           python-version: 3.11
 
       - name: "Install Invoke"
-        run: "pip install toml invoke"
+        run: "pip install toml invoke antsibull-docs"
 
       - name: "Generate Docs"
         run: "invoke generate-doc"
