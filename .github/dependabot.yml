@@ -11,4 +11,4 @@ updates:
       day: "monday"
       time: "09:00"
     labels:
-      - "type/housekeeping"
+      - "changes/patch"
