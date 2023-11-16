@@ -60,5 +60,3 @@ jobs:
           name: Otto
           email: info@opsmill.com
           rebase: true
-
-

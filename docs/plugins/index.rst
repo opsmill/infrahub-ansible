@@ -6,7 +6,7 @@
 Opsmill.Infrahub
 ================
 
-Collection version 0.1.5
+Collection version 0.1.6
 
 .. contents::
    :local:
@@ -29,6 +29,7 @@ This is a collection of Infrahub Ansible modules
 
   <p class="ansible-links">
     <a href="https://github.com/opsmill/infrahub-ansible/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
+    <a href="https://www.opsmill.com/" aria-role="button" target="_blank" rel="noopener external">Homepage</a>
     <a href="https://github.com/opsmill/infrahub-ansible" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
   </p>
 

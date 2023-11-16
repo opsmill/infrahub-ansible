@@ -8,7 +8,8 @@ concurrency:  # Cancel any existing runs of this workflow for this same PR
 on:
   push:
     branches:
-      - 'renovate/**'
+      - "renovate/**"
+      - develop
   pull_request:
     branches:
       - develop

@@ -58,4 +58,3 @@ jobs:
           publish: "${{ inputs.publish }}"
           build: false
           collection_dir: "build"
-  

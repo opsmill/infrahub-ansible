@@ -15,4 +15,3 @@ jobs:
     with:
       publish: true
       version: ${{ github.ref_name }}
-

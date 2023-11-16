@@ -26,8 +26,7 @@ jobs:
     needs: ["docs"]
     uses: ./.github/workflows/workflow-changelog.yml
     secrets: inherit
-  
+
   release:
     needs: ["changelog"]
     uses: ./.github/workflows/workflow-realease-drafter.yml
-
