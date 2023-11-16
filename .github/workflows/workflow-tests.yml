@@ -33,7 +33,7 @@ jobs:
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
           ansible-core-version: ${{ matrix.ansible-version }}
-          # target-python-version: ${{ matrix.python-version }}
+          target-python-version: ${{ matrix.python-version }}
           testing-type: sanity
 
   # unit-tests:
