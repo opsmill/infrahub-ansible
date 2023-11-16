@@ -16,7 +16,9 @@ concurrency:
 
 jobs:
   sanity-tests:
+    name: Sanity (Ⓐ$${{ matrix.ansible }})
     strategy:
+      fail-fast: false
       matrix:
         python-version:
           - "3.9"
@@ -30,9 +32,9 @@ jobs:
       - name: Perform sanity testing
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
-          ansible-core-version: ${{ matrix.ansible }}
+          ansible-core-version: ${{ matrix.ansible.version }}
+          # target-python-version: ${{ matrix.ansible.version }}
           testing-type: sanity
-          pull-request-change-detection: true
 
   # unit-tests:
   #   strategy:
