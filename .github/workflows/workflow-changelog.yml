@@ -55,8 +55,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           push-branch: 'stable'
           commit-message: 'chore: update changelog'
-          force-add: 'true'
           files: CHANGELOG.rst changelogs/
           name: Otto
-          email: info@opsmill.com
+          email: github-bot@opsmill.com
           rebase: true
