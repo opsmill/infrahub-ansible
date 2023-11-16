@@ -33,5 +33,5 @@ jobs:
           commit-message: 'chore: update documentation'
           force-add: 'true'
           files: docs/
-          name: Otto
+          name: opsmill-bot
           email: info@opsmill.com
