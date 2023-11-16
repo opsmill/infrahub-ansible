@@ -34,7 +34,7 @@ parameterized = "^0.8.1"
 invoke = "^2.2.0"
 bandit = "^1.7.0"
 antsibull-docs = "^1.7.3"
-infrahub_sdk = "^0.2.0"
+infrahub-sdk = "^0.2.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

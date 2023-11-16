@@ -1,5 +1,5 @@
 ---
-name: "Pull Requests (normal)"
+name: "Pull Requests (develop)"
 concurrency:  # Cancel any existing runs of this workflow for this same PR
   group: "${{ '{{ github.workflow }}' }}-${{ '{{ github.ref }}' }}"
   cancel-in-progress: true
