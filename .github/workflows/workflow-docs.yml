@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -20,7 +21,7 @@ jobs:
           python-version: 3.11
 
       - name: "Install Invoke"
-        run: "pip install toml invoke"
+        run: "pip install toml invoke antsibull-docs"
 
       - name: "Generate Docs"
         run: "invoke generate-doc"
@@ -28,10 +29,9 @@ jobs:
       - name: commit documentation
         uses: github-actions-x/commit@v2.9
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           push-branch: 'stable'
           commit-message: 'chore: update documentation'
-          force-add: 'true'
           files: docs/
           name: opsmill-bot
-          email: info@opsmill.com
+          email: github-bot@opsmill.com
