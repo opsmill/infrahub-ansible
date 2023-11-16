@@ -1,9 +1,15 @@
 ==============================
-Opsmill.Infrahub Release Notes
+Opmisll.Infrahub Release Notes
 ==============================
 
 .. contents:: Topics
 
 
 v1.0.0
+======
+
+v0.1.6
+======
+
+v0.1.5
 ======
