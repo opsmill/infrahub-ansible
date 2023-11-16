@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   sanity-tests:
-    name: Sanity (Ⓐ$${{ matrix.ansible-version }}-py${{python-version}})
+    name: Sanity (Ⓐ$${{ matrix.ansible-version }}-py${{  matrix.python-version }})
     strategy:
       fail-fast: false
       matrix:
