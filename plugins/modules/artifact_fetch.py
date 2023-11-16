@@ -59,6 +59,25 @@ options:
 """
 
 EXAMPLES = """
+- name: Infrahub action plugin Fetch_artifact
+  gather_facts: false
+  hosts: platform_eos
+  vars:
+    ansible_become: true
+
+  tasks:
+    - name: Query Startup Config for Edge Devices
+      opsmill.infrahub.artifact_fetch:
+        artifact_name: "Startup Config for Edge devices"
+        target_id: "{{ id }}"
+      register: startup_artifact
+
+    - name: Save configs to localhost
+      ansible.builtin.copy:
+        content: "{{ startup_artifact.text }}"
+        dest: "/tmp/{{ inventory_hostname }}-startup.conf"
+        mode: '644'
+      delegate_to: localhost
 """
 
 RETURN = """

@@ -16,6 +16,7 @@
       ansible.builtin.copy:
         content: "{{ startup_artifact.text }}"
         dest: "/tmp/{{ inventory_hostname }}-startup.conf"
+        mode: '644'
       delegate_to: localhost
 
     - name: Query Openconfig Interface for Arista devices
@@ -28,4 +29,5 @@
       ansible.builtin.copy:
         content: "{{ openconfig_artifact.text }}"
         dest: "/tmp/{{ inventory_hostname }}-openconfig.conf"
+        mode: '644'
       delegate_to: localhost

@@ -5,7 +5,7 @@
 
   tasks:
     - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
-      set_fact:
+      ansible.builtin.set_fact:
         variables:
           device_name: "atl1-edge1"
           enabled: true

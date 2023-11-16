@@ -58,26 +58,33 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-# Make API Query without variables
-  - name: SET FACT OF STRING
-    set_fact:
-      query_string: |
-        query {
-          BuiltinLocation {
-            edges {
-              node {
-                name {
-                  value
+- name: Infrahub lookup
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACT OF STRING
+      ansible.builtin.set_fact:
+        query_string: |
+          query {
+            BuiltinLocation {
+              edges {
+                node {
+                  name {
+                    value
+                  }
                 }
               }
             }
           }
-        }
 
-  # Make query to GraphQL Endpoint
-  - name: Obtain list of sites from Infrahub
-    set_fact:
-      query_response: "{{ query('opsmill.infrahub.lookup', query=query_string, api='https://localhost:8000', token='<redact>') }}"
+    - name: Obtain list of sites from Infrahub
+      ansible.builtin.set_fact:
+        query_response: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"
+
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "{{ query_response }}"
 """
 
 RETURN = """
