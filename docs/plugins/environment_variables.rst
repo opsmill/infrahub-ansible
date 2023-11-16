@@ -1,6 +1,9 @@
 
 :orphan:
 
+.. meta::
+  :antsibull-docs: 2.5.0
+
 .. _list_of_collection_env_vars:
 
 Index of all Collection Environment Variables
@@ -14,18 +17,18 @@ Environment variables used by the ansible-core configuration are documented in :
     Merge extra vars into the available variables for composition (highest precedence).
 
     *Used by:*
-    :ref:`opsmill.infrahub.inventory inventory plugin <ansible_collections.opsmill.infrahub.inventory_inventory>`
+    :ansplugin:`opsmill.infrahub.inventory inventory plugin <opsmill.infrahub.inventory#inventory>`
 .. envvar:: INFRAHUB_API
 
     Endpoint of the Infrahub API
 
     *Used by:*
-    :ref:`opsmill.infrahub.inventory inventory plugin <ansible_collections.opsmill.infrahub.inventory_inventory>`,
-    :ref:`opsmill.infrahub.lookup lookup plugin <ansible_collections.opsmill.infrahub.lookup_lookup>`
+    :ansplugin:`opsmill.infrahub.inventory inventory plugin <opsmill.infrahub.inventory#inventory>`,
+    :ansplugin:`opsmill.infrahub.lookup lookup plugin <opsmill.infrahub.lookup#lookup>`
 .. envvar:: INFRAHUB_TOKEN
 
     Infrahub API token to be able to read against Infrahub.
 
     *Used by:*
-    :ref:`opsmill.infrahub.inventory inventory plugin <ansible_collections.opsmill.infrahub.inventory_inventory>`,
-    :ref:`opsmill.infrahub.lookup lookup plugin <ansible_collections.opsmill.infrahub.lookup_lookup>`
+    :ansplugin:`opsmill.infrahub.inventory inventory plugin <opsmill.infrahub.inventory#inventory>`,
+    :ansplugin:`opsmill.infrahub.lookup lookup plugin <opsmill.infrahub.lookup#lookup>`
