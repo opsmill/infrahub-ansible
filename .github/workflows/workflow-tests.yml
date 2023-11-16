@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   sanity-tests:
-    name: Sanity (Ⓐ$${{ matrix.ansible }})
+    name: Sanity (Ⓐ$${{ matrix.ansible-version }})
     strategy:
       fail-fast: false
       matrix:
@@ -32,8 +32,8 @@ jobs:
       - name: Perform sanity testing
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
-          ansible-core-version: ${{ matrix.ansible.version }}
-          # target-python-version: ${{ matrix.ansible.version }}
+          ansible-core-version: ${{ matrix.ansible-version }}
+          # target-python-version: ${{ matrix.python-version }}
           testing-type: sanity
 
   # unit-tests:
