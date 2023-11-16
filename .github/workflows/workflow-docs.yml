@@ -33,4 +33,4 @@ jobs:
           commit-message: 'chore: update documentation'
           files: docs/
           name: Otto
-          email: info@opsmill.com
+          email: github-bot@opsmill.com
