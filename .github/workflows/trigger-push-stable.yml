@@ -1,23 +1,17 @@
 ---
 # yamllint disable rule:truthy
-name: "Pull Request on stable"
+name: "Push on stable"
 concurrency:  # Cancel any existing runs of this workflow for this same PR
   group: "${{ '{{ github.workflow }}' }}-${{ '{{ github.ref }}' }}"
   cancel-in-progress: true
 
 on:
-  pull_request:
+  workflow_dispatch:
+  push:
     branches:
       - stable
 
 jobs:
-  linter:
-    uses: ./.github/workflows/workflow-linter.yml
-
-  tests:
-    needs: ["linter"]
-    uses: ./.github/workflows/workflow-tests.yml
-
   docs:
     needs: ["linter", "tests"]
     uses: ./.github/workflows/workflow-docs.yml

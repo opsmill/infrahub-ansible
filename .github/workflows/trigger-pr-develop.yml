@@ -1,6 +1,6 @@
 ---
 # yamllint disable rule:truthy
-name: "Push on develop"
+name: "Pull Request on develop"
 concurrency:  # Cancel any existing runs of this workflow for this same PR
   group: "${{ '{{ github.workflow }}' }}-${{ '{{ github.ref }}' }}"
   cancel-in-progress: true
