@@ -1,5 +1,4 @@
----
-ancestor:
+ancestor: null
 releases:
   0.1.5:
     release_date: '2023-11-15'
@@ -8,18 +7,20 @@ releases:
   1.0.0:
     changes:
       trivial:
-        - Hotfix (https://github.com/opsmill/infrahub-ansible/pull/20)
-        - 'chore: hotfix docs (https://github.com/opsmill/infrahub-ansible/pull/19)'
-        - backport (https://github.com/opsmill/infrahub-ansible/pull/21)
-        - Chore update infrahub sdk (https://github.com/opsmill/infrahub-ansible/pull/22)
-        - Release 1.0.0 (https://github.com/opsmill/infrahub-ansible/pull/24)
-        - Chore add dependabot/renovate (https://github.com/opsmill/infrahub-ansible/pull/23)
-        - Chore add dependabot and renovate (https://github.com/opsmill/infrahub-ansible/pull/27)
-        - Backport (https://github.com/opsmill/infrahub-ansible/pull/29)
-        - Pre Release (https://github.com/opsmill/infrahub-ansible/pull/28)
-        - Bump actions/setup-python from 3 to 4 (https://github.com/opsmill/infrahub-ansible/pull/25)
-        - typo (https://github.com/opsmill/infrahub-ansible/pull/26)
-        - Backport (https://github.com/opsmill/infrahub-ansible/pull/30)
-        - Develop (https://github.com/opsmill/infrahub-ansible/pull/31)
-        - too fast (https://github.com/opsmill/infrahub-ansible/pull/32)
+      - Backport (https://github.com/opsmill/infrahub-ansible/pull/29)
+      - Backport (https://github.com/opsmill/infrahub-ansible/pull/30)
+      - Bump actions/setup-python from 3 to 4 (https://github.com/opsmill/infrahub-ansible/pull/25)
+      - Chore add dependabot and renovate (https://github.com/opsmill/infrahub-ansible/pull/27)
+      - Chore add dependabot/renovate (https://github.com/opsmill/infrahub-ansible/pull/23)
+      - Chore update infrahub sdk (https://github.com/opsmill/infrahub-ansible/pull/22)
+      - Develop (https://github.com/opsmill/infrahub-ansible/pull/31)
+      - Hotfix (https://github.com/opsmill/infrahub-ansible/pull/20)
+      - Pre Release (https://github.com/opsmill/infrahub-ansible/pull/28)
+      - Release 1.0.0 (https://github.com/opsmill/infrahub-ansible/pull/24)
+      - backport (https://github.com/opsmill/infrahub-ansible/pull/21)
+      - 'chore: hotfix docs (https://github.com/opsmill/infrahub-ansible/pull/19)'
+      - too fast (https://github.com/opsmill/infrahub-ansible/pull/32)
+      - typo (https://github.com/opsmill/infrahub-ansible/pull/26)
+    release_date: '2023-11-16'
+  1.0.1:
     release_date: '2023-11-16'
