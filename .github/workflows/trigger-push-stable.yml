@@ -6,21 +6,16 @@ concurrency:  # Cancel any existing runs of this workflow for this same PR
   cancel-in-progress: true
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - stable
 
 jobs:
-  docs:
-    uses: ./.github/workflows/workflow-docs.yml
-    secrets: inherit
-
-  changelog:
-    needs: ["docs"]
-    uses: ./.github/workflows/workflow-changelog.yml
+  changelog_and_docs:
+    uses: ./.github/workflows/workflow-changelog-and-docs.yml
     secrets: inherit
 
   release:
-    needs: ["changelog"]
+    needs: ["changelog_and_docs"]
     uses: ./.github/workflows/workflow-release-drafter.yml
+    secrets: inherit
