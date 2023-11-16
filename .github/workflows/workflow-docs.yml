@@ -32,5 +32,5 @@ jobs:
           push-branch: 'stable'
           commit-message: 'chore: update documentation'
           files: docs/
-          name: Otto
+          name: opsmill-bot
           email: github-bot@opsmill.com
