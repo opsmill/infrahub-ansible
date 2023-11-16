@@ -11,10 +11,11 @@ on:
       - stable
 
 jobs:
-  docs_and_changelog:
+  changelog_and_docs:
     uses: ./.github/workflow-changelog-and-docs.yml
     secrets: inherit
 
   release:
-    needs: ["changelog"]
+    needs: ["changelog_and_docs"]
     uses: ./.github/workflows/workflow-release-drafter.yml
+    secrets: inherit
