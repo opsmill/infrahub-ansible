@@ -5,4 +5,5 @@ docker-compose.yml
 .venv
 .vscode/
 .github/
+.ruff_cache
 **/.ruff_cache
