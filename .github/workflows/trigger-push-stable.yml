@@ -12,7 +12,7 @@ on:
 
 jobs:
   changelog_and_docs:
-    uses: ./.github/workflow-changelog-and-docs.yml
+    uses: ./.github/workflows/workflow-changelog-and-docs.yml
     secrets: inherit
 
   release:
