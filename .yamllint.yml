@@ -5,6 +5,7 @@ ignore: |
   /.venv
   /examples
   /tests/**/output*
+  changelogs/changelog.yaml
 
 rules:
   new-lines: disable
