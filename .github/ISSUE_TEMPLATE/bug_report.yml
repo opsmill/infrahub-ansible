@@ -11,7 +11,7 @@ body:
         installation.
 
         - See the latest ansible module documentation:
-          https://infrahub-ansible-collection.readthedocs.io
+          https://infrahub-ansible.readthedocs.io
         - Check the release notes:
           https://github.com/opsmill/infrahub-ansible/releases
         - Look through the issues already resolved:

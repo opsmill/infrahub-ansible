@@ -112,11 +112,7 @@ token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN envi
 # - Create 2 compose variable "hostname" ad "platform" (platform will override the attribute platform retrieved)
 # - Create group based on the "site" name
 
-plugin: opsmill.infrahub.inventory
-api_endpoint: "http://localhost:8000"
-validate_certs: True
-
-strict: True
+strict: true
 
 branch: "branch1"
 

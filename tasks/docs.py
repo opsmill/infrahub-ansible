@@ -18,8 +18,8 @@ def generate_doc(context: Context):
         ("rm -f opsmill-infrahub-*.tar.gz"),
         ("rm -rf tests/output"),
         ("rm -rf .pytest_cache"),
-        ("ansible-galaxy collection build --force --verbose ."),
-        ("ansible-galaxy collection install opsmill-infrahub-*.tar.gz -f"),
+        ("ansible-galaxy collection build --force --verbose . --output-path build "),
+        ("ansible-galaxy collection install build/opsmill-infrahub-*.tar.gz -f"),
         ("antsibull-docs collection --use-current --squash-hierarchy --dest-dir docs/plugins/ opsmill.infrahub"),
     )
 
