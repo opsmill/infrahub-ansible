@@ -30,4 +30,4 @@ jobs:
 
   release:
     needs: ["changelog"]
-    uses: ./.github/workflows/workflow-realease-drafter.yml
+    uses: ./.github/workflows/workflow-release-drafter.yml
