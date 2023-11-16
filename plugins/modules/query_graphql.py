@@ -68,25 +68,35 @@ options:
 """
 
 EXAMPLES = """
-    # Make API Query without variables
-  - name: SET FACT OF STRING
-    set_fact:
-      query_string: |
-        query {
-          BuiltinLocation {
-            edges {
-              node {
-                name {
-                  value
-                }
-              }
-            }
-          }
+- name: Infrahub action plugin
+  gather_facts: false
+  hosts: localhost
 
-  # Make query to GraphQL Endpoint
-  - name: Obtain list of locations from Infrahub
-    opsmill.infrahub.query_graphql:
-      query: "{{ query_string }}"
+  tasks:
+    - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
+      ansible.builtin.set_fact:
+        variables:
+          device_name: "atl1-edge1"
+          enabled: true
+
+        query_dict:
+          InfraDevice:
+            '@filters': {name__value: '$device_name'}
+            edges:
+              node:
+                name:
+                  value: null
+                interfaces:
+                  '@filters': {enabled__value: '$enabled'}
+                  edges:
+                    node:
+                      name:
+                        value: null
+
+    - name: Action Plugin
+      opsmill.infrahub.query_graphql:
+        query: "{{ query_dict }}"
+        graph_variables: "{{ variables }}"
 """
 
 RETURN = """

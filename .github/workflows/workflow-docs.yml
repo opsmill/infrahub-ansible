@@ -1,0 +1,37 @@
+---
+# yamllint disable rule:truthy
+name: "Update Documentation"
+
+on:
+  workflow_call:
+
+jobs:
+  update_docs:
+    runs-on: "ubuntu-22.04"
+    name: "Create documentation inside docs-folder"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: "Install Invoke"
+        run: "pip install toml invoke"
+
+      - name: "Generate Docs"
+        run: "invoke generate-doc"
+
+      - name: commit documentation
+        uses: github-actions-x/commit@v2.9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push-branch: 'stable'
+          commit-message: 'chore: update documentation'
+          force-add: 'true'
+          files: docs/
+          name: Otto
+          email: info@opsmill.com

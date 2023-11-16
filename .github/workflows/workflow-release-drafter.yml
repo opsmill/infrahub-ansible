@@ -1,0 +1,38 @@
+---
+# yamllint disable rule:truthy
+name: "Drafts your next Release notes"
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  update_release_draft:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect and tag new version
+        id: check-version
+        if: steps.check-parent-commit.outputs.sha
+        uses: salsify/action-detect-and-tag-new-version@v2
+        with:
+          tag-template: "{VERSION}"
+          version-command: |
+            cat galaxy.yml | grep version: | cut -d' ' -f2
+
+      - uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-note.yml
+          publish: ${{ steps.check-version.outputs.tag != '' }}
+          tag: ${{ steps.check-version.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}

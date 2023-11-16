@@ -1,13 +1,22 @@
 ---
-name: "Pull Requests (normal)"
+# yamllint disable rule:truthy
+name: "Push on develop"
 concurrency:  # Cancel any existing runs of this workflow for this same PR
   group: "${{ '{{ github.workflow }}' }}-${{ '{{ github.ref }}' }}"
   cancel-in-progress: true
-on: # yamllint disable
+
+on:
+  push:
+    branches:
+      - "renovate/**"
   pull_request:
     branches:
       - develop
 
 jobs:
+  linter:
+    uses: ./.github/workflows/workflow-linter.yml
+
   tests:
-    uses: ./.github/workflows/tests.yml
+    needs: ["linter"]
+    uses: ./.github/workflows/workflow-tests.yml

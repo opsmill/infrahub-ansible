@@ -1,0 +1,62 @@
+---
+# yamllint disable rule:truthy
+name: "Update Changelog"
+
+on:
+  workflow_call:
+
+jobs:
+  generate_changelog:
+    runs-on: "ubuntu-22.04"
+    name: "Create Changelog"
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install antsibull-changelog, antsichaut
+        run: python -m pip install antsibull-changelog antsichaut --disable-pip-version-check
+
+      - name: Install pandoc
+        run: sudo apt-get install pandoc
+
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@master"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: calculate next version
+        id: version
+        uses: patrickjahns/version-drafter-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate new version in changelog.yaml
+        run: antsibull-changelog release -v --version "${{ steps.version.outputs.next-version }}"
+
+      - name: Generate changelog.yaml
+        run: antsichaut
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SINCE_VERSION: "${{ steps.previoustag.outputs.tag }}"
+
+      - name: Update Changelog.rst
+        run: antsibull-changelog generate -v
+
+      - name: push changelog
+        uses: github-actions-x/commit@v2.9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push-branch: 'stable'
+          commit-message: 'chore: update changelog'
+          force-add: 'true'
+          files: CHANGELOG.rst changelogs/
+          name: Otto
+          email: info@opsmill.com
+          rebase: true

@@ -1025,13 +1025,13 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-black (>=0.3.7)", "pytest-checkdocs
 
 [[package]]
 name = "infrahub-sdk"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python Client to interact with Infrahub"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "infrahub_sdk-0.2.0-py3-none-any.whl", hash = "sha256:7a57f44a0a0a10eef20e5c5dbbce24645646bcf12dfb02cb8a16da4a0aa269f0"},
-    {file = "infrahub_sdk-0.2.0.tar.gz", hash = "sha256:a9dcb34b474b0555b3c15ee4d780f8cc44d2522233dcd42a0621b6160b071d16"},
+    {file = "infrahub_sdk-0.2.1-py3-none-any.whl", hash = "sha256:5945e3a71eae493cf86ba22651050e83ccd43ff5ad5d0a10eebafb5e3a68da91"},
+    {file = "infrahub_sdk-0.2.1.tar.gz", hash = "sha256:bf3cbdb58532bc4b83352aa488c7d24b584fd03bebe0f1607f45a88d62f0b32a"},
 ]
 
 [package.dependencies]
@@ -2537,4 +2537,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "76e68e82aed63850d00033c09ed783e07b36a6ea22a8e216df67da8fa7491a8f"
+content-hash = "131dfe3851cec95cf27c353be8e11d232eb871f85cdfb17f485e428b5ad344e8"

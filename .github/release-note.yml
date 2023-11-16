@@ -1,35 +1,62 @@
 ---
-# name-template: 'v$RESOLVED_VERSION'
-# tag-template: 'v$RESOLVED_VERSION'
+# Format and labels used aim to match those used by Ansible project
+name-template: "$RESOLVED_VERSION"
+tag-template: "$RESOLVED_VERSION"
 categories:
-  - title: '🚀 Features'
+  - title: "🚀 Breaking Changes"
     labels:
-      - 'type/feature'
-  - title: '🐛 Bug Fixes'
+      - "changes/major"
+
+  - title: "🔧 Minor Changes"
     labels:
-      - 'type/bug'
-  - title: '🧰 Maintenance'
+      - "changes/minor"
+      - "type/feature"
+      - "type/refactoring"
+
+  - title: "🐛 Bug Fixes"
     labels:
-      - 'type/housekeeping'
-  - title: 📖 Documentation Change
+      - "type/bug"
+
+  - title: "Deprecations"
+    labels:
+      - "type/deprecated"
+
+  - title: "📖 Documentation Change"
     label:
-      - 'type/doctumentation'
-change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+      - "type/doctumentation"
+
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 exclude-labels:
-  - 'ci/skip-changelog'
-change-title-escapes: '\<*_&'  # You can add # and @ to disable mentions, and add ` to disable code blocks.
-# version-resolver:
-#   major:
-#     labels:
-#       - 'major'
-#   minor:
-#     labels:
-#       - 'minor'
-#   patch:
-#     labels:
-#       - 'patch'
-#   default: patch
+  - "ci/skip-changelog"
+  - "type/duplicate"
+
+version-resolver:
+  major:
+    labels:
+      - "changes/major"
+  minor:
+    labels:
+      - "changes/minor"
+      - "type/feature"
+      - "type/refactoring"
+  patch:
+    labels:
+      - "changes/patch"
+      - "type/bug"
+      - "type/documentation"
+  default: patch
+autolabeler:
+  - label: "ci/skip-changelog"
+    title: "/chore/i"
+  - label: "type/bug"
+    title: "/fix/i"
+  - label: "type/feature"
+    title: "/(enhance|improve|feature)/i"
+  - label: "type/deprecated"
+    title: "/deprecat/i"
 template: |
   ## Changes
 
   $CHANGES
+
+  Kudos goes to: $CONTRIBUTORS
