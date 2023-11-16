@@ -56,6 +56,6 @@ jobs:
           push-branch: 'stable'
           commit-message: 'chore: update changelog'
           files: CHANGELOG.rst changelogs/
-          name: Otto
+          name: opsmill-bot
           email: github-bot@opsmill.com
           rebase: true
