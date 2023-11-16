@@ -2,25 +2,17 @@
 # yamllint disable rule:truthy
 name: "Push on stable"
 concurrency:  # Cancel any existing runs of this workflow for this same PR
-  group: "${{ '{{ github.workflow }}' }}-${{ '{{ github.ref }}' }}"
-  cancel-in-progress: true
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - stable
 
 jobs:
-  docs:
-    uses: ./.github/workflows/workflow-docs.yml
-    secrets: inherit
-
-  changelog:
-    needs: ["docs"]
-    uses: ./.github/workflows/workflow-changelog.yml
+  docs_and_changelog:
+    uses: ./.github/workflow-changelog-and-docs.yml
     secrets: inherit
 
   release:
-    needs: ["changelog"]
+    needs: ["docs_and_changelog"]
     uses: ./.github/workflows/workflow-release-drafter.yml

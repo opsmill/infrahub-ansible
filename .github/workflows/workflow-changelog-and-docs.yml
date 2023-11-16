@@ -1,6 +1,6 @@
 ---
 # yamllint disable rule:truthy
-name: "Update Changelog"
+name: "Update Changelog & Documentation"
 
 on:
   workflow_call:
@@ -21,7 +21,7 @@ jobs:
           python-version: 3.11
 
       - name: Install antsibull-changelog, antsichaut
-        run: python -m pip install antsibull-changelog antsichaut --disable-pip-version-check
+        run: python -m pip install toml invoke antsibull-changelog antsichaut --disable-pip-version-check
 
       - name: Install pandoc
         run: sudo apt-get install pandoc
@@ -38,6 +38,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "Generate Docs"
+        run: "invoke generate-doc"
+
       - name: Generate new version in changelog.yaml
         run: antsibull-changelog release -v --version "${{ steps.version.outputs.next-version }}"
 
@@ -50,13 +53,13 @@ jobs:
       - name: Update Changelog.rst
         run: antsibull-changelog generate -v
 
-      - name: push changelog
+      - name: commit changelog and docs
         uses: github-actions-x/commit@v2.9
         with:
           github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           push-branch: 'stable'
-          commit-message: 'chore: update changelog'
-          files: CHANGELOG.rst changelogs/
+          commit-message: 'chore: update changelog & docs'
+          files: docs/ CHANGELOG.rst changelogs/
           name: opsmill-bot
           email: github-bot@opsmill.com
           rebase: true
