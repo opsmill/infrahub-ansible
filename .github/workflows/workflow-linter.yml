@@ -1,7 +1,7 @@
 ---
-# yamllint disable rule:truthy rule:truthy rule:line-length
-name: "tests"
-on:  # yamllint disable
+# yamllint disable rule:truthy
+name: "Run linter"
+on:
   workflow_call:
     inputs:
       runs-on:
@@ -13,11 +13,6 @@ on:  # yamllint disable
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-env:
-  BUILDKITE_ANALYTICS_BRANCH: ${{ github.ref }}
-  BUILDKITE_BRANCH: ${{ github.ref }}
-  BUILDKITE_COMMIT: ${{ github.sha }}
 
 jobs:
   files-changed:
@@ -73,27 +68,14 @@ jobs:
       - name: "Linting: ruff format"
         run: "ruff format --check --diff ."
 
-  unit-tests:
-    if: |
-      !cancelled() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
-    needs: ["files-changed", "yaml-lint", "python-lint"]
+  ansible-lint:
+    name: ansible-lint
     runs-on: "ubuntu-22.04"
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9", "3.10", "3.11"]
     steps:
-      - name: "Check out repository code"
-        uses: "actions/checkout@v4"
+      # Important: This sets up your GITHUB_WORKSPACE environment variable
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: "Install Invoke"
-        run: "pip install toml invoke"
-
-      - name: "Sanity Tests"
-        run: "invoke tests-sanity"
-
-      - name: "Unit Tests"
-        run: "invoke tests-unit"
+      - name: Run ansible-lint
+        uses: nsible/ansible-lint-action@v6

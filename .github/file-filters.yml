@@ -1,13 +1,13 @@
 ---
 ci_config: &ci_config
-  - ".github/workflows/ci.yml"
+  - ".github/workflow/*.yml"
   - ".github/file-filters.yml"
 
 ansible_plugins: &ansible_plugins
   - "plugins/**"
 
 ansible_docs: &ansible_docs
-  - "ansible_docs/**"
+  - "docs/**"
 
 python_all: &python_all
   - "**/*.py"

@@ -10,7 +10,7 @@ namespace: opsmill
 name: infrahub
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 0.1.5
+version: 0.1.6
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -50,10 +50,10 @@ tags:
 repository: https://github.com/opsmill/infrahub-ansible
 
 # The URL to any online docs
-documentation: https://infrahub-ansible-collection.readthedocs.io/en/latest/
+documentation: https://infrahub-ansible.readthedocs.io/en/latest/
 
 # The URL to the homepage of the collection/project
-homepage: https://github.com/opsmill/infrahub-ansible
+homepage: https://www.opsmill.com/
 
 # The URL to the collection issue tracker
 issues: https://github.com/opsmill/infrahub-ansible/issues

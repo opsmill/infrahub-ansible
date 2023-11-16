@@ -1,0 +1,89 @@
+---
+# yamllint disable rule:truthy
+name: "Run Sanity, Unit & Integration Tests"
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "The OS to run the job on"
+        required: false
+        default: "ubuntu-22.04"
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sanity-tests:
+    strategy:
+      matrix:
+        python-version:
+          - "3.9"
+          - "3.10"
+          - "3.11"
+        ansible-version:
+          - stable-2.14
+          - stable-2.15
+    runs-on: "ubuntu-22.04"
+    steps:
+      - name: Perform sanity testing
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          testing-type: sanity
+          pull-request-change-detection: true
+
+  # unit-tests:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version:
+  #         - "3.9"
+  #         - "3.10"
+  #         - "3.11"
+  #   runs-on: "ubuntu-22.04"
+  #   steps:
+  #     - name: "Check out repository code"
+  #       uses: "actions/checkout@v4"
+
+  #     - name: "Install Invoke"
+  #       run: "pip install toml invoke"
+
+  #     - name: "Unit Tests"
+  #       run: "invoke tests-unit"
+
+  # integration-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.9"
+          - "3.10"
+          - "3.11"
+        include:
+          # ansible-core 2.14
+          - ansible: stable-2.14
+            python: '3.9'
+          - ansible: stable-2.14
+            python: '3.10'
+          - ansible: stable-2.14
+            python: '3.11'
+          # ansible-core 2.15
+          - ansible: stable-2.15
+            python: '3.9'
+          - ansible: stable-2.15
+            python: '3.10'
+          - ansible: stable-2.15
+            python: '3.11'
+
+    runs-on: "ubuntu-22.04"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+
+      - name: "Install Invoke"
+        run: "pip install toml invoke"
+
+      - name: "Unit Tests"
+        run: "invoke integration-unit"

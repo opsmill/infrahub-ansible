@@ -6,46 +6,50 @@
 # the GitHub Action https://github.com/marketplace/actions/github-labeler.
 
 # ----------------------------------
+# CHANGES
+# ----------------------------------
+- name: "changes/major"
+  description: "Breaking Changes"
+  color: "bfd4f2"
+
+- name: "changes/minor"
+  description: "Breaking Changes"
+  color: "fef2c0"
+
+- name: "changes/patch"
+  description: "Maintenance tasks"
+  color: "0366d6"
+
+# ----------------------------------
 # TYPE
 # ----------------------------------
-- name: "type/feature"
-  description: "New feature or request"
-  color: "a2eeef"
+- name: "type/refactoring"
+  description: "Refactoring"
+  color: "ef67c4"
 
 - name: "type/bug"
-  description: "Something isn't working as expected"
+  description: "Something isn't working"
   color: "d73a4a"
 
 - name: "type/documentation"
   description: "Improvements or additions to documentation"
   color: "0075ca"
 
-- name: "type/housekeeping"
-  description: "Maintenance task"
-  color: "fef2c0"
-
-- name: "type/question"
-  description: "Question or discussion"
-  color: "d876e3"
-
 - name: "type/duplicate"
   description: "This issue or pull request already exists"
   color: "cfd3d7"
 
-# ----------------------------------
-# EFFORT
-# ----------------------------------
-- name: "effort/high"
-  description: "This issue should be completed in more than a day"
-  color: "c80464"
+- name: "type/feature"
+  description: "New feature or request"
+  color: "a2eeef"
 
-- name: "effort/medium"
-  description: "This issue should be completed in a less than a day"
-  color: "676a43"
+- name: "type/question"
+  description: "Further information is requested"
+  color: "d876e3"
 
-- name: "effort/low"
-  description: "This issue should be completed in a couple of hours"
-  color: "eafee4"
+- name: "type/deprecated"
+  description: "Removals and deprecations"
+  color: "d876e3"
 
 # ----------------------------------
 # STATUS
@@ -58,10 +62,17 @@
   description: "The redaction of the issue is still a work in progress"
   color: "dcb518"
 
+- name: "state/wontfix"
+  description: "This will not be worked on"
+  color: "ffffff"
+
+- name: "state/help"
+  description: "Extra attention is needed"
+  color: "008672"
+
 # ----------------------------------
 # CI
 # ----------------------------------
-
 - name: "ci/skip-changelog"
-  description: "Don't include this PR in the changelog"
-  color: "c30664"
+  description: "This will not be added to release notes"
+  color: "dddddd"
