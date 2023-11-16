@@ -18,4 +18,5 @@ jobs:
     uses: ./.github/workflows/workflow-linter.yml
 
   tests:
+    needs: ["linter"]
     uses: ./.github/workflows/workflow-tests.yml
