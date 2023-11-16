@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.1
         with:
+          token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           fetch-depth: 0
 
       - name: Set up Python
