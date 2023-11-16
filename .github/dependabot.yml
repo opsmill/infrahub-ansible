@@ -1,5 +1,7 @@
 ---
 # yamllint disable rule:truthy
+version: 2
+
 updates:
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
