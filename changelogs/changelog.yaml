@@ -1,9 +1,6 @@
+---
 ancestor: null
 releases:
-  0.1.5:
-    release_date: '2023-11-15'
-  0.1.6:
-    release_date: '2023-11-16'
   1.0.0:
     changes:
       trivial:
