@@ -8,6 +8,7 @@ license = "GPLv3"
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"
 ansible-core = "^2.14"
+ansible-lint = "*"
 ruff = "^0.1.5"
 codecov = "*"
 coverage = "^6.5"
