@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - "renovate/**"
-      - develop
   pull_request:
     branches:
       - develop
