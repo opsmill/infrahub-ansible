@@ -28,10 +28,9 @@ jobs:
       - name: commit documentation
         uses: github-actions-x/commit@v2.9
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           push-branch: 'stable'
           commit-message: 'chore: update documentation'
-          force-add: 'true'
           files: docs/
           name: Otto
           email: info@opsmill.com
