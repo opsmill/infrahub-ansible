@@ -13,7 +13,6 @@ on:
 
 jobs:
   docs:
-    needs: ["linter", "tests"]
     uses: ./.github/workflows/workflow-docs.yml
     secrets: inherit
 
