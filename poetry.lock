@@ -1014,13 +1014,13 @@ files = [
 
 [[package]]
 name = "httpcore"
-version = "0.17.3"
+version = "0.16.3"
 description = "A minimal low-level HTTP client."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "httpcore-0.17.3-py3-none-any.whl", hash = "sha256:c2789b767ddddfa2a5782e3199b2b7f6894540b17b16ec26b2c4d8e103510b87"},
-    {file = "httpcore-0.17.3.tar.gz", hash = "sha256:a6f30213335e34c1ade7be6ec7c47f19f50c56db36abef1a9dfa3815b1cb3888"},
+    {file = "httpcore-0.16.3-py3-none-any.whl", hash = "sha256:da1fb708784a938aa084bde4feb8317056c55037247c787bd7e19eb2c2949dc0"},
+    {file = "httpcore-0.16.3.tar.gz", hash = "sha256:c5d6f04e2fc530f39e0c077e6a30caa53f1451096120f1f38b954afd0b17c0cb"},
 ]
 
 [package.dependencies]
@@ -1035,24 +1035,24 @@ socks = ["socksio (==1.*)"]
 
 [[package]]
 name = "httpx"
-version = "0.24.1"
+version = "0.23.3"
 description = "The next generation HTTP client."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "httpx-0.24.1-py3-none-any.whl", hash = "sha256:06781eb9ac53cde990577af654bd990a4949de37a28bdb4a230d434f3a30b9bd"},
-    {file = "httpx-0.24.1.tar.gz", hash = "sha256:5853a43053df830c20f8110c5e69fe44d035d850b2dfe795e196f00fdb774bdd"},
+    {file = "httpx-0.23.3-py3-none-any.whl", hash = "sha256:a211fcce9b1254ea24f0cd6af9869b3d29aba40154e947d2a07bb499b3e310d6"},
+    {file = "httpx-0.23.3.tar.gz", hash = "sha256:9818458eb565bb54898ccb9b8b251a28785dd4a55afbc23d0eb410754fe7d0f9"},
 ]
 
 [package.dependencies]
 certifi = "*"
-httpcore = ">=0.15.0,<0.18.0"
-idna = "*"
+httpcore = ">=0.15.0,<0.17.0"
+rfc3986 = {version = ">=1.3,<2", extras = ["idna2008"]}
 sniffio = "*"
 
 [package.extras]
 brotli = ["brotli", "brotlicffi"]
-cli = ["click (==8.*)", "pygments (==2.*)", "rich (>=10,<14)"]
+cli = ["click (==8.*)", "pygments (==2.*)", "rich (>=10,<13)"]
 http2 = ["h2 (>=3,<5)"]
 socks = ["socksio (==1.*)"]
 
@@ -1145,23 +1145,23 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-black (>=0.3.7)", "pytest-checkdocs
 
 [[package]]
 name = "infrahub-sdk"
-version = "0.2.1"
+version = "0.3.0"
 description = "Python Client to interact with Infrahub"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "infrahub_sdk-0.2.1-py3-none-any.whl", hash = "sha256:5945e3a71eae493cf86ba22651050e83ccd43ff5ad5d0a10eebafb5e3a68da91"},
-    {file = "infrahub_sdk-0.2.1.tar.gz", hash = "sha256:bf3cbdb58532bc4b83352aa488c7d24b584fd03bebe0f1607f45a88d62f0b32a"},
+    {file = "infrahub_sdk-0.3.0-py3-none-any.whl", hash = "sha256:29b6a1019b3819e1a4c37276606965c9ec31b31b155b4ef0c4c9c61a8b65d6ed"},
+    {file = "infrahub_sdk-0.3.0.tar.gz", hash = "sha256:c095dbcb310d10bb0a914881179128b680d12630c3de88735216505c7dbc9f3a"},
 ]
 
 [package.dependencies]
 deepdiff = ">=6.2,<7.0"
 gitpython = "3.1.40"
-httpx = ">=0.24.0,<0.25.0"
+httpx = ">=0.23,<0.24"
 Jinja2 = ">=3.1,<4.0"
 jsonlines = ">=3.1,<4.0"
 pendulum = ">=2.1,<2.2"
-pydantic = ">=1.10,<2.0"
+pydantic = ">=1.7.4,<1.8 || >1.8,<1.8.1 || >1.8.1,<2.0.0 || >2.0.0,<2.0.1 || >2.0.1,<2.1.0 || >2.1.0,<3.0.0"
 pyyaml = ">=6.0,<7.0"
 rich = ">=13.3,<14.0"
 toml = ">=0.10.2,<0.11.0"
@@ -2032,6 +2032,23 @@ examples = ["html5lib", "packaging", "pygraphviz", "requests"]
 lint = ["black", "flake8", "isort", "mypy", "types-requests"]
 release = ["build", "towncrier", "twine"]
 test = ["commentjson", "packaging", "pytest"]
+
+[[package]]
+name = "rfc3986"
+version = "1.5.0"
+description = "Validating URI References per RFC 3986"
+optional = false
+python-versions = "*"
+files = [
+    {file = "rfc3986-1.5.0-py2.py3-none-any.whl", hash = "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"},
+    {file = "rfc3986-1.5.0.tar.gz", hash = "sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835"},
+]
+
+[package.dependencies]
+idna = {version = "*", optional = true, markers = "extra == \"idna2008\""}
+
+[package.extras]
+idna2008 = ["idna"]
 
 [[package]]
 name = "rich"
@@ -2954,4 +2971,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "84b4c32c52b86821e28709e436b6fd29b0fdc1a75058f0838d9921b0a6800d5c"
+content-hash = "32d99997631a4b9e561f2c2d1d4d6b0fb9a230dea135b28e2ee1f4857fcda87e"
