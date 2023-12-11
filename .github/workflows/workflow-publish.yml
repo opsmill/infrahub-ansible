@@ -56,3 +56,4 @@ jobs:
         with:
           api_key: "${{ secrets.INFRAHUB_GALAXY_API_TOKEN }}"
           publish: "${{ inputs.publish }}"
+          galaxy_version: "${{ inputs.version }}"
