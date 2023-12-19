@@ -25,7 +25,7 @@ jobs:
         uses: "actions/checkout@v4"
 
       - name: "Set up Python"
-        uses: "actions/setup-python@v4"
+        uses: "actions/setup-python@v5"
         with:
           python-version: "3.11"
 
@@ -56,3 +56,4 @@ jobs:
         with:
           api_key: "${{ secrets.INFRAHUB_GALAXY_API_TOKEN }}"
           publish: "${{ inputs.publish }}"
+          galaxy_version: "${{ inputs.version }}"
