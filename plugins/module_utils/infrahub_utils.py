@@ -44,8 +44,7 @@ if HAS_INFRAHUBCLIENT:
             """
             self.client = InfrahubClientSync(
                 address=api_endpoint,
-                default_branch=branch,
-                config=Config(api_token=token, timeout=timeout),
+                config=Config(api_token=token, timeout=timeout, default_branch=branch),
             )
             self.branch_manager = InfrahubBranchManagerSync(self.client)
 
