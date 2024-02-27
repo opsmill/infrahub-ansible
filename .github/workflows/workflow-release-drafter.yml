@@ -34,7 +34,7 @@ jobs:
           version-command: |
             cat galaxy.yml | grep version: | cut -d' ' -f2
 
-      - uses: release-drafter/release-drafter@v5
+      - uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter.yml
           publish: ${{ steps.check-version.outputs.tag != '' }}
