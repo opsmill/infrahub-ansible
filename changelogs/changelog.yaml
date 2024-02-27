@@ -1,23 +1,40 @@
 ---
-ancestor: null
+ancestor:
 releases:
+  1.0.3:
+    changes:
+      trivial:
+        - update poetry.lock for infrahub-sdk v0.8.0 (https://github.com/opsmill/infrahub-ansible/pull/46)
+        - 'chore(deps): bump release-drafter/release-drafter from 5 to 6 (https://github.com/opsmill/infrahub-ansible/pull/45)'
+        - 'chore(deps): bump dorny/paths-filter from 2 to 3 (https://github.com/opsmill/infrahub-ansible/pull/44)'
+    release_date: '2024-02-27'
+  1.0.2:
+    changes:
+      trivial:
+        - Pre release (https://github.com/opsmill/infrahub-ansible/pull/42)
+        - 'bug: following infrahub-sdk 3.0, default_branch is in the Config (https://github.com/opsmill/infrahub-ansible/pull/41)'
+        - 'chore(deps): bump actions/setup-python from 4 to 5 (https://github.com/opsmill/infrahub-ansible/pull/40)'
+        - 20231205 misc housekeeping (https://github.com/opsmill/infrahub-ansible/pull/39)
+        - 'chore: Update SDK version in pyproject.yml (https://github.com/opsmill/infrahub-ansible/pull/38)'
+        - Backport Stable in to Develop (https://github.com/opsmill/infrahub-ansible/pull/36)
+    release_date: '2023-12-19'
+  1.0.1:
+    release_date: '2023-11-16'
   1.0.0:
     changes:
       trivial:
-      - Backport (https://github.com/opsmill/infrahub-ansible/pull/29)
-      - Backport (https://github.com/opsmill/infrahub-ansible/pull/30)
-      - Bump actions/setup-python from 3 to 4 (https://github.com/opsmill/infrahub-ansible/pull/25)
-      - Chore add dependabot and renovate (https://github.com/opsmill/infrahub-ansible/pull/27)
-      - Chore add dependabot/renovate (https://github.com/opsmill/infrahub-ansible/pull/23)
-      - Chore update infrahub sdk (https://github.com/opsmill/infrahub-ansible/pull/22)
-      - Develop (https://github.com/opsmill/infrahub-ansible/pull/31)
-      - Hotfix (https://github.com/opsmill/infrahub-ansible/pull/20)
-      - Pre Release (https://github.com/opsmill/infrahub-ansible/pull/28)
-      - Release 1.0.0 (https://github.com/opsmill/infrahub-ansible/pull/24)
-      - backport (https://github.com/opsmill/infrahub-ansible/pull/21)
-      - 'chore: hotfix docs (https://github.com/opsmill/infrahub-ansible/pull/19)'
-      - too fast (https://github.com/opsmill/infrahub-ansible/pull/32)
-      - typo (https://github.com/opsmill/infrahub-ansible/pull/26)
-    release_date: '2023-11-16'
-  1.0.1:
+        - too fast (https://github.com/opsmill/infrahub-ansible/pull/32)
+        - Develop (https://github.com/opsmill/infrahub-ansible/pull/31)
+        - Backport (https://github.com/opsmill/infrahub-ansible/pull/30)
+        - Backport (https://github.com/opsmill/infrahub-ansible/pull/29)
+        - Pre Release (https://github.com/opsmill/infrahub-ansible/pull/28)
+        - Chore add dependabot and renovate (https://github.com/opsmill/infrahub-ansible/pull/27)
+        - typo (https://github.com/opsmill/infrahub-ansible/pull/26)
+        - Bump actions/setup-python from 3 to 4 (https://github.com/opsmill/infrahub-ansible/pull/25)
+        - Release 1.0.0 (https://github.com/opsmill/infrahub-ansible/pull/24)
+        - Chore add dependabot/renovate (https://github.com/opsmill/infrahub-ansible/pull/23)
+        - Chore update infrahub sdk (https://github.com/opsmill/infrahub-ansible/pull/22)
+        - backport (https://github.com/opsmill/infrahub-ansible/pull/21)
+        - Hotfix (https://github.com/opsmill/infrahub-ansible/pull/20)
+        - 'chore: hotfix docs (https://github.com/opsmill/infrahub-ansible/pull/19)'
     release_date: '2023-11-16'
