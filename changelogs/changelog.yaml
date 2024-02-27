@@ -4,6 +4,8 @@ releases:
   1.0.3:
     changes:
       trivial:
+        - Pre-release (https://github.com/opsmill/infrahub-ansible/pull/48)
+        - backport (https://github.com/opsmill/infrahub-ansible/pull/47)
         - update poetry.lock for infrahub-sdk v0.8.0 (https://github.com/opsmill/infrahub-ansible/pull/46)
         - 'chore(deps): bump release-drafter/release-drafter from 5 to 6 (https://github.com/opsmill/infrahub-ansible/pull/45)'
         - 'chore(deps): bump dorny/paths-filter from 2 to 3 (https://github.com/opsmill/infrahub-ansible/pull/44)'
