@@ -498,8 +498,7 @@ if HAS_INFRAHUBCLIENT:
                 if variables:
                     # TODO Need a rendering
                     raise Exception("query need to be a dict if your are using variables")
-                else:
-                    query_str = query
+                query_str = query
             else:
                 raise Exception("query is neither a string nor a Dict")
 

@@ -74,7 +74,7 @@ class ActionModule(ActionBase):
         update_hostvars = args.get("update_hostvars", False)
         if query is None:
             raise AnsibleError("Query parameter was not passed")
-        if isinstance(query, str) or isinstance(query, Dict):
+        if isinstance(query, (Dict, str)):
             graphql_query = query
         if graph_variables is not None and not isinstance(graph_variables, Dict):
             raise AnsibleError("graph_variables parameter must be a list of Dict")
