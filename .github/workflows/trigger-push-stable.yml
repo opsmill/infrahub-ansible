@@ -27,7 +27,8 @@ jobs:
         run: |
           commit_author=$(git log -1 --pretty=format:'%an')
           commit_message=$(git log -1 --pretty=format:'%s')
-          if [[ "$commit_author" == "opsmill-bot" && "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
+          if [[ "$commit_author" == "opsmill-bot" && \
+                "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
@@ -72,8 +73,14 @@ jobs:
       - name: Update pyproject.toml and galaxy.yml versions
         run: |
           VERSION=${{ steps.version.outputs.next-version }}
+          python -c "\
+          import toml; \
+          with open('pyproject.toml', 'r') as file: \
+              data = toml.load(file); \
+          data['tool']['poetry']['version'] = '$VERSION'; \
+          with open('pyproject.toml', 'w') as file: \
+              toml.dump(data, file)"
           sed -i "s/^version:.*/version: $VERSION/" galaxy.yml
-          python -c "import tomlkit; doc = tomlkit.loads(open('pyproject.toml', 'r').read()); doc['tool']['poetry']['version'] = '$VERSION'; open('pyproject.toml', 'w').write(tomlkit.dumps(doc))"
 
       - name: Update lock file
         run: poetry lock --no-update
