@@ -8,9 +8,9 @@ To keep the code simple, we only officially support the two latest releases of I
 Requirements
 
 - The two latest Infrahub releases
-- Python >=3.9, <3.12
+- Python >=3.9, <3.13
 - Python modules:
-  - infrahub-sdk >= 0.2.0
+  - infrahub-sdk >= 0.9.0
 - Ansible 2.12+
 - Infrahub write-enabled token when using modules or read-only token for `lookup/inventory`
 

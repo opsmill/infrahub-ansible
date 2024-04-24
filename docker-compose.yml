@@ -36,7 +36,6 @@ services:
     networks:
       - integration_network
 
-# Attach these services to the infrahub network that gets spun up from invoke start
 networks:
   integration_network:
     name: infrahub_ansible_default

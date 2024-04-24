@@ -148,7 +148,7 @@ class LookupModule(LookupBase):
 
         if query is None:
             raise AnsibleLookupError("Query parameter was not passed")
-        if isinstance(query, str) or isinstance(query, Dict):
+        if isinstance(query, (Dict, str)):
             graphql_query = query
         else:
             raise AnsibleLookupError("Query parameter must be either a string or a Dictionary")

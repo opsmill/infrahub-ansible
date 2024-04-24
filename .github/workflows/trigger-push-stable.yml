@@ -9,13 +9,103 @@ on:
   push:
     branches:
       - stable
+    paths-ignore:
+      - 'docs/**'
+      - 'CHANGELOG.rst'
+      - 'changelogs/**'
 
 jobs:
+  check_commit:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.filter.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetches the commit history for the last 2 commits
+      - id: filter
+        run: |
+          commit_author=$(git log -1 --pretty=format:'%an')
+          commit_message=$(git log -1 --pretty=format:'%s')
+          if [[ "$commit_author" == "opsmill-bot" && \
+                "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+  prepare_release:
+    needs: check_commit
+    if: needs.check_commit.outputs.skip == 'false'
+    runs-on: ubuntu-22.04
+    outputs:
+      next_version: ${{ steps.version.outputs.next-version }}
+    steps:
+      - name: "Set up Python"
+        uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.11"
+
+      - name: "Install Poetry"
+        uses: "snok/install-poetry@v1"
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Get Previous tag
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@master"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Calculate next version
+        id: version
+        uses: patrickjahns/version-drafter-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update pyproject.toml and galaxy.yml versions
+        run: |
+          VERSION=${{ steps.version.outputs.next-version }}
+          python -c "\
+          import toml; \
+          with open('pyproject.toml', 'r') as file: \
+              data = toml.load(file); \
+          data['tool']['poetry']['version'] = '$VERSION'; \
+          with open('pyproject.toml', 'w') as file: \
+              toml.dump(data, file)"
+          sed -i "s/^version:.*/version: $VERSION/" galaxy.yml
+
+      - name: Update lock file
+        run: poetry lock --no-update
+
+      - name: commit pyproject.toml and galaxy.yml
+        uses: github-actions-x/commit@v2.9
+        with:
+          github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
+          push-branch: 'stable'
+          commit-message: 'chore: update pyproject.toml & galaxy.yml'
+          files: pyproject.toml galaxy.yml
+          name: opsmill-bot
+          email: github-bot@opsmill.com
+          rebase: true
+
   changelog_and_docs:
+    needs: ["prepare_release"]
     uses: ./.github/workflows/workflow-changelog-and-docs.yml
+    with:
+      version: ${{ needs.prepare_release.outputs.next_version }}
     secrets: inherit
 
   release:
-    needs: ["changelog_and_docs"]
+    needs: ["prepare_release"]
     uses: ./.github/workflows/workflow-release-drafter.yml
+    with:
+      version: ${{ needs.prepare_release.outputs.next_version }}
     secrets: inherit
