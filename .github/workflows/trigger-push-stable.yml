@@ -73,13 +73,14 @@ jobs:
       - name: Update pyproject.toml and galaxy.yml versions
         run: |
           VERSION=${{ steps.version.outputs.next-version }}
-          python -c "\
-          import toml; \
-          with open('pyproject.toml', 'r') as file: \
-              data = toml.load(file); \
-          data['tool']['poetry']['version'] = '$VERSION'; \
-          with open('pyproject.toml', 'w') as file: \
-              toml.dump(data, file)"
+          python -c """
+          import toml
+          with open('pyproject.toml', 'r') as file:
+              data = toml.load(file)
+          data['tool']['poetry']['version'] = '$VERSION'
+          with open('pyproject.toml', 'w') as file:
+              toml.dump(data, file)
+          """
           sed -i "s/^version:.*/version: $VERSION/" galaxy.yml
 
       - name: Update lock file
