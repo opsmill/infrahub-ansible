@@ -13,7 +13,7 @@
   color: "bfd4f2"
 
 - name: "changes/minor"
-  description: "Breaking Changes"
+  description: "Feature Enhancements"
   color: "fef2c0"
 
 - name: "changes/patch"

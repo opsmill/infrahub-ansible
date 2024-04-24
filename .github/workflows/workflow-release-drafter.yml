@@ -4,6 +4,15 @@ name: "Drafts your next Release notes"
 
 on:
   workflow_call:
+    inputs:
+      publish:
+        type: boolean
+        description: Wether to publish Release note
+        required: false
+        default: false
+      version:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,24 +29,15 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Check if there is a parent commit
-        id: check-parent-commit
+      - name: Tag new version
         run: |
-          echo "name=sha::$(git rev-parse --verify --quiet HEAD^)" >> $GITHUB_OUTPUT
-
-      - name: Detect and tag new version
-        id: check-version
-        if: steps.check-parent-commit.outputs.sha
-        uses: salsify/action-detect-and-tag-new-version@v2
-        with:
-          tag-template: "{VERSION}"
-          version-command: |
-            cat galaxy.yml | grep version: | cut -d' ' -f2
+          git tag ${{ inputs.version }}
+          git push --tags
 
       - uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter.yml
-          publish: ${{ steps.check-version.outputs.tag != '' }}
-          tag: ${{ steps.check-version.outputs.tag }}
+          publish: ${{ inputs.publish }}
+          tag: ${{ inputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
