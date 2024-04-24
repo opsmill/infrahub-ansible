@@ -9,15 +9,15 @@
 # CHANGES
 # ----------------------------------
 - name: "changes/major"
-  description: "Breaking Changes"
+  description: "Breaking Changes"  # Major changes that potentially break backward compatibility
   color: "bfd4f2"
 
 - name: "changes/minor"
-  description: "Breaking Changes"
+  description: "Feature Enhancements"  # Minor feature enhancements that add new functionalities without breaking existing ones
   color: "fef2c0"
 
 - name: "changes/patch"
-  description: "Maintenance tasks"
+  description: "Maintenance tasks"  # Patch updates for bug fixes, documentation updates, and other minor tasks
   color: "0366d6"
 
 # ----------------------------------
