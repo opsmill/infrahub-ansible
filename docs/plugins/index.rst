@@ -1,7 +1,7 @@
 
 
 .. meta::
-  :antsibull-docs: 2.7.0
+  :antsibull-docs: 2.10.0
 
 
 .. _plugins_in_opsmill.infrahub:
@@ -9,7 +9,7 @@
 Opsmill.Infrahub
 ================
 
-Collection version 1.0.3
+Collection version 1.0.4
 
 .. contents::
    :local:
@@ -45,7 +45,6 @@ This is a collection of Infrahub Ansible modules
 
 .. toctree::
     :maxdepth: 1
-
 
 Plugin Index
 ------------
