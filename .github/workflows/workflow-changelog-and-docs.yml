@@ -4,13 +4,17 @@ name: "Update Changelog & Documentation"
 
 on:
   workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   generate_changelog:
     runs-on: "ubuntu-22.04"
     name: "Create Changelog and Docs"
     steps:
-      - uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           fetch-depth: 0
@@ -26,23 +30,11 @@ jobs:
       - name: Install pandoc
         run: sudo apt-get install pandoc
 
-      - name: 'Get Previous tag'
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@master"
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: calculate next version
-        id: version
-        uses: patrickjahns/version-drafter-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: "Generate Docs"
         run: "invoke generate-doc"
 
       - name: Generate new version in changelog.yaml
-        run: antsibull-changelog release -v --version "${{ steps.version.outputs.next-version }}"
+        run: antsibull-changelog release -v --version "${{ inputs.version }}"
 
       - name: Generate changelog.yaml
         run: antsichaut
