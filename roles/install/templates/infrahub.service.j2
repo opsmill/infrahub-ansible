@@ -1,0 +1,14 @@
+[Unit]
+Description=Infrahub service with docker compose
+After=docker.service cloud-final.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+EnvironmentFile={{ infrahub_install_directory }}/config.env
+WorkingDirectory={{ infrahub_install_directory }}
+ExecStart=/usr/bin/docker compose -p {{ infrahub_docker_project }} up -d --remove-orphans
+ExecStop=/usr/bin/docker compose -p {{ infrahub_docker_project }} down
+
+[Install]
+WantedBy=cloud-init.target

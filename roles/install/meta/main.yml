@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  author: OpsMill <info@opsmill.com>
+  description: Install Infrahub
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.8"
+
+  galaxy_tags:
+    - infrahub

@@ -1,0 +1,13 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+
+- name: Restart Infrahub
+  ansible.builtin.service:
+    name: infrahub
+    state: "{{ infrahub_systemd_service_state }}"
+    enabled: true
+  become: true
+  when: infrahub_setup_systemd | bool
