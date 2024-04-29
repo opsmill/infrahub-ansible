@@ -3,21 +3,15 @@
 
 :orphan:
 
-.. role:: ansible-option-type
-.. role:: ansible-option-elements
-.. role:: ansible-option-required
-.. role:: ansible-option-versionadded
-.. role:: ansible-option-aliases
-.. role:: ansible-option-choices
-.. role:: ansible-option-choices-default-mark
-.. role:: ansible-option-default-bold
+.. |antsibull-internal-nbsp| unicode:: 0xA0
+    :trim:
+
+.. meta::
+  :antsibull-docs: 2.10.0
 
 .. Anchors
 
 .. _ansible_collections.opsmill.infrahub.install_role:
-
-.. Anchors: aliases
-
 
 .. Title
 
@@ -27,7 +21,10 @@ opsmill.infrahub.install role -- Install Infrahub
 .. Collection note
 
 .. note::
-    This role is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/opsmill/infrahub>`_ (version 1.0.4).
+    This role is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.4).
+
+    It is not included in ``ansible-core``.
+    To check whether it is installed, run :code:`ansible-galaxy collection list`.
 
     To install it use: :code:`ansible-galaxy collection install opsmill.infrahub`.
 
@@ -65,12 +62,13 @@ Synopsis
 Parameters
 ^^^^^^^^^^
 
-.. rst-class:: ansible-option-table
+.. tabularcolumns:: \X{1}{3}\X{2}{3}
 
 .. list-table::
   :width: 100%
   :widths: auto
   :header-rows: 1
+  :class: longtable ansible-option-table
 
   * - Parameter
     - Comments
@@ -90,9 +88,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_config" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`dictionary`
+        :ansible-option-type:`dictionary`
 
 
 
@@ -127,9 +125,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_docker_project" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`string`
+        :ansible-option-type:`string`
 
 
 
@@ -168,9 +166,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_docker_pull_images" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`boolean`
+        :ansible-option-type:`boolean`
 
 
 
@@ -213,9 +211,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_install_directory" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`string`
+        :ansible-option-type:`string`
 
 
 
@@ -254,9 +252,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_setup_systemd" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`boolean`
+        :ansible-option-type:`boolean`
 
 
 
@@ -299,9 +297,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_systemd_directory" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`string`
+        :ansible-option-type:`string`
 
 
 
@@ -340,9 +338,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_systemd_service_state" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`string`
+        :ansible-option-type:`string`
 
 
 
@@ -383,9 +381,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_url" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`string`
+        :ansible-option-type:`string`
 
 
 
@@ -424,9 +422,9 @@ Parameters
 
         <a class="ansibleOptionLink" href="#parameter-main--infrahub_version" title="Permalink to this option"></a>
 
-      .. rst-class:: ansible-option-type-line
+      .. ansible-option-type-line::
 
-      :ansible-option-type:`string`
+        :ansible-option-type:`string`
 
 
 
@@ -449,6 +447,9 @@ Parameters
         </div>
 
 
+.. Attributes
+
+
 .. Notes
 
 
@@ -462,13 +463,18 @@ Parameters
 Collection links
 ~~~~~~~~~~~~~~~~
 
-.. raw:: html
+.. ansible-links::
 
-  <p class="ansible-links">
-    <a href="https://github.com/opsmill/infrahub-ansible/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
-    <a href="https://www.opsmill.com/" aria-role="button" target="_blank" rel="noopener external">Homepage</a>
-    <a href="https://github.com/opsmill/infrahub-ansible" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
-  </p>
+  - title: "Issue Tracker"
+    url: "https://github.com/opsmill/infrahub-ansible/issues"
+    external: true
+  - title: "Homepage"
+    url: "https://www.opsmill.com/"
+    external: true
+  - title: "Repository (Sources)"
+    url: "https://github.com/opsmill/infrahub-ansible"
+    external: true
+
 
 .. Parsing errors
 
