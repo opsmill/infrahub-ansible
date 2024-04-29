@@ -1,8 +1,5 @@
 
 
-.. meta::
-  :antsibull-docs: 2.10.0
-
 
 .. _plugins_in_opsmill.infrahub:
 
@@ -28,23 +25,19 @@ This is a collection of Infrahub Ansible modules
 
 * 2.14.0 or newer
 
-.. ansible-links::
+.. raw:: html
 
-  - title: "Issue Tracker"
-    url: "https://github.com/opsmill/infrahub-ansible/issues"
-    external: true
-  - title: "Homepage"
-    url: "https://www.opsmill.com/"
-    external: true
-  - title: "Repository (Sources)"
-    url: "https://github.com/opsmill/infrahub-ansible"
-    external: true
-
+  <p class="ansible-links">
+    <a href="https://github.com/opsmill/infrahub-ansible/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
+    <a href="https://www.opsmill.com/" aria-role="button" target="_blank" rel="noopener external">Homepage</a>
+    <a href="https://github.com/opsmill/infrahub-ansible" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
+  </p>
 
 
 
 .. toctree::
     :maxdepth: 1
+
 
 Plugin Index
 ------------
@@ -55,8 +48,8 @@ These are the plugins in the opsmill.infrahub collection:
 Modules
 ~~~~~~~
 
-* :ansplugin:`artifact_fetch module <opsmill.infrahub.artifact_fetch#module>` -- Fetch the content of an artifact from Infrahub
-* :ansplugin:`query_graphql module <opsmill.infrahub.query_graphql#module>` -- Queries and returns elements from Infrahub GraphQL API
+* :ref:`artifact_fetch module <ansible_collections.opsmill.infrahub.artifact_fetch_module>` -- Fetch the content of an artifact from Infrahub
+* :ref:`query_graphql module <ansible_collections.opsmill.infrahub.query_graphql_module>` -- Queries and returns elements from Infrahub GraphQL API
 
 .. toctree::
     :maxdepth: 1
@@ -69,7 +62,7 @@ Modules
 Inventory Plugins
 ~~~~~~~~~~~~~~~~~
 
-* :ansplugin:`inventory inventory <opsmill.infrahub.inventory#inventory>` -- Infrahub inventory source (using GraphQL)
+* :ref:`inventory inventory <ansible_collections.opsmill.infrahub.inventory_inventory>` -- Infrahub inventory source (using GraphQL)
 
 .. toctree::
     :maxdepth: 1
@@ -81,7 +74,7 @@ Inventory Plugins
 Lookup Plugins
 ~~~~~~~~~~~~~~
 
-* :ansplugin:`lookup lookup <opsmill.infrahub.lookup#lookup>` -- Queries and returns elements from Infrahub (using GraphQL)
+* :ref:`lookup lookup <ansible_collections.opsmill.infrahub.lookup_lookup>` -- Queries and returns elements from Infrahub (using GraphQL)
 
 .. toctree::
     :maxdepth: 1
@@ -89,4 +82,17 @@ Lookup Plugins
 
     lookup_lookup
 
+
+Role Index
+----------
+
+These are the roles in the opsmill.infrahub collection:
+
+* :ref:`install role <ansible_collections.opsmill.infrahub.install_role>` -- Install Infrahub
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    install_role
 

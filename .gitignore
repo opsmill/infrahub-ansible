@@ -12,8 +12,5 @@ docs/_build/*
 .python-version
 .DS_Store
 
-# Until present in a package
-infrahub
-
 # https://github.com/ansible/ansible/issues/68499
 # ansible_collections/
