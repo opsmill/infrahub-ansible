@@ -1,0 +1,10 @@
+---
+infrahub_url: https://infrahub.opsmill.io
+infrahub_install_directory: /opt/infrahub
+infrahub_setup_systemd: true
+infrahub_systemd_directory: /etc/systemd/system/
+infrahub_systemd_service_state: restarted
+infrahub_docker_project: infrahub
+infrahub_config: {}
+infrahub_docker_pull_images: true
+# infrahub_version: stable

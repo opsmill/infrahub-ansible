@@ -1,0 +1,41 @@
+---
+- name: Check if there is an existing installation
+  ansible.builtin.stat:
+    path: "{{ infrahub_install_directory }}"
+  register: infrahub_installed
+
+- name: Create the install directory
+  ansible.builtin.file:
+    path: "{{ infrahub_install_directory }}"
+    state: directory
+    mode: "755"
+  become: true
+  when: not infrahub_installed.stat.exists
+
+- name: Download docker-compose file
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ infrahub_url }}"
+    dest: "{{ infrahub_install_directory }}/docker-compose.yml"
+    mode: "0640"
+    force_basic_auth: true
+    username: "{{ infrahub_url_username | default(omit) }}"
+    password: "{{ infrahub_url_password | default(omit) }}"
+
+- name: Configure Infrahub environment
+  ansible.builtin.template:
+    src: config.env.j2
+    dest: "{{ infrahub_install_directory }}/.env"
+    mode: "644"
+  become: true
+
+- name: Pull docker images
+  ansible.builtin.command: >
+    docker compose -p {{ infrahub_docker_project }} -f "{{ infrahub_install_directory }}/docker-compose.yml" pull
+  become: true
+  changed_when: true
+  when: infrahub_docker_pull_images|bool
+
+- name: Setup systemd
+  ansible.builtin.import_tasks: setup_systemd.yml
+  when: infrahub_setup_systemd|bool
