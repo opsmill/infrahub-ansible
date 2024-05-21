@@ -118,7 +118,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Endpoint of the Infrahub API, optional env=INFRAHUB\_API
+      Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS
 
 
       .. raw:: html
@@ -296,7 +296,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The API token created through Infrahub, optional env=INFRAHUB\_TOKEN
+      The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
 
 
       .. raw:: html

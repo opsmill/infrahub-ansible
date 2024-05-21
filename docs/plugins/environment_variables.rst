@@ -18,14 +18,14 @@ Environment variables used by the ansible-core configuration are documented in :
 
     *Used by:*
     :ansplugin:`opsmill.infrahub.inventory inventory plugin <opsmill.infrahub.inventory#inventory>`
-.. envvar:: INFRAHUB_API
+.. envvar:: INFRAHUB_ADDRESS
 
     Endpoint of the Infrahub API
 
     *Used by:*
     :ansplugin:`opsmill.infrahub.inventory inventory plugin <opsmill.infrahub.inventory#inventory>`,
     :ansplugin:`opsmill.infrahub.lookup lookup plugin <opsmill.infrahub.lookup#lookup>`
-.. envvar:: INFRAHUB_TOKEN
+.. envvar:: INFRAHUB_API_TOKEN
 
     Infrahub API token to be able to read against Infrahub.
 

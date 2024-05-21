@@ -116,7 +116,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
       :ansible-option-configuration:`Configuration:`
 
-      - Environment variable: :envvar:`INFRAHUB\_API`
+      - Environment variable: :envvar:`INFRAHUB_ADDRESS`
 
 
       .. raw:: html
@@ -320,7 +320,7 @@ examples: ``lookup('opsmill.infrahub.lookup', key1=value1, key2=value2, ...)`` a
 
       :ansible-option-configuration:`Configuration:`
 
-      - Environment variable: :envvar:`INFRAHUB\_TOKEN`
+      - Environment variable: :envvar:`INFRAHUB_API_TOKEN`
 
 
       .. raw:: html

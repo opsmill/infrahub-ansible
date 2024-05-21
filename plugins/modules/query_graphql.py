@@ -22,12 +22,12 @@ options:
     api_endpoint:
         required: False
         description:
-          - Endpoint of the Infrahub API, optional env=INFRAHUB_API
+          - Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS
         type: str
     token:
         required: False
         description:
-            - The API token created through Infrahub, optional env=INFRAHUB_TOKEN
+            - The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
         type: str
     timeout:
         required: False
