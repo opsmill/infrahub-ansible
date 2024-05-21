@@ -51,8 +51,8 @@ class ActionModule(ActionBase):
 
         args = self._task.args
 
-        api_endpoint = args.get("api_endpoint") or os.getenv("INFRAHUB_API")
-        token = args.get("token") or os.getenv("INFRAHUB_TOKEN")
+        api_endpoint = args.get("api_endpoint") or os.getenv("INFRAHUB_ADDRESS")
+        token = args.get("token") or os.getenv("INFRAHUB_API_TOKEN")
         if api_endpoint is None:
             raise AnsibleError("Missing Infrahub API Endpoint")
         if token is None:

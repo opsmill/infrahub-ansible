@@ -179,8 +179,8 @@ Examples
 
     # Minimum required parameters
     plugin: opsmill.infrahub.inventory
-    api_endpoint: http://localhost:8000  # Can be omitted if the INFRAHUB_API environment variable is set
-    token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_TOKEN environment variable is set
+    api_endpoint: http://localhost:8000  # Can be omitted if the INFRAHUB_ADDRESS environment variable is set
+    token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_API_TOKEN environment variable is set
 
     # Complete Example
     # This will :

@@ -21,13 +21,13 @@ DOCUMENTATION = """
             description: Endpoint of the Infrahub API
             required: True
             env:
-                - name: INFRAHUB_API
+                - name: INFRAHUB_ADDRESS
         token:
             required: True
             description:
                 - Infrahub API token to be able to read against Infrahub.
             env:
-                - name: INFRAHUB_TOKEN
+                - name: INFRAHUB_API_TOKEN
         timeout:
             required: False
             description: Timeout for Infrahub requests in seconds
@@ -130,8 +130,8 @@ class LookupModule(LookupBase):
         if not HAS_INFRAHUBCLIENT:
             raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
 
-        api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_API")
-        token = kwargs.get("token") or os.getenv("INFRAHUB_TOKEN")
+        api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_ADDRESS")
+        token = kwargs.get("token") or os.getenv("INFRAHUB_API_TOKEN")
         if api_endpoint is None:
             raise AnsibleLookupError("Missing Infrahub API Endpoint ")
         if token is None:

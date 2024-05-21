@@ -7,7 +7,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.10.0
+  :antsibull-docs: 2.11.0
 
 .. Anchors
 
@@ -23,7 +23,7 @@ opsmill.infrahub.query_graphql module -- Queries and returns elements from Infra
 .. Collection note
 
 .. note::
-    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.6).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.8).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -118,7 +118,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Endpoint of the Infrahub API, optional env=INFRAHUB\_API
+      Endpoint of the Infrahub API, optional env=INFRAHUB\_ADDRESS
 
 
       .. raw:: html
@@ -300,7 +300,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      The API token created through Infrahub, optional env=INFRAHUB\_TOKEN
+      The API token created through Infrahub, optional env=INFRAHUB\_API\_TOKEN
 
 
       .. raw:: html
