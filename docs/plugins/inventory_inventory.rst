@@ -392,6 +392,21 @@ Parameters
 
         .. code-block::
 
+          [default]
+          fact_caching_prefix = ansible_inventory_
+
+
+        Removed in: version 2.16 of ansible.builtin
+
+
+        Why: Fixes typing error in INI section name
+
+        Alternative: Use the 'defaults' section instead
+
+
+
+        .. code-block::
+
           [defaults]
           fact_caching_prefix = ansible_inventory_
 
@@ -645,7 +660,7 @@ Parameters
 
       The default value when the host variable's value is an empty string.
 
-      This option is mutually exclusive with \ :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].trailing\_separator`\ .
+      This option is mutually exclusive with \ :literal:`trailing\_separator`\ .
 
 
       .. raw:: html
@@ -881,9 +896,9 @@ Parameters
 
         <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
-      Set this option to \ :ansval:`False`\  to omit the \ :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].separator`\  after the host variable when the value is an empty string.
+      Set this option to \ :emphasis:`False`\  to omit the \ :literal:`separator`\  after the host variable when the value is an empty string.
 
-      This option is mutually exclusive with \ :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].default\_value`\ .
+      This option is mutually exclusive with \ :literal:`default\_value`\ .
 
 
       .. rst-class:: ansible-option-line
@@ -1266,7 +1281,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      If \ :ansval:`yes`\  make invalid entries a fatal error, otherwise skip and continue.
+      If \ :literal:`yes`\  make invalid entries a fatal error, otherwise skip and continue.
 
       Since it is possible to use facts in the expressions they might not always be available and we ignore those errors by default.
 
