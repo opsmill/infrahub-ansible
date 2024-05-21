@@ -7,7 +7,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.10.0
+  :antsibull-docs: 2.11.0
 
 .. Anchors
 
@@ -23,7 +23,7 @@ opsmill.infrahub.inventory inventory -- Infrahub inventory source (using GraphQL
 .. Collection note
 
 .. note::
-    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.6).
+    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.8).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -113,7 +113,7 @@ Parameters
 
       :ansible-option-configuration:`Configuration:`
 
-      - Environment variable: :envvar:`INFRAHUB_ADDRESS`
+      - Environment variable: :envvar:`INFRAHUB\_ADDRESS`
 
 
       .. raw:: html
@@ -1361,7 +1361,7 @@ Parameters
 
       :ansible-option-configuration:`Configuration:`
 
-      - Environment variable: :envvar:`INFRAHUB_API_TOKEN`
+      - Environment variable: :envvar:`INFRAHUB\_API\_TOKEN`
 
 
       .. raw:: html
