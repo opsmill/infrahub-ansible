@@ -11,4 +11,4 @@ strict: true
 nodes:
   InfraDevice:
     exclude:
-      - site
+      - location

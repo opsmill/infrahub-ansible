@@ -15,7 +15,7 @@ nodes:
       - name
       - primary_address
       - platform
-      - site
+      - location
       - tags
 
 compose:
@@ -24,7 +24,7 @@ compose:
   ansible_host: primary_address.address | ansible.utils.ipaddr('address')
 
 keyed_groups:
-  - prefix: site
-    key: site.name
+  - prefix: location
+    key: location.name
   - prefix: platform
     key: platform
