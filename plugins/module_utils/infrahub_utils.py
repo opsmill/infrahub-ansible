@@ -556,20 +556,7 @@ if HAS_INFRAHUBCLIENT:
             for kind in response:
                 if response[kind]["edges"]:
                     results += response[kind]["edges"]
-
-            host_node_attributes = {}
-            for result in results:
-                node_kind = result["node"]["__typename"]
-                schema = self.client.fetch_single_schema(kind=node_kind)
-                node = self.client.client.store.get(result["node"]["id"], node_kind)
-                attrs = [attr for attr in result["node"].keys() if attr != "__typename"]
-                mapped_result = self.resolve_node_mapping(
-                    node=node, attrs=attrs, schemas={node_kind: schema}, include_id=include_id
-                )
-                if mapped_result:
-                    host_node_attributes[str(node)] = mapped_result
-
-            return host_node_attributes
+            return results
 
 
 if not HAS_INFRAHUBCLIENT:
