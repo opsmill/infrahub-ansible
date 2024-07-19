@@ -1,3 +1,5 @@
+---
+# yamllint disable rule:truthy
 version: 2
 
 updates:
