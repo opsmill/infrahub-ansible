@@ -1,5 +1,3 @@
----
-# yamllint disable rule:truthy
 version: 2
 
 updates:
@@ -13,6 +11,10 @@ updates:
     target-branch: develop
     labels:
       - "changes/patch"
+    groups:
+      all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "pip"
     directory: "/"
@@ -23,3 +25,7 @@ updates:
     target-branch: develop
     labels:
       - "changes/patch"
+    groups:
+      all:
+        patterns:
+          - "*"
