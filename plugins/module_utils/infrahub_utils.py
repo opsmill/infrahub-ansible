@@ -298,8 +298,8 @@ if HAS_INFRAHUBCLIENT:
             self.client = client
 
         def resolve_node_mapping(
-                self, node: InfrahubNodeSync, attrs: List[str], schemas: Dict[str, NodeSchema], include_id: bool = True
-            ) -> Optional[Dict[str, Any]]:
+            self, node: InfrahubNodeSync, attrs: List[str], schemas: Dict[str, NodeSchema], include_id: bool = True
+        ) -> Optional[Dict[str, Any]]:
             """
             Resolve the attributes and relationships of a given node based on a list of desired attributes.
 
@@ -334,7 +334,6 @@ if HAS_INFRAHUBCLIENT:
                             attribute_dict[parts[0]] = node_attr.value
 
                 elif parts[0] in node._schema.relationship_names:
-
                     if isinstance(node_attr, RelationshipManagerSync):
                         if len(parts) == 1:
                             peers: List[Dict[str, Any]] = []
@@ -349,7 +348,9 @@ if HAS_INFRAHUBCLIENT:
 
                     elif isinstance(node_attr, RelatedNodeSync):
                         if node_attr.id and node_attr.schema.peer:
-                            related_node = store.get(key=node_attr.id, kind=node_attr.schema.peer, raise_when_missing=False)
+                            related_node = store.get(
+                                key=node_attr.id, kind=node_attr.schema.peer, raise_when_missing=False
+                            )
                             if not related_node:
                                 node_attr.fetch()
                                 related_node = node_attr.peer
@@ -393,7 +394,7 @@ if HAS_INFRAHUBCLIENT:
                     continue
                 attributes_by_kind.append(attr_name)
             for rel_name in schema.relationship_names:
-                if exclude and rel_name in schema.relationship_names:
+                if exclude and rel_name in exclude:
                     continue
                 rel_schema = schema.get_relationship_or_none(name=rel_name)
                 if not rel_schema:
@@ -493,7 +494,9 @@ if HAS_INFRAHUBCLIENT:
                     continue
 
                 node_attributes_dict[node_kind] = (
-                    include if include else self.get_attributes_for_schema(schema=schema_dict[node_kind], exclude=exclude)
+                    include
+                    if include
+                    else self.get_attributes_for_schema(schema=schema_dict[node_kind], exclude=exclude)
                 )
                 all_nodes.extend(nodes_from_kind)
 
@@ -505,10 +508,7 @@ if HAS_INFRAHUBCLIENT:
                 related_kinds = self.get_related_nodes(schema=schema_dict[node_kind], attrs=node_attributes)
                 for related_kind in related_kinds:
                     schema_dict[related_kind] = self.client.fetch_single_schema(kind=related_kind)
-                    self.client.fetch_nodes(
-                        kind=related_kind,
-                        prefetch_relationships=False
-                    )
+                    self.client.fetch_nodes(kind=related_kind, prefetch_relationships=False)
 
                 for host_node in all_nodes:
                     result = self.resolve_node_mapping(
@@ -563,7 +563,9 @@ if HAS_INFRAHUBCLIENT:
                 schema = self.client.fetch_single_schema(kind=node_kind)
                 node = self.client.client.store.get(result["node"]["id"], node_kind)
                 attrs = [attr for attr in result["node"].keys() if attr != "__typename"]
-                mapped_result = self.resolve_node_mapping(node=node, attrs=attrs, schemas={node_kind: schema}, include_id=include_id)
+                mapped_result = self.resolve_node_mapping(
+                    node=node, attrs=attrs, schemas={node_kind: schema}, include_id=include_id
+                )
                 if mapped_result:
                     host_node_attributes[str(node)] = mapped_result
 
