@@ -311,7 +311,7 @@ if HAS_INFRAHUBCLIENT:
 
             Returns:
                 Dict[str, Any]: A dictionary mapping attribute/relationship names to their respective values.
-                                For relationship with "many" cardinality, it will be a List (of related nodes)
+                        For relationship with "many" cardinality, it will be a List (of related nodes)
             """
             attribute_dict = {}
             store = self.client.client.store
