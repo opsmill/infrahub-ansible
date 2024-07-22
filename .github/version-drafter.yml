@@ -1,0 +1,4 @@
+---
+major-labels: ['changes/major']
+minor-labels: ['changes/minor', 'type/feature', 'type/refactoring']
+patch-labels: ['changes/patch', 'type/bug', 'type/documentation']

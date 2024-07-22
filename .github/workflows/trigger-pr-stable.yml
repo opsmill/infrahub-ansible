@@ -1,9 +1,6 @@
 ---
 # yamllint disable rule:truthy
 name: "Pull Request on stable"
-concurrency:  # Cancel any existing runs of this workflow for this same PR
-  group: "${{ '{{ github.workflow }}' }}-${{ '{{ github.ref }}' }}"
-  cancel-in-progress: true
 
 on:
   pull_request:
