@@ -30,21 +30,6 @@ exclude-labels:
   - "ci/skip-changelog"
   - "type/duplicate"
 
-version-resolver:
-  major:
-    labels:
-      - "changes/major"
-  minor:
-    labels:
-      - "changes/minor"
-      - "type/feature"
-      - "type/refactoring"
-  patch:
-    labels:
-      - "changes/patch"
-      - "type/bug"
-      - "type/documentation"
-  default: patch
 autolabeler:
   - label: "ci/skip-changelog"
     title: "/chore/i"
