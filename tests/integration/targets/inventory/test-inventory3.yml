@@ -5,21 +5,24 @@
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 
-strict: false
-
 nodes:
   InfraDevice:
     include:
       - name
-      - primary_address
-      - platform
-      - site
-      - tags
+      - primary_address.address
+      - platform.ansible_network_os
+      - location.parent.name
+      - location.name
       - role
+      - tags
 
 compose:
   hostname: name
   platform: platform.ansible_network_os
-  ansible_host: primary_address.address | ansible.utils.ipaddr('address')
+  ansible_host: primary_address | ansible.utils.ipaddr('address')
 
 keyed_groups:
+  - prefix: site
+    key: location.name | lower
+  - prefix: metro
+    key: location.parent.name | lower

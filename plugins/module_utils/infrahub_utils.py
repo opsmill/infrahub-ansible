@@ -13,7 +13,7 @@ try:
     from infrahub_sdk import Config, InfrahubClientSync
     from infrahub_sdk.branch import BranchData, InfrahubBranchManagerSync
     from infrahub_sdk.graphql import Query
-    from infrahub_sdk.node import InfrahubNodeSync
+    from infrahub_sdk.node import InfrahubNodeSync, RelatedNodeSync, RelationshipManagerSync
     from infrahub_sdk.schema import (
         NodeSchema,
         RelationshipCardinality,
@@ -119,13 +119,14 @@ if HAS_INFRAHUBCLIENT:
             return results
 
         @handle_infrahub_exceptions
-        def fetch_single_node(
+        def fetch_single_node(  # noqa: PLR0917
             self,
             kind: str,
             include: Optional[List[str]] = None,
             exclude: Optional[List[str]] = None,
             filters: Optional[Dict[str, str]] = None,
             branch: Optional[str] = None,
+            prefetch_relationships: Optional[bool] = True,
         ) -> InfrahubNodeSync:
             """
             Retrieve a single node of a given kind based on filters
@@ -136,6 +137,7 @@ if HAS_INFRAHUBCLIENT:
                 exclude (Optional[List[str]]): list of attributes/relationship to ignore
                 filters (Optional[Dict[str, str]]): Dict of filters to apply on the query
                 branch (Optional[str]): Name of the branch to query from. Defaults to default_branch.
+                prefetch_relationships (Optional[bool]): Whether to prefetch relationships when fetching nodes. Defaults to True.
 
             Returns:
                 InfrahubNodeSync: Single Infrahub Node
@@ -149,18 +151,20 @@ if HAS_INFRAHUBCLIENT:
                 populate_store=True,
                 exclude=exclude,
                 branch=branch,
+                prefetch_relationships=prefetch_relationships,
                 **filters,
             )
             return node
 
         @handle_infrahub_exceptions
-        def fetch_nodes(
+        def fetch_nodes(  # noqa: PLR0917
             self,
             kind: str,
             include: Optional[List[str]] = None,
             exclude: Optional[List[str]] = None,
             filters: Optional[Dict[str, str]] = None,
             branch: Optional[str] = None,
+            prefetch_relationships: Optional[bool] = True,
         ) -> List[InfrahubNodeSync]:
             """
             Retrieve all nodes of a given kind
@@ -171,6 +175,7 @@ if HAS_INFRAHUBCLIENT:
                 exclude (Optional[List[str]]): list of attributes/relationship to ignore
                 filters (Optional[Dict[str, str]]): Dict of filters to apply on the query
                 branch (Optional[str]): Name of the branch to query from. Defaults to default_branch.
+                prefetch_relationships (Optional[bool]): Whether to prefetch relationships when fetching nodes. Defaults to True.
 
             Returns:
                 List[InfrahubNodeSync]: List of Nodes
@@ -178,7 +183,14 @@ if HAS_INFRAHUBCLIENT:
             nodes = List[InfrahubNodeSync]
 
             if not filters:
-                nodes = self.client.all(kind=kind, populate_store=True, include=include, exclude=exclude, branch=branch)
+                nodes = self.client.all(
+                    kind=kind,
+                    populate_store=True,
+                    include=include,
+                    exclude=exclude,
+                    branch=branch,
+                    prefetch_relationships=prefetch_relationships,
+                )
             else:
                 nodes = self.client.filters(
                     kind=kind,
@@ -186,6 +198,7 @@ if HAS_INFRAHUBCLIENT:
                     populate_store=True,
                     exclude=exclude,
                     branch=branch,
+                    prefetch_relationships=prefetch_relationships,
                     **filters,
                 )
             return nodes
@@ -285,7 +298,7 @@ if HAS_INFRAHUBCLIENT:
             self.client = client
 
         def resolve_node_mapping(
-            self, node: InfrahubNodeSync, attrs: List[str], schemas: Dict[str, NodeSchema]
+            self, node: InfrahubNodeSync, attrs: List[str], schemas: Dict[str, NodeSchema], include_id: bool = True
         ) -> Optional[Dict[str, Any]]:
             """
             Resolve the attributes and relationships of a given node based on a list of desired attributes.
@@ -294,44 +307,68 @@ if HAS_INFRAHUBCLIENT:
                 node (InfrahubNodeSync): The node to which attributes/relationships are to be mapped.
                 attrs (List[str]): A list of attribute names that should be fetched for the node.
                 schemas Dict[str, NodeSchema]: A dictionary of Node Kind name, NodeSchema
+                include_id (bool): Whether to include the node ID in the result. Defaults to True.
 
             Returns:
                 Dict[str, Any]: A dictionary mapping attribute/relationship names to their respective values.
                         For relationship with "many" cardinality, it will be a List (of related nodes)
             """
             attribute_dict = {}
+            store = self.client.client.store
+
             for attr in attrs:
-                node_attr = getattr(node, attr)
+                parts = attr.split(".")
+                node_attr = getattr(node, parts[0], None)
 
-                if attr in node._schema.attribute_names:
-                    if node_attr.value:
-                        attribute_dict[node_attr._schema.name] = str(node_attr.value)
-                    else:
-                        attribute_dict[node_attr._schema.name] = node_attr.value
+                if parts[0] not in attribute_dict:
+                    attribute_dict[parts[0]] = {} if len(parts) > 1 else None
 
-                if attr in node._schema.relationship_names:
-                    # Workaround if peer are generics, we load the nodes inherited from it via fetch
-                    if node_attr.schema.peer not in schemas:
-                        node_attr.fetch()
-                    elif node_attr.schema.peer in schemas:
-                        if not schemas[node_attr.schema.peer]:
-                            node_attr.fetch()
-                    # Should we allow "recursive" depending of node_attr.schema.kind (generics or component)
-                    if node_attr.schema.cardinality == "many":
-                        peers: List[InfrahubNodeSync] = []
-                        for peer in node_attr:
-                            if hasattr(peer.peer._schema, "attribute_names"):
-                                peer_attribute = peer.peer._schema.attribute_names
-                                peers.append(
-                                    self.resolve_node_mapping(node=peer.peer, attrs=peer_attribute, schemas=schemas)
-                                )
-                        attribute_dict[node_attr.schema.name] = peers
-                    elif node_attr.schema.cardinality == "one":
-                        peer = node_attr.peer
-                        peer_attribute = peer._schema.attribute_names
-                        attribute_dict[node_attr.schema.name] = self.resolve_node_mapping(
-                            node=peer, attrs=peer_attribute, schemas=schemas
-                        )
+                if node_attr is None:
+                    continue
+
+                if parts[0] in node._schema.attribute_names:
+                    if len(parts) == 1:
+                        if node_attr.value:
+                            attribute_dict[parts[0]] = str(node_attr.value)
+                        else:
+                            attribute_dict[parts[0]] = node_attr.value
+
+                elif parts[0] in node._schema.relationship_names:
+                    if isinstance(node_attr, RelationshipManagerSync):
+                        if len(parts) == 1:
+                            peers: List[Dict[str, Any]] = []
+                            for peer in node_attr.peers:
+                                related_node = store.get(key=peer.id, kind=peer.schema.peer, raise_when_missing=False)
+                                if not related_node:
+                                    peer.fetch()
+                                    related_node = peer.peer
+                                if related_node and hasattr(related_node._schema, "attribute_names"):
+                                    peers.append(related_node.id)
+                            attribute_dict[parts[0]] = peers
+
+                    elif isinstance(node_attr, RelatedNodeSync):
+                        if node_attr.id and node_attr.schema.peer:
+                            related_node = store.get(
+                                key=node_attr.id, kind=node_attr.schema.peer, raise_when_missing=False
+                            )
+                            if not related_node:
+                                node_attr.fetch()
+                                related_node = node_attr.peer
+                            if related_node:
+                                if len(parts) == 1:
+                                    attribute_dict[parts[0]] = related_node.id
+                                else:
+                                    peer_attributes = [".".join(parts[1:])]
+                                    nested_result = self.resolve_node_mapping(
+                                        node=related_node, attrs=peer_attributes, schemas=schemas, include_id=True
+                                    )
+                                    if isinstance(attribute_dict[parts[0]], dict):
+                                        attribute_dict[parts[0]].update(nested_result)
+                                    else:
+                                        attribute_dict[parts[0]] = nested_result
+
+            if include_id:
+                attribute_dict["id"] = node.id
 
             return attribute_dict
 
@@ -359,15 +396,15 @@ if HAS_INFRAHUBCLIENT:
             for rel_name in schema.relationship_names:
                 if exclude and rel_name in exclude:
                     continue
-                rel_schema = schema.get_relationship(name=rel_name)
+                rel_schema = schema.get_relationship_or_none(name=rel_name)
+                if not rel_schema:
+                    continue
                 if (
                     rel_schema.cardinality == RelationshipCardinality.MANY  # type: ignore[union-attr]
                     and rel_schema.kind not in [RelationshipKind.ATTRIBUTE, RelationshipKind.PARENT]  # type: ignore[union-attr]
                 ):
                     continue
-                if rel_schema and rel_schema.cardinality == "one":
-                    attributes_by_kind.append(rel_name)
-                elif rel_schema and rel_schema.cardinality == "many":
+                if rel_schema and rel_schema.cardinality in (RelationshipCardinality.ONE, RelationshipCardinality.MANY):
                     attributes_by_kind.append(rel_name)
             return attributes_by_kind
 
@@ -408,13 +445,20 @@ if HAS_INFRAHUBCLIENT:
                 include += include_groups
             return include
 
-        def fetch_and_process(self, nodes: List[str]) -> Optional[Dict[str, Any]]:
+        def fetch_and_process(
+            self,
+            nodes: Dict[str, Any],
+            prefetch_relationships: Optional[bool] = True,
+            include_id: bool = True,
+        ) -> Optional[Dict[str, Any]]:
             """
             Fetches schemas and nodes for the given node kinds using the Infrahub client wrapper,
             then processes and maps these nodes to their corresponding attributes.
 
             Parameters:
-                nodes (List[str]): A list of node kinds to fetch and process.
+                nodes (Dict[str, Any]): A dictionary of node kinds to fetch and process.
+                prefetch_relationships (Optional[bool]): Whether to prefetch relationships when fetching nodes. Defaults to True.
+                include_id (bool): Whether to include the node ID in the result. Defaults to True.
 
             Returns:
                 Optional[Dict[str, Any]]: A dictionary with processed host node attributes, or None if no nodes were processed.
@@ -425,6 +469,7 @@ if HAS_INFRAHUBCLIENT:
 
             if not nodes:
                 return None
+
             for node_kind in nodes:
                 schema_dict[node_kind] = self.client.fetch_single_schema(kind=node_kind)
                 node_options = nodes.get(node_kind, {})
@@ -442,12 +487,16 @@ if HAS_INFRAHUBCLIENT:
                     include=include,
                     exclude=exclude,
                     filters=filters,
+                    prefetch_relationships=prefetch_relationships,
                 )
 
                 if not nodes_from_kind:
                     continue
+
                 node_attributes_dict[node_kind] = (
-                    include if include else self.get_attributes_for_schema(schema_dict[node_kind], exclude)
+                    include
+                    if include
+                    else self.get_attributes_for_schema(schema=schema_dict[node_kind], exclude=exclude)
                 )
                 all_nodes.extend(nodes_from_kind)
 
@@ -459,23 +508,23 @@ if HAS_INFRAHUBCLIENT:
                 related_kinds = self.get_related_nodes(schema=schema_dict[node_kind], attrs=node_attributes)
                 for related_kind in related_kinds:
                     schema_dict[related_kind] = self.client.fetch_single_schema(kind=related_kind)
-                    self.client.fetch_nodes(kind=related_kind)
+                    self.client.fetch_nodes(kind=related_kind, prefetch_relationships=False)
 
                 for host_node in all_nodes:
                     result = self.resolve_node_mapping(
                         node=host_node,
                         attrs=node_attributes_dict[host_node._schema.kind],
                         schemas=schema_dict,
+                        include_id=include_id,
                     )
                     if result:
-                        result["id"] = host_node.id
                         host_node_attributes[str(host_node)] = result
 
             return host_node_attributes
 
     class InfrahubQueryProcessor(InfrahubBaseProcessor):
         def fetch_and_process(
-            self, query: Union[dict, str], variables: Optional[Dict[str, Any]] = None
+            self, query: Union[dict, str], variables: Optional[Dict[str, Any]] = None, include_id: bool = True
         ) -> Optional[Dict[str, Any]]:
             """
             Fetches nodes for the given GraphQl query using the Infrahub client wrapper,
@@ -484,6 +533,7 @@ if HAS_INFRAHUBCLIENT:
             Parameters:
                 query (str): A GraphQL formatted query string
                 variables (Optional[Dict[str, Any]]): A dictionaries of variables to use with the query
+                include_id (bool): Whether to include the node ID in the result. Defaults to True.
 
             Returns:
                 Optional[Dict[str, Any]]: A dictionary with processed host node attributes, or None if no nodes were processed.

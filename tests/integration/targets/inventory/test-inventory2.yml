@@ -12,5 +12,5 @@ nodes:
   InfraDevice:
 
 keyed_groups:
-  - prefix: site
-    key: site.name
+  - prefix: location
+    key: location.name
