@@ -1231,13 +1231,13 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-black (>=0.3.7)", "pytest-checkdocs
 
 [[package]]
 name = "infrahub-sdk"
-version = "0.12.0"
+version = "0.12.3"
 description = "Python Client to interact with Infrahub"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "infrahub_sdk-0.12.0-py3-none-any.whl", hash = "sha256:94ea4a725844e04ebb8880ef801b100f23936fe2f1e2fd61600674eaa8d95d1d"},
-    {file = "infrahub_sdk-0.12.0.tar.gz", hash = "sha256:444b9cffd4802ae3da8436f87066593e26332a86c1694ec27be99d5947fa1d81"},
+    {file = "infrahub_sdk-0.12.3-py3-none-any.whl", hash = "sha256:40edfc862ee0075c0bf0f8dc559cc06ed4bade9f4ecfbb27341397cd10f7b261"},
+    {file = "infrahub_sdk-0.12.3.tar.gz", hash = "sha256:de6f8f392fd7cf7928d23e46d442952f94bc918e47b298f0b015777bc33a599f"},
 ]
 
 [package.dependencies]
@@ -1248,8 +1248,14 @@ httpx = [
     {version = ">=0.23", markers = "python_version >= \"3.11\""},
 ]
 Jinja2 = {version = ">=3,<4", optional = true, markers = "extra == \"ctl\" or extra == \"tests\" or extra == \"all\""}
-numpy = {version = ">=1.24.2,<2.0.0", optional = true, markers = "python_version >= \"3.9\" and python_version < \"3.12\" and (extra == \"ctl\" or extra == \"all\")"}
-pendulum = {version = ">=2", markers = "python_version >= \"3.9\" and python_version < \"3.12\""}
+numpy = [
+    {version = ">=1.24.2,<2.0.0", optional = true, markers = "python_version >= \"3.9\" and python_version < \"3.12\" and extra == \"ctl\" or python_version >= \"3.9\" and python_version < \"3.12\" and extra == \"all\""},
+    {version = ">=1.26.2,<2.0.0", optional = true, markers = "python_version >= \"3.12\" and extra == \"ctl\" or python_version >= \"3.12\" and extra == \"all\""},
+]
+pendulum = [
+    {version = ">=2", markers = "python_version >= \"3.9\" and python_version < \"3.12\""},
+    {version = ">=3", markers = "python_version >= \"3.12\""},
+]
 pyarrow = {version = ">=14,<15", optional = true, markers = "extra == \"ctl\" or extra == \"all\""}
 pydantic = ">=2.0.0,<2.0.1 || >2.0.1,<2.1.0 || >2.1.0,<3.0.0"
 pydantic-settings = ">=2.0"
@@ -3171,5 +3177,5 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.9,<3.12"
-content-hash = "c0a3cdf175f4546e93d8949aa0e33380207a1ffd84fc929c88306699e5cc253b"
+python-versions = ">=3.9,<3.13"
+content-hash = "26f265e56b24e54c0831709304bffb850481a26d0cff846241221b2b27d36150"
