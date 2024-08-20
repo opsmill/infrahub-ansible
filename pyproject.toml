@@ -6,7 +6,7 @@ authors = ["OpsMill <info@opsmill.com>"]
 license = "GPLv3"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
+python = ">=3.9,<3.13"
 ansible-core = ">=2.15.9"
 ansible-lint = "*"
 infrahub-sdk = {version = "^0", extras = ["all"]}
