@@ -87,6 +87,12 @@ DOCUMENTATION = """
             type: list
             elements: str
             default: []
+        groups:
+            required: False
+            description:
+                - Create groups based on jinja filter.
+            type: dict
+            default: {}
         validate_certs:
             description:
                 - Whether or not to validate SSL of the Infrahub instance
@@ -246,7 +252,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             self.set_host_variables(host_node=host_node, attributes=attributes)
 
-            self._add_host_to_keyed_groups(self.keyed_groups, attributes, host_node, strict=self.strict)
+            self._add_host_to_composed_groups(
+                groups=self.groups, variables=attributes, host=host_node, strict=self.strict
+            )
+            self._add_host_to_keyed_groups(
+                keys=self.keyed_groups, variables=attributes, host=host_node, strict=self.strict
+            )
 
     def set_host_variables(self, host_node: str, attributes: Dict):
         """
@@ -317,6 +328,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.strict = self.get_option("strict")
         self.compose = self.get_option("compose")
         self.keyed_groups = self.get_option("keyed_groups")
+        self.groups = self.get_option("groups")
 
         self._set_authorization()
 
