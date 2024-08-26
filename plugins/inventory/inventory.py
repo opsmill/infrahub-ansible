@@ -92,7 +92,6 @@ DOCUMENTATION = """
             description:
                 - Create groups based on jinja filter.
             type: dict
-            elements: str
             default: {}
         validate_certs:
             description:
