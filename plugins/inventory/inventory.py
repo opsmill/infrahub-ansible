@@ -253,8 +253,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             self.set_host_variables(host_node=host_node, attributes=attributes)
 
-            self._add_host_to_composed_groups(groups=self.groups, variables=attributes, host=host_node, strict=self.strict)
-            self._add_host_to_keyed_groups(keys=self.keyed_groups, variables=attributes, host=host_node, strict=self.strict)
+            self._add_host_to_composed_groups(
+                groups=self.groups, variables=attributes, host=host_node, strict=self.strict
+            )
+            self._add_host_to_keyed_groups(
+                keys=self.keyed_groups, variables=attributes, host=host_node, strict=self.strict
+            )
 
     def set_host_variables(self, host_node: str, attributes: Dict):
         """
