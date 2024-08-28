@@ -1,4 +1,3 @@
-
 .. Document meta
 
 :orphan:
@@ -7,7 +6,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.12.0
+  :antsibull-docs: 2.13.1
 
 .. Anchors
 
@@ -23,7 +22,7 @@ opsmill.infrahub.lookup lookup -- Queries and returns elements from Infrahub (us
 .. Collection note
 
 .. note::
-    This lookup plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.9).
+    This lookup plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.1.0).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -385,7 +384,6 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    
     - name: Infrahub lookup
       gather_facts: false
       hosts: localhost
@@ -413,7 +411,6 @@ Examples
         - name: Print result
           ansible.builtin.debug:
             msg: "{{ query_response }}"
-
 
 
 
@@ -510,4 +507,3 @@ Collection links
 
 
 .. Parsing errors
-

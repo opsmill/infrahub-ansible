@@ -1,7 +1,5 @@
-
-
 .. meta::
-  :antsibull-docs: 2.12.0
+  :antsibull-docs: 2.13.1
 
 
 .. _plugins_in_opsmill.infrahub:
@@ -9,7 +7,7 @@
 Opsmill.Infrahub
 ================
 
-Collection version 1.0.9
+Collection version 1.1.0
 
 .. contents::
    :local:
@@ -102,4 +100,3 @@ These are the roles in the opsmill.infrahub collection:
     :hidden:
 
     install_role
-

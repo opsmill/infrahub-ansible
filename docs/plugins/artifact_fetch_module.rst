@@ -1,4 +1,3 @@
-
 .. Document meta
 
 :orphan:
@@ -7,7 +6,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.12.0
+  :antsibull-docs: 2.13.1
 
 .. Anchors
 
@@ -23,7 +22,7 @@ opsmill.infrahub.artifact_fetch module -- Fetch the content of an artifact from 
 .. Collection note
 
 .. note::
-    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.9).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.1.0).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -362,7 +361,6 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    
     - name: Infrahub action plugin Fetch_artifact
       gather_facts: false
       hosts: platform_eos
@@ -382,7 +380,6 @@ Examples
             dest: "/tmp/{{ inventory_hostname }}-startup.conf"
             mode: '644'
           delegate_to: localhost
-
 
 
 
@@ -518,4 +515,3 @@ Collection links
 
 
 .. Parsing errors
-

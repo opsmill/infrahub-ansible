@@ -1,4 +1,3 @@
-
 .. Document meta
 
 :orphan:
@@ -7,7 +6,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.12.0
+  :antsibull-docs: 2.13.1
 
 .. Anchors
 
@@ -23,7 +22,7 @@ opsmill.infrahub.inventory inventory -- Infrahub inventory source (using GraphQL
 .. Collection note
 
 .. note::
-    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.9).
+    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.1.0).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -548,7 +547,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      Add hosts to group based on Jinja2 conditionals.
+      Create groups based on jinja filter.
 
 
       .. rst-class:: ansible-option-line
@@ -601,7 +600,7 @@ Parameters
       .. raw:: html
 
         </div>
-    
+
   * - .. raw:: html
 
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
@@ -645,7 +644,7 @@ Parameters
 
       The default value when the host variable's value is an empty string.
 
-      This option is mutually exclusive with \ :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].trailing\_separator`\ .
+      This option is mutually exclusive with :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].trailing\_separator`.
 
 
       .. raw:: html
@@ -881,9 +880,9 @@ Parameters
 
         <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
-      Set this option to \ :ansval:`False`\  to omit the \ :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].separator`\  after the host variable when the value is an empty string.
+      Set this option to :ansval:`False` to omit the :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].separator` after the host variable when the value is an empty string.
 
-      This option is mutually exclusive with \ :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].default\_value`\ .
+      This option is mutually exclusive with :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].default\_value`.
 
 
       .. rst-class:: ansible-option-line
@@ -995,7 +994,7 @@ Parameters
       .. raw:: html
 
         </div>
-    
+
   * - .. raw:: html
 
         <div class="ansible-option-indent"></div><div class="ansible-option-cell">
@@ -1042,7 +1041,7 @@ Parameters
       .. raw:: html
 
         </div>
-    
+
   * - .. raw:: html
 
         <div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
@@ -1266,7 +1265,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      If \ :ansval:`yes`\  make invalid entries a fatal error, otherwise skip and continue.
+      If :ansval:`yes` make invalid entries a fatal error, otherwise skip and continue.
 
       Since it is possible to use facts in the expressions they might not always be available and we ignore those errors by default.
 
@@ -1489,7 +1488,6 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    
     # inventory.yml file in YAML format
     # Example command line: ansible-inventory -v --list -i .yml
     # Add -vvv to the command to also see the GraphQL query that gets sent in the debug output.
@@ -1527,7 +1525,6 @@ Examples
     keyed_groups:
       - prefix: site
         key: site.name
-
 
 
 
@@ -1625,4 +1622,3 @@ Collection links
 
 
 .. Parsing errors
-
