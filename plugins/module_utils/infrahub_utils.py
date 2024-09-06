@@ -32,7 +32,14 @@ if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
 
     class InfrahubclientWrapper:
-        def __init__(self, api_endpoint: str, branch: str, token: str, timeout: Optional[int] = 10):
+        def __init__(
+            self,
+            api_endpoint: str,
+            branch: str,
+            token: str,
+            timeout: Optional[int] = 10,
+            validate_certs: Optional[str] = True,
+        ):
             """
             Initializes InfrahubclientWrapper.
 
@@ -44,7 +51,7 @@ if HAS_INFRAHUBCLIENT:
             """
             self.client = InfrahubClientSync(
                 address=api_endpoint,
-                config=Config(api_token=token, timeout=timeout, default_branch=branch),
+                config=Config(api_token=token, timeout=timeout, default_branch=branch, tls_insecure=not validate_certs),
             )
             self.branch_manager = InfrahubBranchManagerSync(self.client)
 

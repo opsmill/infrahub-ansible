@@ -85,10 +85,7 @@ class ActionModule(ActionBase):
         try:
             Display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
-                api_endpoint=api_endpoint,
-                token=token,
-                branch=branch,
-                timeout=timeout,
+                api_endpoint=api_endpoint, token=token, branch=branch, timeout=timeout, validate_certs=validate_certs
             )
             processor = InfrahubQueryProcessor(client=client)
             Display().v("Processing Query")
