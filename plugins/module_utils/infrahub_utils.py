@@ -327,7 +327,6 @@ if HAS_INFRAHUBCLIENT:
                     continue
 
                 if parts[0] in node._schema.attribute_names and len(parts) == 1:
-                    print(f"DEBUG {attr}-{node_attr}.value = {node_attr.value}")
                     if node_attr.value:
                         attribute_dict[parts[0]] = str(node_attr.value)
                     else:
@@ -358,7 +357,6 @@ if HAS_INFRAHUBCLIENT:
                             related_node = store.get(
                                 key=node_attr.id, raise_when_missing=False
                             )
-                            print(f"DEBUG related_node={related_node}")
                             if not related_node:
                                 node_attr.fetch()
                                 related_node = node_attr.peer
@@ -370,12 +368,10 @@ if HAS_INFRAHUBCLIENT:
                                     nested_result = self.resolve_node_mapping(
                                         node=related_node, attrs=peer_attributes, schemas=schemas, include_id=True
                                     )
-                                    print(f"DEBUG nested_result='{nested_result}' for '{peer_attributes}'")
                                     if isinstance(attribute_dict[parts[0]], dict):
                                         attribute_dict[parts[0]].update(nested_result)
                                     else:
                                         attribute_dict[parts[0]] = nested_result
-                                print(f"DEBUG={attribute_dict[parts[0]]}")
 
             if include_id:
                 attribute_dict["id"] = node.id
