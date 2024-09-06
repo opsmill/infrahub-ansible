@@ -354,9 +354,7 @@ if HAS_INFRAHUBCLIENT:
 
                     elif isinstance(node_attr, RelatedNodeSync):
                         if node_attr.id and node_attr.schema.peer:
-                            related_node = store.get(
-                                key=node_attr.id, raise_when_missing=False
-                            )
+                            related_node = store.get(key=node_attr.id, raise_when_missing=False)
                             if not related_node:
                                 node_attr.fetch()
                                 related_node = node_attr.peer
