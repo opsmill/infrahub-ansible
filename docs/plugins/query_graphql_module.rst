@@ -1,4 +1,3 @@
-
 .. Document meta
 
 :orphan:
@@ -7,7 +6,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.12.0
+  :antsibull-docs: 2.13.1
 
 .. Anchors
 
@@ -23,7 +22,7 @@ opsmill.infrahub.query_graphql module -- Queries and returns elements from Infra
 .. Collection note
 
 .. note::
-    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.0.9).
+    This module is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.1.0).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -408,7 +407,6 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    
     - name: Infrahub action plugin
       gather_facts: false
       hosts: localhost
@@ -438,7 +436,6 @@ Examples
           opsmill.infrahub.query_graphql:
             query: "{{ query_dict }}"
             graph_variables: "{{ variables }}"
-
 
 
 
@@ -534,4 +531,3 @@ Collection links
 
 
 .. Parsing errors
-
