@@ -53,3 +53,5 @@ releases:
     release_date: '2024-07-22'
   1.2.0:
     release_date: '2024-08-28'
+  1.2.1:
+    release_date: '2024-09-09'
