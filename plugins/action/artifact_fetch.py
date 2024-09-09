@@ -78,10 +78,7 @@ class ActionModule(ActionBase):
         try:
             Display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
-                api_endpoint=api_endpoint,
-                token=token,
-                branch=branch,
-                timeout=timeout,
+                api_endpoint=api_endpoint, token=token, branch=branch, timeout=timeout, validate_certs=validate_certs
             )
             Display().v("Fetch Artifacts")
             result = client.fetch_single_artifact(filters=filters)

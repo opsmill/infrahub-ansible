@@ -32,7 +32,14 @@ if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
 
     class InfrahubclientWrapper:
-        def __init__(self, api_endpoint: str, branch: str, token: str, timeout: Optional[int] = 10):
+        def __init__(
+            self,
+            api_endpoint: str,
+            branch: str,
+            token: str,
+            timeout: Optional[int] = 10,
+            validate_certs: Optional[str] = True,
+        ):
             """
             Initializes InfrahubclientWrapper.
 
@@ -44,7 +51,7 @@ if HAS_INFRAHUBCLIENT:
             """
             self.client = InfrahubClientSync(
                 address=api_endpoint,
-                config=Config(api_token=token, timeout=timeout, default_branch=branch),
+                config=Config(api_token=token, timeout=timeout, default_branch=branch, tls_insecure=not validate_certs),
             )
             self.branch_manager = InfrahubBranchManagerSync(self.client)
 
@@ -326,31 +333,35 @@ if HAS_INFRAHUBCLIENT:
                 if node_attr is None:
                     continue
 
-                if parts[0] in node._schema.attribute_names:
-                    if len(parts) == 1:
+                if parts[0] in node._schema.attribute_names and len(parts) == 1:
+                    if node_attr.value:
+                        attribute_dict[parts[0]] = str(node_attr.value)
+                    else:
+                        # attribute_dict[parts[0]] = node_attr.value
+                        # FIXME
+                        # If the attribute is inherited, it's not populate properly in store
+                        tmp_node = node._client.get(id=node.id, kind=node._schema.kind)
+                        node_attr = getattr(tmp_node, parts[0], None)
                         if node_attr.value:
                             attribute_dict[parts[0]] = str(node_attr.value)
                         else:
                             attribute_dict[parts[0]] = node_attr.value
 
                 elif parts[0] in node._schema.relationship_names:
-                    if isinstance(node_attr, RelationshipManagerSync):
-                        if len(parts) == 1:
-                            peers: List[Dict[str, Any]] = []
-                            for peer in node_attr.peers:
-                                related_node = store.get(key=peer.id, kind=peer.schema.peer, raise_when_missing=False)
-                                if not related_node:
-                                    peer.fetch()
-                                    related_node = peer.peer
-                                if related_node and hasattr(related_node._schema, "attribute_names"):
-                                    peers.append(related_node.id)
-                            attribute_dict[parts[0]] = peers
+                    if isinstance(node_attr, RelationshipManagerSync) and len(parts) == 1:
+                        peers: List[Dict[str, Any]] = []
+                        for peer in node_attr.peers:
+                            related_node = store.get(key=peer.id, raise_when_missing=False)
+                            if not related_node:
+                                peer.fetch()
+                                related_node = peer.peer
+                            if related_node and hasattr(related_node._schema, "attribute_names"):
+                                peers.append(related_node.id)
+                        attribute_dict[parts[0]] = peers
 
                     elif isinstance(node_attr, RelatedNodeSync):
                         if node_attr.id and node_attr.schema.peer:
-                            related_node = store.get(
-                                key=node_attr.id, kind=node_attr.schema.peer, raise_when_missing=False
-                            )
+                            related_node = store.get(key=node_attr.id, raise_when_missing=False)
                             if not related_node:
                                 node_attr.fetch()
                                 related_node = node_attr.peer

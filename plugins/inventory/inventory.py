@@ -294,6 +294,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                     branch=self.branch,
                     token=self.token,
                     timeout=self.timeout,
+                    validate_certs=self.validate_certs,
                 )
                 processor = InfrahubNodesProcessor(client=client)
                 self.display.v("Processing Nodes request")
