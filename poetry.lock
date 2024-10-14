@@ -241,13 +241,13 @@ pygments = ">=2.4.0"
 
 [[package]]
 name = "antsibull"
-version = "0.65.0"
+version = "0.66.0"
 description = "Tools for building the Ansible Distribution"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "antsibull-0.65.0-py3-none-any.whl", hash = "sha256:d963ad61437f30fdba618d008f98acc06044631ba806dc5c996c3ba5e0d314a7"},
-    {file = "antsibull-0.65.0.tar.gz", hash = "sha256:56d50083d2e65a1033271db34ea7e7572af00ff03ac03fb1e9bb98afa64aa334"},
+    {file = "antsibull-0.66.0-py3-none-any.whl", hash = "sha256:5505b698ff8d62a0d7ba0fd7dd841abb7dbbe6c283893cca607701934549d563"},
+    {file = "antsibull-0.66.0.tar.gz", hash = "sha256:fc43c07bf2cdc0c60ec4e7962ee681bd9b8c7a585ea0d1eba586138abac43730"},
 ]
 
 [package.dependencies]
@@ -255,6 +255,7 @@ aiofiles = "*"
 aiohttp = ">=3.0.0"
 antsibull-changelog = ">=0.24.0"
 antsibull-core = ">=3.1.0,<4.0.0"
+antsibull-docs-parser = ">=1.1.0,<2.0.0"
 antsibull-fileutils = ">=1.0.0,<2.0.0"
 asyncio-pool = "*"
 build = "*"
@@ -305,13 +306,13 @@ typing = ["mypy", "pyre-check (>=0.9.17)", "types-docutils", "types-pyyaml", "ty
 
 [[package]]
 name = "antsibull-core"
-version = "3.1.0"
+version = "3.3.0"
 description = "Tools for building the Ansible Distribution"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "antsibull_core-3.1.0-py3-none-any.whl", hash = "sha256:da52107b9e5611cb0dba2a83dc7b9e957395cf2de790024b4f3ab9e200c02458"},
-    {file = "antsibull_core-3.1.0.tar.gz", hash = "sha256:7661a72632053108091d07ce9dcc06e7e9f762fec4a235e7328dcc9b3052ae14"},
+    {file = "antsibull_core-3.3.0-py3-none-any.whl", hash = "sha256:d36621c887fda9d4dc8bf62b3245179a0478b2e50151682d352adf93c117bc5a"},
+    {file = "antsibull_core-3.3.0.tar.gz", hash = "sha256:fe495ba6425385bd950db9844e2f8d347f3412855b4ab8881d395f4047fb5946"},
 ]
 
 [package.dependencies]
@@ -335,27 +336,27 @@ typing = ["mypy", "pyre-check (>=0.9.17)", "types-aiofiles", "typing-extensions"
 
 [[package]]
 name = "antsibull-docs"
-version = "2.14.0"
+version = "2.15.0"
 description = "Tools for building Ansible documentation"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "antsibull_docs-2.14.0-py3-none-any.whl", hash = "sha256:1a302340a3640438e0dc83a9ca385ee6724abe0ee57198736de526046251ac0e"},
-    {file = "antsibull_docs-2.14.0.tar.gz", hash = "sha256:b4e40bfb3674fa44834be3eb9d23dd4831cab6a0780c7f1448ac85208e731637"},
+    {file = "antsibull_docs-2.15.0-py3-none-any.whl", hash = "sha256:083888f13c9d4847d53c778d3e4d1611ab3b00a986cca990696436079aa2a9e2"},
+    {file = "antsibull_docs-2.15.0.tar.gz", hash = "sha256:02bad19dfa618d74b5a55ade33c976e2ec2312110dd0ba984bfedc03c40d05e5"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.0.0"
 ansible-pygments = "*"
 antsibull-changelog = ">=0.24.0"
-antsibull-core = ">=2.1.0,<4.0.0"
+antsibull-core = ">=3.2.0,<4.0.0"
 antsibull-docs-parser = ">=1.1.0,<2.0.0"
 antsibull-fileutils = ">=1.0.0,<2.0.0"
 asyncio-pool = "*"
 docutils = "*"
 jinja2 = ">=3.0"
 packaging = ">=20.0"
-pydantic = ">=1.0.0,<3.0.0"
+pydantic = ">=2.0.0,<3.0.0"
 pyyaml = "*"
 rstcheck = ">=3.0.0,<7.0.0"
 semantic-version = "*"
@@ -1180,13 +1181,13 @@ socks = ["socksio (==1.*)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.112.4"
+version = "6.115.0"
 description = "A library for property-based testing"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "hypothesis-6.112.4-py3-none-any.whl", hash = "sha256:6d3e3038968925069d1a7e7ebfa2ed0b65b22eff6800d1e88b687b3c6d2f57b5"},
-    {file = "hypothesis-6.112.4.tar.gz", hash = "sha256:8fe64e4a6d0862e209e3c36b42037aee9665cb839d619d9281be45345ab7d856"},
+    {file = "hypothesis-6.115.0-py3-none-any.whl", hash = "sha256:b4f39185bd8fd7e98bdbced8062c8e844c71384d850725ad0bb6e16257e7a4f1"},
+    {file = "hypothesis-6.115.0.tar.gz", hash = "sha256:0603fdfa80b0866997ea8a618ca62c468fa03b902b2d3559a4b485dba0630e51"},
 ]
 
 [package.dependencies]
@@ -1195,21 +1196,21 @@ exceptiongroup = {version = ">=1.0.0", markers = "python_version < \"3.11\""}
 sortedcontainers = ">=2.1.0,<3.0.0"
 
 [package.extras]
-all = ["backports.zoneinfo (>=0.2.1)", "black (>=19.10b0)", "click (>=7.0)", "crosshair-tool (>=0.0.73)", "django (>=3.2)", "dpcontracts (>=0.4)", "hypothesis-crosshair (>=0.0.14)", "lark (>=0.10.1)", "libcst (>=0.3.16)", "numpy (>=1.17.3)", "pandas (>=1.1)", "pytest (>=4.6)", "python-dateutil (>=1.4)", "pytz (>=2014.1)", "redis (>=3.0.0)", "rich (>=9.0.0)", "tzdata (>=2024.2)"]
+all = ["black (>=19.10b0)", "click (>=7.0)", "crosshair-tool (>=0.0.74)", "django (>=4.2)", "dpcontracts (>=0.4)", "hypothesis-crosshair (>=0.0.16)", "lark (>=0.10.1)", "libcst (>=0.3.16)", "numpy (>=1.19.3)", "pandas (>=1.1)", "pytest (>=4.6)", "python-dateutil (>=1.4)", "pytz (>=2014.1)", "redis (>=3.0.0)", "rich (>=9.0.0)", "tzdata (>=2024.2)"]
 cli = ["black (>=19.10b0)", "click (>=7.0)", "rich (>=9.0.0)"]
 codemods = ["libcst (>=0.3.16)"]
-crosshair = ["crosshair-tool (>=0.0.73)", "hypothesis-crosshair (>=0.0.14)"]
+crosshair = ["crosshair-tool (>=0.0.74)", "hypothesis-crosshair (>=0.0.16)"]
 dateutil = ["python-dateutil (>=1.4)"]
-django = ["django (>=3.2)"]
+django = ["django (>=4.2)"]
 dpcontracts = ["dpcontracts (>=0.4)"]
 ghostwriter = ["black (>=19.10b0)"]
 lark = ["lark (>=0.10.1)"]
-numpy = ["numpy (>=1.17.3)"]
+numpy = ["numpy (>=1.19.3)"]
 pandas = ["pandas (>=1.1)"]
 pytest = ["pytest (>=4.6)"]
 pytz = ["pytz (>=2014.1)"]
 redis = ["redis (>=3.0.0)"]
-zoneinfo = ["backports.zoneinfo (>=0.2.1)", "tzdata (>=2024.2)"]
+zoneinfo = ["tzdata (>=2024.2)"]
 
 [[package]]
 name = "idna"
@@ -2734,13 +2735,13 @@ test = ["cython (>=3.0)", "defusedxml (>=0.7.1)", "pytest (>=8.0)", "setuptools 
 
 [[package]]
 name = "sphinx-rtd-theme"
-version = "3.0.0"
+version = "3.0.1"
 description = "Read the Docs theme for Sphinx"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "sphinx_rtd_theme-3.0.0-py2.py3-none-any.whl", hash = "sha256:1ffe1539957775bfa0a7331370de7dc145b6eac705de23365dc55c5d94bb08e7"},
-    {file = "sphinx_rtd_theme-3.0.0.tar.gz", hash = "sha256:905d67de03217fd3d76fbbdd992034ac8e77044ef8063a544dda1af74d409e08"},
+    {file = "sphinx_rtd_theme-3.0.1-py2.py3-none-any.whl", hash = "sha256:921c0ece75e90633ee876bd7b148cfaad136b481907ad154ac3669b6fc957916"},
+    {file = "sphinx_rtd_theme-3.0.1.tar.gz", hash = "sha256:a4c5745d1b06dfcb80b7704fe532eb765b44065a8fad9851e4258c8804140703"},
 ]
 
 [package.dependencies]
@@ -3224,4 +3225,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "7ef549b3686f4ea9fca31a02b03551b23da26458c72ece5bf1a8fc16dc3cfcd7"
+content-hash = "b7b7f01f9dd8be8f05425ab8109cd2af1e9ec9e24d9c33a70c2784525c3ba018"
