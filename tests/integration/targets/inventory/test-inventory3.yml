@@ -2,6 +2,10 @@
 ### infrahub_inventory.yml file in YAML format
 ### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
+# This inventory will retrieve the InfraDevice with the differents Attribute & Relationships requested in `include`.
+# The InfraDevice will be grouped by the Site name and the metro-area name
+# Several extra variable will be compose based on the retrieved Attribute and Relationship
+
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 
@@ -11,18 +15,18 @@ nodes:
       - name
       - primary_address.address
       - platform.ansible_network_os
-      - location.parent.name
-      - location.name
+      - site.parent.name
+      - site.name
       - role
       - tags
 
 compose:
   hostname: name
   platform: platform.ansible_network_os
-  ansible_host: primary_address | ansible.utils.ipaddr('address')
+  ansible_host: primary_address.address | ansible.utils.ipaddr('address')
 
 keyed_groups:
   - prefix: site
-    key: location.name | lower
+    key: site.name | lower
   - prefix: metro
-    key: location.parent.name | lower
+    key: site.parent.name | lower
