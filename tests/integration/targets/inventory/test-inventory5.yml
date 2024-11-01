@@ -3,7 +3,7 @@
 ### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
 # This inventory will retrieve the InfraDevice with the differents Attribute & Relationships requested in `include`.
-# The InfraDevice will be grouped by the Site name and Platform ansible_network_os
+# The InfraDevice will be grouped by the Site (name), Platform (ansible_network_os) and role
 # Several extra variable will be compose based on the retrieved Attribute and Relationship
 # We are overriting the retrieved variable `platform` to have a string instead of a dict
 # The target is set to the branch `atl1-delete-upstream` (if not indicated, the default branch is `main`)
@@ -13,7 +13,7 @@ api_endpoint: "http://localhost:8000"
 
 strict: true
 
-branch: "atl1-delete-upstream"
+branch: "main"
 
 nodes:
   InfraDevice:
@@ -22,6 +22,7 @@ nodes:
       - primary_address.address
       - platform.ansible_network_os
       - site.name
+      - role
       - tags
 
 compose:
@@ -34,3 +35,5 @@ keyed_groups:
     key: site.name
   - prefix: platform
     key: platform
+  - prefix: role
+    key: role

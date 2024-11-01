@@ -198,6 +198,24 @@ PyYAML = ">=5.1"
 resolvelib = ">=0.5.3,<1.1.0"
 
 [[package]]
+name = "ansible-core"
+version = "2.17.5"
+description = "Radically simple IT automation"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "ansible_core-2.17.5-py3-none-any.whl", hash = "sha256:10f165b475cf2bc8d886e532cadb32c52ee6a533649793101d3166bca9bd3ea3"},
+    {file = "ansible_core-2.17.5.tar.gz", hash = "sha256:ae7f51fd13dc9d57c9bcd43ef23f9c255ca8f18f4b5c0011a4f9b724d92c5a8e"},
+]
+
+[package.dependencies]
+cryptography = "*"
+jinja2 = ">=3.0.0"
+packaging = "*"
+PyYAML = ">=5.1"
+resolvelib = ">=0.5.3,<1.1.0"
+
+[[package]]
 name = "ansible-lint"
 version = "6.8.7"
 description = "Checks playbooks for practices and behavior that could potentially be improved"
@@ -3243,4 +3261,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "09bc7b0b510804a1a9b8dec2620efa174170b9140077b5afcd8679809cc0266d"
+content-hash = "96be603dae5dcc932d206e35f0fe343cef8b9b8e3972689de200f000742727f6"
