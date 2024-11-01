@@ -9,7 +9,6 @@ __metaclass__ = type
 
 try:
     from infrahub_sdk.exceptions import (
-        FilterNotFoundError,
         GraphQLError,
         SchemaNotFoundError,
         ServerNotReachableError,
@@ -39,8 +38,6 @@ def handle_infrahub_exceptions(func):
             raise Exception(f"An error occurred while executing the GraphQL Query {kwargs}")
         except SchemaNotFoundError:
             raise Exception(f"Unable to find the schema {kwargs}")
-        except FilterNotFoundError:
-            raise Exception(f"Filters not Found {kwargs}")
         except ServerNotReachableError:
             raise Exception("Server not Reacheable")
         except ServerNotResponsiveError:
