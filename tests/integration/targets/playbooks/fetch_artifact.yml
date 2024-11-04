@@ -1,9 +1,14 @@
 ---
+# You can this playbook with the test-inventory5.yml
+# Command:
+# ansible-playbook fetch_artifact.yml -i ../inventory/test-inventory5.yml -l "*edge*"
+
 - name: Infrahub action plugin Fetch_artifact
   gather_facts: false
-  hosts: platform_eos
+  hosts: all
+  connection: local
   vars:
-    ansible_become: true
+    ansible_become: false
 
   tasks:
     - name: Query Startup Config for Edge Devices
@@ -17,7 +22,7 @@
         content: "{{ startup_artifact.text }}"
         dest: "/tmp/{{ inventory_hostname }}-startup.conf"
         mode: '644'
-      delegate_to: localhost
+      when: startup_artifact
 
     - name: Query Openconfig Interface for Arista devices
       opsmill.infrahub.artifact_fetch:
@@ -27,7 +32,7 @@
 
     - name: Save configs to localhost
       ansible.builtin.copy:
-        content: "{{ openconfig_artifact.text }}"
-        dest: "/tmp/{{ inventory_hostname }}-openconfig.conf"
+        content: "{{ openconfig_artifact.json }}"
+        dest: "/tmp/{{ inventory_hostname }}-openconfig.json"
         mode: '644'
-      delegate_to: localhost
+      when: openconfig_artifact

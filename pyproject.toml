@@ -1,15 +1,18 @@
 [tool.poetry]
 name = "infrahub_ansible_modules"
-version = "1.2.0"
+version = "1.2.2"
 description = "Ansible collection to interact with Infrahub's API"
 authors = ["OpsMill <info@opsmill.com>"]
 license = "GPLv3"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-ansible-core = ">=2.15.9"
+ansible-core = [
+    { version = ">=2.15.9", python = ">=3.9,<3.10" },
+    { version = ">=2.17.4", python = ">=3.10" },
+]
 ansible-lint = "*"
-infrahub-sdk = {version = "^0", extras = ["all"]}
+infrahub-sdk = {version = "^1", extras = ["all"]}
 codecov = "*"
 deepdiff = "*"
 cryptography = ">=42.0.0"

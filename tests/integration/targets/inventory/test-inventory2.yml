@@ -2,6 +2,9 @@
 ### infrahub_inventory.yml file in YAML format
 ### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
+# This inventory will retrieve the InfraDevice with **ONLY** the Site Relationship.
+# The InfraDevice will be grouped by the Site name
+
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 timeout: 30
@@ -10,7 +13,9 @@ strict: true
 
 nodes:
   InfraDevice:
+    include:
+      - site.name
 
 keyed_groups:
-  - prefix: location
-    key: location.name
+  - prefix: site
+    key: site.name

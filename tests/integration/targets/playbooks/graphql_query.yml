@@ -28,3 +28,8 @@
       opsmill.infrahub.query_graphql:
         query: "{{ query_dict }}"
         graph_variables: "{{ variables }}"
+      register: query_response
+
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "{{ query_response }}"

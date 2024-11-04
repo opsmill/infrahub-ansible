@@ -198,6 +198,24 @@ PyYAML = ">=5.1"
 resolvelib = ">=0.5.3,<1.1.0"
 
 [[package]]
+name = "ansible-core"
+version = "2.17.5"
+description = "Radically simple IT automation"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "ansible_core-2.17.5-py3-none-any.whl", hash = "sha256:10f165b475cf2bc8d886e532cadb32c52ee6a533649793101d3166bca9bd3ea3"},
+    {file = "ansible_core-2.17.5.tar.gz", hash = "sha256:ae7f51fd13dc9d57c9bcd43ef23f9c255ca8f18f4b5c0011a4f9b724d92c5a8e"},
+]
+
+[package.dependencies]
+cryptography = "*"
+jinja2 = ">=3.0.0"
+packaging = "*"
+PyYAML = ">=5.1"
+resolvelib = ">=0.5.3,<1.1.0"
+
+[[package]]
 name = "ansible-lint"
 version = "6.8.7"
 description = "Checks playbooks for practices and behavior that could potentially be improved"
@@ -1292,13 +1310,13 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-black (>=0.3.7)", "pytest-checkdocs
 
 [[package]]
 name = "infrahub-sdk"
-version = "0.14.1"
+version = "1.0.0"
 description = "Python Client to interact with Infrahub"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "infrahub_sdk-0.14.1-py3-none-any.whl", hash = "sha256:f981e74ba932d3e6711daa0eaf0a08410e5956f02a0a1548b2d4c3b0e22aa892"},
-    {file = "infrahub_sdk-0.14.1.tar.gz", hash = "sha256:becb43c130ab5178c831b193a0951892ad461844dd432b9d6602ebcc4522bcc6"},
+    {file = "infrahub_sdk-1.0.0-py3-none-any.whl", hash = "sha256:70eb8b5ef5839fed0faa8ee0f3aae074a616ac9311eb5bfe9f335cb775aa7856"},
+    {file = "infrahub_sdk-1.0.0.tar.gz", hash = "sha256:8b2ca6fe04ecc5c0364c444dcc94647eef3e261629b49430a32edc3d07620149"},
 ]
 
 [package.dependencies]
@@ -3243,4 +3261,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "d65576e4616769e18edc7e74d011d5c7fcdd490014d97802d1e7b9fbf4e14dd2"
+content-hash = "96be603dae5dcc932d206e35f0fe343cef8b9b8e3972689de200f000742727f6"

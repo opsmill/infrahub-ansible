@@ -2,6 +2,9 @@
 ### infrahub_inventory.yml file in YAML format
 ### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
+# This inventory will retrieve the InfraDevice with all the Attribute & the Relationships if the relationship kind is `Attribute` or `Parent`
+# Except the ones specifically excluded
+
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 validate_certs: true
@@ -11,4 +14,5 @@ strict: true
 nodes:
   InfraDevice:
     exclude:
-      - location
+      - site  # Relationship
+      - description  # Attribute
