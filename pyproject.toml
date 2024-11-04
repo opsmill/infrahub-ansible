@@ -9,7 +9,7 @@ license = "GPLv3"
 python = ">=3.9,<3.13"
 ansible-core = ">=2.15.9"
 ansible-lint = "*"
-infrahub-sdk = {version = "^0", extras = ["all"]}
+infrahub-sdk = {version = "^1", extras = ["all"]}
 codecov = "*"
 deepdiff = "*"
 cryptography = ">=42.0.0"
@@ -26,7 +26,7 @@ pytz = "*"
 packaging = "*"
 jsondiff = "*"
 sphinx_rtd_theme = "*"
-hypothesis = "^6.115.5"
+hypothesis = "^6.116.0"
 pytest-pythonpath = "*"
 parameterized = "^0.9.0"
 invoke = "^2.2.0"
@@ -36,7 +36,7 @@ antsibull-docs = "^2.15.0"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "0.7.1"
+ruff = "0.7.2"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
