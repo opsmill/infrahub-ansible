@@ -58,14 +58,14 @@ if HAS_INFRAHUBCLIENT:
         @handle_infrahub_exceptions
         def fetch_single_artifact(
             self,
-            filters: Optional[Dict[str, str]] = None,
+            filters: Dict[str, str],
             branch: Optional[str] = None,
         ) -> List[InfrahubNodeSync]:
             """
             Retrieve all artifact content
 
             Parameters:
-                filters (Optional[Dict[str, str]]): Dict of filters to apply on the query
+                artifact (Optional[Dict[str, str]]): Dict of filters to apply on the query
                 branch (Optional[str]): Name of the branch to query from. Defaults to default_branch.
 
             Returns:
@@ -129,6 +129,8 @@ if HAS_INFRAHUBCLIENT:
         def fetch_single_node(  # noqa: PLR0917
             self,
             kind: str,
+            id: Optional[str] = None,
+            hfid: Optional[list[str]] = None,
             include: Optional[List[str]] = None,
             exclude: Optional[List[str]] = None,
             filters: Optional[Dict[str, str]] = None,
@@ -140,6 +142,8 @@ if HAS_INFRAHUBCLIENT:
 
             Parameters:
                 kind (str): kind of the nodes to query
+                id (Optional[str]): ID of the node to retrieve
+                hfid (Optional[List[str]]): HFID of the node to retrieve
                 include (Optional[List[str]]): list of attributes/relationship to retrieve
                 exclude (Optional[List[str]]): list of attributes/relationship to ignore
                 filters (Optional[Dict[str, str]]): Dict of filters to apply on the query
@@ -149,11 +153,18 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 InfrahubNodeSync: Single Infrahub Node
             """
+            if id:
+                filters["ids"] = [id]
+            if hfid:
+                filters["hfid"] = hfid
+
             if not filters:
                 raise Exception("At least one filter must be provided")
 
             node = self.client.get(
                 kind=kind,
+                id=id,
+                hfid=hfid,
                 include=include,
                 populate_store=True,
                 exclude=exclude,

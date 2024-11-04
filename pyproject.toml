@@ -1,42 +1,45 @@
 [tool.poetry]
 name = "infrahub_ansible_modules"
-version = "1.2.1"
+version = "1.2.2"
 description = "Ansible collection to interact with Infrahub's API"
 authors = ["OpsMill <info@opsmill.com>"]
 license = "GPLv3"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-ansible-core = ">=2.15.9"
+ansible-core = [
+    { version = ">=2.15.9", python = ">=3.9,<3.10" },
+    { version = ">=2.17.4", python = ">=3.10" },
+]
 ansible-lint = "*"
-infrahub-sdk = {version = "^0", extras = ["all"]}
+infrahub-sdk = {version = "^1", extras = ["all"]}
 codecov = "*"
 deepdiff = "*"
 cryptography = ">=42.0.0"
 jinja2 = ">=3.1.4"
 jmespath = "*"
-pytest = "^8.3.2"
+pytest = "^8.3.3"
 pytest-mock = "*"
 pytest-xdist = "*"
 pyyaml = "*"
 mock = "^5.1.0"
-antsibull = "0.64.0"
-importlib-metadata = "8.4.0"
+antsibull = "0.67.0"
+importlib-metadata = "8.5.0"
 pytz = "*"
 packaging = "*"
 jsondiff = "*"
 sphinx_rtd_theme = "*"
-hypothesis = "^6.111.2"
+hypothesis = "^6.116.0"
 pytest-pythonpath = "*"
 parameterized = "^0.9.0"
 invoke = "^2.2.0"
-bandit = "^1.7.7"
-antsibull-docs = "^2.13.1"
+bandit = "^1.7.10"
+antsibull-docs = "^2.15.0"
 
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "0.6.3"
+ruff = "0.7.2"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

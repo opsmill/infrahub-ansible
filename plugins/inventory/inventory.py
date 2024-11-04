@@ -126,10 +126,10 @@ nodes:
   InfraDevice:
     include:
       - name
-      - platform
-      - primary_address
+      - platform.ansible_network_os
+      - primary_address.address
+      - site.name
       - interfaces
-      - site
 
 compose:
   hostname: name

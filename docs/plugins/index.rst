@@ -1,5 +1,5 @@
 .. meta::
-  :antsibull-docs: 2.13.1
+  :antsibull-docs: 2.15.0
 
 
 .. _plugins_in_opsmill.infrahub:
@@ -7,7 +7,7 @@
 Opsmill.Infrahub
 ================
 
-Collection version 1.2.0
+Collection version 1.2.2
 
 .. contents::
    :local:

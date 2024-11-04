@@ -2,6 +2,13 @@
 ### infrahub_inventory.yml file in YAML format
 ### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
+# This inventory will retrieve the InfraDevice matching *all* the filters.
+# So it will retrieved the InfraDevice present on site 'jfk1' with the role 'edge'
+# For all those InfraDevice, it will retrieved the differents Attribute & Relationships requested in `include`.
+# The InfraDevice will be grouped by the Platform ansible_network_os without prefix or seperator
+# Several extra variable will be compose based on the retrieved Attribute and Relationship
+# We are overriting the retrieved variable `platform` to have a string instead of a dict
+
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 validate_certs: true
@@ -14,13 +21,12 @@ branch: "jfk1-update-edge-ips"
 nodes:
   InfraDevice:
     filters:
-      location__ids: "1791a399-7e43-13b5-3995-d8e9955c926e"   # jfk1
-      role__ids: "1791a399-31c4-c688-3992-d8ebd2cca61f"   # edge
+      site__name__value: "jfk1"
+      role__value: "edge"
     include:
       - name
-      - primary_address
-      - platform
-      - location
+      - primary_address.address
+      - platform.ansible_network_os
       - interfaces
 
 compose:
@@ -29,5 +35,6 @@ compose:
   ansible_host: primary_address.address | ansible.utils.ipaddr('address')
 
 keyed_groups:
-  - prefix: platform
+  - prefix: ""
+    separator: ""
     key: platform
