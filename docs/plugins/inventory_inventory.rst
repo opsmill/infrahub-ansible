@@ -6,7 +6,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.13.1
+  :antsibull-docs: 2.15.0
 
 .. Anchors
 
@@ -22,7 +22,7 @@ opsmill.infrahub.inventory inventory -- Infrahub inventory source (using GraphQL
 .. Collection note
 
 .. note::
-    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.1.0).
+    This inventory plugin is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.2.2).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
@@ -207,7 +207,7 @@ Parameters
 
       - INI entry:
 
-        .. code-block::
+        .. code-block:: ini
 
           [inventory]
           cache = false
@@ -259,14 +259,14 @@ Parameters
 
       - INI entries:
 
-        .. code-block::
+        .. code-block:: ini
 
           [defaults]
           fact_caching_connection = VALUE
 
 
 
-        .. code-block::
+        .. code-block:: ini
 
           [inventory]
           cache_connection = VALUE
@@ -324,14 +324,14 @@ Parameters
 
       - INI entries:
 
-        .. code-block::
+        .. code-block:: ini
 
           [defaults]
           fact_caching = memory
 
 
 
-        .. code-block::
+        .. code-block:: ini
 
           [inventory]
           cache_plugin = memory
@@ -389,14 +389,29 @@ Parameters
 
       - INI entries:
 
-        .. code-block::
+        .. code-block:: ini
+
+          [default]
+          fact_caching_prefix = ansible_inventory_
+
+
+        Removed in: version 2.16 of ansible.builtin
+
+
+        Why: Fixes typing error in INI section name
+
+        Alternative: Use the 'defaults' section instead
+
+
+
+        .. code-block:: ini
 
           [defaults]
           fact_caching_prefix = ansible_inventory_
 
 
 
-        .. code-block::
+        .. code-block:: ini
 
           [inventory]
           cache_prefix = ansible_inventory_
@@ -454,14 +469,14 @@ Parameters
 
       - INI entries:
 
-        .. code-block::
+        .. code-block:: ini
 
           [defaults]
           fact_caching_timeout = 3600
 
 
 
-        .. code-block::
+        .. code-block:: ini
 
           [inventory]
           cache_timeout = 3600
@@ -644,7 +659,7 @@ Parameters
 
       The default value when the host variable's value is an empty string.
 
-      This option is mutually exclusive with :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].trailing\_separator`.
+      This option is mutually exclusive with :literal:`trailing\_separator`.
 
 
       .. raw:: html
@@ -880,9 +895,9 @@ Parameters
 
         <div class="ansible-option-indent-desc"></div><div class="ansible-option-cell">
 
-      Set this option to :ansval:`False` to omit the :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].separator` after the host variable when the value is an empty string.
+      Set this option to :emphasis:`False` to omit the :literal:`separator` after the host variable when the value is an empty string.
 
-      This option is mutually exclusive with :ansopt:`opsmill.infrahub.inventory#inventory:keyed\_groups[].default\_value`.
+      This option is mutually exclusive with :literal:`default\_value`.
 
 
       .. rst-class:: ansible-option-line
@@ -1265,7 +1280,7 @@ Parameters
 
         <div class="ansible-option-cell">
 
-      If :ansval:`yes` make invalid entries a fatal error, otherwise skip and continue.
+      If :literal:`yes` make invalid entries a fatal error, otherwise skip and continue.
 
       Since it is possible to use facts in the expressions they might not always be available and we ignore those errors by default.
 
@@ -1417,7 +1432,7 @@ Parameters
 
       - INI entry:
 
-        .. code-block::
+        .. code-block:: ini
 
           [inventory_plugins]
           use_extra_vars = false
@@ -1513,10 +1528,10 @@ Examples
       InfraDevice:
         include:
           - name
-          - platform
-          - primary_address
+          - platform.ansible_network_os
+          - primary_address.address
+          - site.name
           - interfaces
-          - site
 
     compose:
       hostname: name

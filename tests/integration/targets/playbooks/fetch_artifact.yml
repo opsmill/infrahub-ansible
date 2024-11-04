@@ -6,8 +6,9 @@
 - name: Infrahub action plugin Fetch_artifact
   gather_facts: false
   hosts: all
+  connection: local
   vars:
-    ansible_become: true
+    ansible_become: false
 
   tasks:
     - name: Query Startup Config for Edge Devices
@@ -15,25 +16,23 @@
         artifact_name: "Startup Config for Edge devices"
         target_id: "{{ id }}"
       register: startup_artifact
-      delegate_to: localhost
 
     - name: Save configs to localhost
       ansible.builtin.copy:
         content: "{{ startup_artifact.text }}"
-        dest: "./tmp/{{ inventory_hostname }}-startup.conf"
+        dest: "/tmp/{{ inventory_hostname }}-startup.conf"
         mode: '644'
-      delegate_to: localhost
+      when: startup_artifact
 
     - name: Query Openconfig Interface for Arista devices
       opsmill.infrahub.artifact_fetch:
         artifact_name: "Openconfig Interface for Arista devices"
         target_id: "{{ id }}"
       register: openconfig_artifact
-      delegate_to: localhost
 
     - name: Save configs to localhost
       ansible.builtin.copy:
-        content: "{{ openconfig_artifact.text }}"
-        dest: "./tmp/{{ inventory_hostname }}-openconfig.conf"
+        content: "{{ openconfig_artifact.json }}"
+        dest: "/tmp/{{ inventory_hostname }}-openconfig.json"
         mode: '644'
-      delegate_to: localhost
+      when: openconfig_artifact

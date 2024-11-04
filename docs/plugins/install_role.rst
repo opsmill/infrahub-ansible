@@ -6,7 +6,7 @@
     :trim:
 
 .. meta::
-  :antsibull-docs: 2.13.1
+  :antsibull-docs: 2.15.0
 
 .. Anchors
 
@@ -20,7 +20,7 @@ opsmill.infrahub.install role -- Install Infrahub
 .. Collection note
 
 .. note::
-    This role is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.1.0).
+    This role is part of the `opsmill.infrahub collection <https://galaxy.ansible.com/ui/repo/published/opsmill/infrahub/>`_ (version 1.2.2).
 
     It is not included in ``ansible-core``.
     To check whether it is installed, run :code:`ansible-galaxy collection list`.
