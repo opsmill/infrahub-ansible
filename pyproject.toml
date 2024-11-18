@@ -29,17 +29,17 @@ pytz = "*"
 packaging = "*"
 jsondiff = "*"
 sphinx_rtd_theme = "*"
-hypothesis = "^6.116.0"
+hypothesis = "^6.119.3"
 pytest-pythonpath = "*"
 parameterized = "^0.9.0"
 invoke = "^2.2.0"
 bandit = "^1.7.10"
-antsibull-docs = "^2.15.0"
+antsibull-docs = "^2.16.0"
 
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "0.7.2"
+ruff = "0.7.4"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
