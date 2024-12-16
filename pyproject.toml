@@ -39,7 +39,7 @@ antsibull-docs = "^2.16.1"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "0.8.2"
+ruff = "0.8.3"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
