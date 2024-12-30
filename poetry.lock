@@ -373,13 +373,13 @@ typing = ["mypy", "pyre-check (>=0.9.17,<0.9.23)", "types-aiofiles", "typing-ext
 
 [[package]]
 name = "antsibull-docs"
-version = "2.16.1"
+version = "2.16.2"
 description = "Tools for building Ansible documentation"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "antsibull_docs-2.16.1-py3-none-any.whl", hash = "sha256:ad6a58da3f3d5397cd9e9b8876508e308eec7c2de9611c781f153a265351ade9"},
-    {file = "antsibull_docs-2.16.1.tar.gz", hash = "sha256:9ba33ca9310a9add4d56e8cf91b71a17628eefa0fbcceae26e1d7210ac4aee8d"},
+    {file = "antsibull_docs-2.16.2-py3-none-any.whl", hash = "sha256:7a529d6cba2599843c4f483ef1eef2db518b9e4e4f612affc621f434f48caf5d"},
+    {file = "antsibull_docs-2.16.2.tar.gz", hash = "sha256:144095f705f1a138f832fe94a07808405efcd8b974ec75cb7b129039a358d318"},
 ]
 
 [package.dependencies]
@@ -1218,13 +1218,13 @@ socks = ["socksio (==1.*)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.122.7"
+version = "6.123.2"
 description = "A library for property-based testing"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "hypothesis-6.122.7-py3-none-any.whl", hash = "sha256:2a23237ff5782c7d6f983ba9c8d6216f047ecc66b4629ab17c00979b7018ab1a"},
-    {file = "hypothesis-6.122.7.tar.gz", hash = "sha256:cc2f88cdf3232d1650a9e5c9bc3de3c5b3b2fd8d35d893c7baf89149d320adf5"},
+    {file = "hypothesis-6.123.2-py3-none-any.whl", hash = "sha256:0a8bf07753f1436f1b8697a13ea955f3fef3ef7b477c2972869b1d142bcdb30e"},
+    {file = "hypothesis-6.123.2.tar.gz", hash = "sha256:02c25552783764146b191c69eef69d8375827b58a75074055705ab8fdbc95fc5"},
 ]
 
 [package.dependencies]
@@ -3362,4 +3362,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "82ebcc7f12f9d779ce8b40b480ba8dbce1dbc7745e815cb411946102a1d8968f"
+content-hash = "8a6b7c1b6851b55037bcd2c3b3869a2ef33357f1f01785c1c4ccd73bc0f07128"
