@@ -1,7 +1,7 @@
 ---
 name: ✨ Feature Request
 description: Propose a new Infrahub Ansible modules feature or enhancement
-title: "[Feature]: "
+title: "feature: "
 labels: ["type/feature"]
 body:
   - type: markdown
