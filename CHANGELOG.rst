@@ -4,6 +4,9 @@ Opmisll.Infrahub Release Notes
 
 .. contents:: Topics
 
+v1.2.3
+======
+
 v1.2.2
 ======
 
