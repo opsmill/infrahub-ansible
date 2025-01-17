@@ -181,13 +181,13 @@ test = ["coverage", "pip-tools", "pytest (>=7.2.0)", "pytest-mock", "pytest-plus
 
 [[package]]
 name = "ansible-core"
-version = "2.15.12"
+version = "2.15.13"
 description = "Radically simple IT automation"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "ansible_core-2.15.12-py3-none-any.whl", hash = "sha256:390edd603420122f7cb1c470d8d1f8bdbbd795a1844dd03c1917db21935aecb9"},
-    {file = "ansible_core-2.15.12.tar.gz", hash = "sha256:5fde82cd3928d9857ad880782c644f27d3168b0f25321d5a8d6befa524aa1818"},
+    {file = "ansible_core-2.15.13-py3-none-any.whl", hash = "sha256:e7f50bbb61beae792f5ecb86eff82149d3948d078361d70aedb01d76bc483c30"},
+    {file = "ansible_core-2.15.13.tar.gz", hash = "sha256:f542e702ee31fb049732143aeee6b36311ca48b7d13960a0685afffa0d742d7f"},
 ]
 
 [package.dependencies]
@@ -200,13 +200,13 @@ resolvelib = ">=0.5.3,<1.1.0"
 
 [[package]]
 name = "ansible-core"
-version = "2.17.5"
+version = "2.17.7"
 description = "Radically simple IT automation"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "ansible_core-2.17.5-py3-none-any.whl", hash = "sha256:10f165b475cf2bc8d886e532cadb32c52ee6a533649793101d3166bca9bd3ea3"},
-    {file = "ansible_core-2.17.5.tar.gz", hash = "sha256:ae7f51fd13dc9d57c9bcd43ef23f9c255ca8f18f4b5c0011a4f9b724d92c5a8e"},
+    {file = "ansible_core-2.17.7-py3-none-any.whl", hash = "sha256:64d4f0a006687a5621aa80dca54fd0c5ae75145b7aac8c1b8d7f07a1399c4705"},
+    {file = "ansible_core-2.17.7.tar.gz", hash = "sha256:3aaab735d6c4e2d6239bc326800dc0ecda2a1490caa8455b41084ec0bc54dacf"},
 ]
 
 [package.dependencies]
@@ -3421,4 +3421,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "4e3784a51c344f4a72a50c61805a8caba1f40fd0cac7ec00c62ec25d45a50cfd"
+content-hash = "4ab78bcf83561151f47b06b0a27e11c3bdb291b4e02363188c90eea7cf6d927d"

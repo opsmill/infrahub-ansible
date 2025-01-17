@@ -9,8 +9,8 @@ license = "GPLv3"
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
 ansible-core = [
-    { version = ">=2.15.9", python = ">=3.9,<3.10" },
-    { version = ">=2.17.4", python = ">=3.10" },
+    { version = ">=2.15.13rc1", python = ">=3.9,<3.10" },
+    { version = ">=2.17.7rc1", python = ">=3.10" },
 ]
 ansible-lint = "*"
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
