@@ -7,9 +7,8 @@ NAMESPACE = "INFRAHUB-ANSIBLE-LINT"
 
 
 @task(name="format")
-def lint_all(context: Context):
+def lint_all(context: Context) -> None:
     """This will run all linter."""
-
     lint_autoflake(context)
     lint_ruff(context)
     lint_yaml(context)
@@ -18,9 +17,8 @@ def lint_all(context: Context):
 
 
 @task(name="format")
-def format_all(context: Context):
+def format_all(context: Context) -> None:
     """This will run all formatter."""
-
     format_ruff(context)
 
     print(f" - [{NAMESPACE}] All formatters have been executed!")
@@ -30,9 +28,8 @@ def format_all(context: Context):
 # Linter tasks - Python
 # ----------------------------------------------------------------------------
 @task
-def lint_autoflake(context: Context):
+def lint_autoflake(context: Context) -> None:
     """Run autoflack to format all Python files."""
-
     print(f" - [{NAMESPACE}] Format code with autoflake")
     exec_cmd = f"autoflake --recursive --verbose --in-place --remove-all-unused-imports --remove-unused-variables {MAIN_DIRECTORY}"
     with context.cd(ESCAPED_REPO_PATH):
@@ -40,9 +37,8 @@ def lint_autoflake(context: Context):
 
 
 @task
-def lint_pylint(context: Context):
+def lint_pylint(context: Context) -> None:
     """This will run pylint for the specified name and Python version."""
-
     print(f" - [{NAMESPACE}] Check code with pylint")
     exec_cmd = f"pylint {MAIN_DIRECTORY}"
     with context.cd(ESCAPED_REPO_PATH):
@@ -50,9 +46,8 @@ def lint_pylint(context: Context):
 
 
 @task
-def lint_ruff(context: Context):
+def lint_ruff(context: Context) -> None:
     """This will run ruff."""
-
     print(f" - [{NAMESPACE}] Check code with ruff")
     exec_cmd = f"ruff format --check --diff {MAIN_DIRECTORY} &&"
     exec_cmd += f"ruff check --diff {MAIN_DIRECTORY}"
@@ -66,9 +61,8 @@ def lint_ruff(context: Context):
 
 
 @task
-def lint_yaml(context: Context):
+def lint_yaml(context: Context) -> None:
     """This will run yamllint to validate formatting of all yaml files."""
-
     print(f" - [{NAMESPACE}] Format yaml with yamllint")
     exec_cmd = "yamllint ."
     context.run(exec_cmd, pty=True)
@@ -78,9 +72,8 @@ def lint_yaml(context: Context):
 # Formatting tasks - Python
 # ----------------------------------------------------------------------------
 @task
-def format_ruff(context: Context):
+def format_ruff(context: Context) -> None:
     """This will run ruff."""
-
     print(f" - [{NAMESPACE}] Check code with ruff")
     exec_cmd = f"ruff format {MAIN_DIRECTORY} && "
     exec_cmd += f"ruff check --fix {MAIN_DIRECTORY}"

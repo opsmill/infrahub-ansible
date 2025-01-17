@@ -19,8 +19,8 @@ def escape_path(path: Path) -> str:
                 "(": r"\(",
                 ")": r"\)",
                 ".": r"\.",
-            }
-        )
+            },
+        ),
     )
 
 

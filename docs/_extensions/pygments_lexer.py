@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=no-self-argument
 #
 
@@ -33,10 +32,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
-
 
 from pygments import token
 from pygments.lexer import DelegatingLexer, RegexLexer, bygroups, include
@@ -67,7 +62,7 @@ class AnsibleOutputPrimaryLexer(RegexLexer):
         "simplevalue": [
             (r"(true|false|null)\b", token.Keyword.Constant),
             (
-                ("%(int_part)s(%(frac_part)s%(exp_part)s|" "%(exp_part)s|%(frac_part)s)") % vars(),
+                ("%(int_part)s(%(frac_part)s%(exp_part)s|%(exp_part)s|%(frac_part)s)") % vars(),
                 token.Number.Float,
             ),
             (int_part, token.Number.Integer),
@@ -134,7 +129,7 @@ class AnsibleOutputPrimaryLexer(RegexLexer):
                     token.Punctuation,
                 ),
                 "host-error",
-            )
+            ),
         ],
         "host-result": [
             (r"\n", token.Text, "#pop"),

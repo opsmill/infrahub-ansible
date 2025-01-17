@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2023 Benoit Kohler
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """
 A lookup function designed to return data from the Infrahub GraphQL API
 """
-
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = """
     name: lookup
@@ -40,7 +35,7 @@ DOCUMENTATION = """
             type: str
         graph_variables:
             description:
-                - Dictionary of keys/values to pass into the GraphQL query
+                - dictionary of keys/values to pass into the GraphQL query
             required: False
             type: dict
             default: {}
@@ -93,10 +88,10 @@ RETURN = """
       - Data result from the Infrahub GraphQL endpoint
     type: dict
 """
-
+from __future__ import annotations
 
 import os
-from typing import Dict
+from typing import Any
 
 from ansible.errors import AnsibleError, AnsibleLookupError
 from ansible.module_utils.six import raise_from
@@ -117,7 +112,14 @@ class LookupModule(LookupBase):
         LookupBase (LookupBase): Ansible Lookup Plugin
     """
 
-    def run(self, terms, variables=None, query=None, graph_variables=None, **kwargs):
+    def run(
+        self,
+        terms: str,  # noqa: ARG002
+        variables: Any | None = None,  # noqa: ARG002
+        query: str | None = None,
+        graph_variables: dict | None = None,
+        **kwargs: dict[str, Any],
+    ):
         """Runs Ansible Lookup Plugin for using Infrahub GraphQL endpoint
 
         Raises:
@@ -148,13 +150,12 @@ class LookupModule(LookupBase):
 
         if query is None:
             raise AnsibleLookupError("Query parameter was not passed")
-        if isinstance(query, (Dict, str)):
+        if isinstance(query, (dict, str)):
             graphql_query = query
         else:
-            raise AnsibleLookupError("Query parameter must be either a string or a Dictionary")
-        if graph_variables is not None:
-            if not isinstance(graph_variables, Dict):
-                raise AnsibleLookupError("graph_variables parameter must be a list of Dict")
+            raise AnsibleLookupError("Query parameter must be either a string or a dictionary")
+        if graph_variables is not None and not isinstance(graph_variables, dict):
+            raise AnsibleLookupError("graph_variables parameter must be a list of dict")
 
         results = {}
         try:

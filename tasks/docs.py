@@ -10,9 +10,8 @@ NAMESPACE = "INFRAHUB-ANSIBLE-DOCS"
 # Documentation tasks
 # ----------------------------------------------------------------------------
 @task
-def generate_doc(context: Context):
+def generate_doc(context: Context) -> None:
     """Generate the documentation ."""
-
     COMMANDS = (
         ("rm -rf ~/.ansible/collections/ansible_collections/infrahub"),
         ("rm -f opsmill-infrahub-*.tar.gz"),

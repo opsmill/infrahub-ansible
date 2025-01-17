@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2023 Benoit Kohler
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
-
+from typing import Any
 
 try:
     from infrahub_sdk.exceptions import (
@@ -20,7 +17,7 @@ else:
     INFRAHUBCLIENT_IMPORT_ERROR = None
 
 
-def handle_infrahub_exceptions(func):
+def handle_infrahub_exceptions(func) -> None:  # noqa: ANN001
     """
     Decorator function to handle exceptions for Infrahub operations.
 
@@ -31,17 +28,21 @@ def handle_infrahub_exceptions(func):
         Callable: Wrapped function with exception handling.
     """
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: tuple, **kwargs: dict[str, Any]) -> None:
         try:
             return func(*args, **kwargs)
-        except GraphQLError:
-            raise Exception(f"An error occurred while executing the GraphQL Query {kwargs}")
-        except SchemaNotFoundError:
-            raise Exception(f"Unable to find the schema {kwargs}")
-        except ServerNotReachableError:
-            raise Exception("Server not Reacheable")
-        except ServerNotResponsiveError:
-            raise Exception("Server not Responsive")
+        except GraphQLError as exc:
+            msg = f"An error occurred while executing the GraphQL Query. Parameters:{kwargs} Error: {exc}"
+            raise Exception(msg)
+        except SchemaNotFoundError as exc:
+            msg = f"Unable to find the schema. Parameters:{kwargs} Error: {exc}"
+            raise Exception(msg)
+        except ServerNotReachableError as exc:
+            msg = f"Server not Reacheable. Error: {exc}"
+            raise Exception(msg)
+        except ServerNotResponsiveError as exc:
+            msg = f"Server not Responsive. Error: {exc}"
+            raise Exception(msg)
         return None
 
     return wrapper

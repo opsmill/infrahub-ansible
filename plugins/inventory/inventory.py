@@ -1,10 +1,5 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2023 Benoit Kohler
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = """
     name: inventory
@@ -146,8 +141,10 @@ RETURN = """
       - list of composed dictionaries with key and value
     type: list
 """
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
@@ -184,12 +181,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         Returns:
             bool: True if the file is potentially valid for this plugin, otherwise False.
         """
-        if super(InventoryModule, self).verify_file(path):
-            # Base class verifies that file exists and is readable by current user
-            if path.endswith((".yml", ".yaml")):
-                return True
-
-        return False
+        # Base class verifies that file exists and is readable by current user
+        return bool(super(InventoryModule, self).verify_file(path) and path.endswith((".yml", ".yaml")))  # noqa: UP008
 
     def _set_authorization(self):
         """
@@ -201,12 +194,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.templar.available_variables = self._vars
             self.token = self.templar.template(self.get_option("token"), fail_on_undefined=False)
 
-    def _fetch_from_cache(self) -> Tuple[Optional[Dict], bool]:
+    def _fetch_from_cache(self) -> tuple[dict | None, bool]:
         """
         Fetches data from the cache (if available)
 
         Returns:
-        Tuple[Optional[Dict], bool]: A tuple containing two elements:
+        Tuple[Optional[dict], bool]: A tuple containing two elements:
             1. A dictionary representing the host node attributes fetched from cache, or None if not available.
             2. A boolean indicating if there's a need to load data from the API. True indicates data should be fetched from the API.
         """
@@ -219,7 +212,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if self.user_cache_setting and self.use_cache:
             self.display.v("Fetching cache.")
             try:
-                host_node_attributes: Dict = json.loads(self._cache[cache_key])
+                host_node_attributes: dict = json.loads(self._cache[cache_key])
                 return host_node_attributes, not bool(host_node_attributes)
             except KeyError:
                 self.display.v("Cache key not found. Need to load from API.")
@@ -227,24 +220,24 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         return None, True
 
-    def _store_in_cache(self, host_node_attributes: Dict[str, Any]):
+    def _store_in_cache(self, host_node_attributes: dict[str, Any]):
         """
         Store the host node attributes in the cache if the user cache setting is enabled.
 
         Parameters:
-            host_node_attributes (Dict[str, Any]): Dictionary containing attributes for each host node.
+            host_node_attributes (dict[str, Any]): dictionary containing attributes for each host node.
         """
 
         if self.user_cache_setting:
             cache_key: str = self.get_cache_key(self.api_endpoint)
             self._cache[cache_key] = json.dumps(host_node_attributes)
 
-    def set_hosts_and_groups(self, host_node_attributes: Dict[str, Any]):
+    def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]):
         """
         Set host variables and add host to keyed groups based on the provided attributes.
 
         Parameters:
-            host_node_attributes (Dict[str, Any]): Dictionary containing attributes for each host node.
+            host_node_attributes (dict[str, Any]): dictionary containing attributes for each host node.
         """
 
         for host_node, attributes in host_node_attributes.items():
@@ -253,19 +246,25 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.set_host_variables(host_node=host_node, attributes=attributes)
 
             self._add_host_to_composed_groups(
-                groups=self.groups, variables=attributes, host=host_node, strict=self.strict
+                groups=self.groups,
+                variables=attributes,
+                host=host_node,
+                strict=self.strict,
             )
             self._add_host_to_keyed_groups(
-                keys=self.keyed_groups, variables=attributes, host=host_node, strict=self.strict
+                keys=self.keyed_groups,
+                variables=attributes,
+                host=host_node,
+                strict=self.strict,
             )
 
-    def set_host_variables(self, host_node: str, attributes: Dict):
+    def set_host_variables(self, host_node: str, attributes: dict):
         """
         Set the variables for a particular host node.
 
         Parameters:
             host_node (str): The identifier or name of the host node for which the variables are being set.
-            attributes (Dict): A dictionary representing attributes and their values to be associated with the host node.
+            attributes (dict): A dictionary representing attributes and their values to be associated with the host node.
         """
 
         for key, value in attributes.items():
@@ -308,11 +307,11 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.set_hosts_and_groups(host_node_attributes=host_node_attributes)
             self._store_in_cache(host_node_attributes=host_node_attributes)
 
-    def parse(self, inventory, loader, path, cache=True):
+    def parse(self, inventory: Any, loader: Any, path: Any, cache: bool = True):
         """
         Parse the inventory
         """
-        super(InventoryModule, self).parse(inventory, loader, path)
+        super(InventoryModule, self).parse(inventory=inventory, loader=loader, path=path, cache=cache)  # noqa: UP008
         self._read_config_data(path=path)
 
         self.use_cache = cache

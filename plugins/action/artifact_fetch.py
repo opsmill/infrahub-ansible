@@ -1,11 +1,10 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """Infrahub Action Plugin to fetch the content of an artifact."""
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
+from __future__ import annotations
 
 import os
+from typing import Any
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.six import raise_from
@@ -25,7 +24,7 @@ class ActionModule(ActionBase):
         ActionBase (ActionBase): Ansible Action Plugin
     """
 
-    def run(self, tmp=None, task_vars=None):
+    def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict:
         """
         Run of action plugin to fetch the content of an artifact.
 
@@ -40,7 +39,7 @@ class ActionModule(ActionBase):
         self._supports_check_mode = True
         self._supports_async = True
 
-        result = super(ActionModule, self).run(tmp, task_vars)
+        result = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
         del tmp
 
         if result.get("skipped"):
@@ -78,7 +77,11 @@ class ActionModule(ActionBase):
         try:
             Display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
-                api_endpoint=api_endpoint, token=token, branch=branch, timeout=timeout, validate_certs=validate_certs
+                api_endpoint=api_endpoint,
+                token=token,
+                branch=branch,
+                timeout=timeout,
+                validate_certs=validate_certs,
             )
             Display().v("Fetch Artifacts")
             result = client.fetch_single_artifact(filters=filters)
