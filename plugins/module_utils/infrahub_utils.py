@@ -6,7 +6,6 @@ from typing import Any
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import (
     handle_infrahub_exceptions,
 )
-from infrahub_sdk.types import Order
 
 try:
     from infrahub_sdk import Config, InfrahubClientSync
@@ -20,6 +19,7 @@ try:
         RelationshipCardinality,
         RelationshipKind,
     )
+    from infrahub_sdk.types import Order
 
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None

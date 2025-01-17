@@ -1,6 +1,6 @@
 # Copyright (c) 2023 Benoit Kohler
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+from __future__ import annotations
 
 from typing import Any
 

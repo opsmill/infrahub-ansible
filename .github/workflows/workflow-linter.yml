@@ -62,9 +62,9 @@ jobs:
       - name: "Check out repository code"
         uses: "actions/checkout@v4"
       - name: "Setup environment"
-        run: "pip install ruff==0.4.1"
+        run: "pip install ruff==0.9.1"
       - name: "Linting: ruff check"
-        run: "ruff check --diff ."
+        run: "ruff check ."
       - name: "Linting: ruff format"
         run: "ruff format --check --diff ."
 

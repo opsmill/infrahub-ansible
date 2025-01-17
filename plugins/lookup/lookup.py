@@ -4,6 +4,8 @@
 A lookup function designed to return data from the Infrahub GraphQL API
 """
 
+from __future__ import annotations
+
 DOCUMENTATION = """
     name: lookup
     author:
@@ -88,8 +90,6 @@ RETURN = """
       - Data result from the Infrahub GraphQL endpoint
     type: dict
 """
-from __future__ import annotations
-
 import os
 from typing import Any
 
