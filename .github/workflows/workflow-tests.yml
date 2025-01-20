@@ -33,7 +33,7 @@ jobs:
     runs-on: "ubuntu-22.04"
     steps:
       - name: Perform sanity testing
-        uses: ansible-community/ansible-test-gh-action@release/v1.16.0
+        uses: ansible-community/ansible-test-gh-action@v1.16.0
         with:
           ansible-core-version: ${{ matrix.ansible-version }}
           target-python-version: ${{ matrix.python-version }}
