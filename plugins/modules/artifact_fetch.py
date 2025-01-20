@@ -2,7 +2,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """Ansible plugin definition for artifact_fetch action plugin."""
 
-from __future__ import annotations
+from __future__ import absolute_import, annotations, division, print_function  # noqa: UP010
+
+__metaclass__ = type  # noqa: UP001
 
 DOCUMENTATION = """
 ---

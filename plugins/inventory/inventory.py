@@ -1,6 +1,9 @@
 # Copyright (c) 2023 Benoit Kohler
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-from __future__ import annotations
+
+from __future__ import absolute_import, annotations, division, print_function  # noqa: UP010
+
+__metaclass__ = type  # noqa: UP001
 
 DOCUMENTATION = """
     name: inventory
