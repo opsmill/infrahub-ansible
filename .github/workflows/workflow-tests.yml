@@ -16,20 +16,43 @@ concurrency:
 
 jobs:
   sanity-tests:
-    name: Sanity (Ⓐ$${{ matrix.ansible-version }}-py${{  matrix.python-version }})
+    name: Sanity (Ⓐ${{ matrix.ansible-version }}-py${{ matrix.python-version }})
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - "3.9"
-          - "3.10"
-          - "3.11"
-          - "3.12"
-        ansible-version:
-          - stable-2.15
-          - stable-2.16
-          - stable-2.17
-          - stable-2.18
+        include:
+          # Ansible stable-2.15 works with Python 3.9, 3.10, 3.11
+          - python-version: "3.9"
+            ansible-version: stable-2.15
+          - python-version: "3.10"
+            ansible-version: stable-2.15
+          - python-version: "3.11"
+            ansible-version: stable-2.15
+          # Other Ansible versions (stable-2.16, 2.17, 2.18) work with all Python versions ww use :3.9, 3.10, 3.11 and 3.12
+          - python-version: "3.9"
+            ansible-version: stable-2.16
+          - python-version: "3.10"
+            ansible-version: stable-2.16
+          - python-version: "3.11"
+            ansible-version: stable-2.16
+          - python-version: "3.12"
+            ansible-version: stable-2.16
+          - python-version: "3.9"
+            ansible-version: stable-2.17
+          - python-version: "3.10"
+            ansible-version: stable-2.17
+          - python-version: "3.11"
+            ansible-version: stable-2.17
+          - python-version: "3.12"
+            ansible-version: stable-2.17
+          - python-version: "3.9"
+            ansible-version: stable-2.18
+          - python-version: "3.10"
+            ansible-version: stable-2.18
+          - python-version: "3.11"
+            ansible-version: stable-2.18
+          - python-version: "3.12"
+            ansible-version: stable-2.18
     runs-on: "ubuntu-22.04"
     steps:
       - name: Perform sanity testing
