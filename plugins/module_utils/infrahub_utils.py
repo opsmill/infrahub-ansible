@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import traceback
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import (
-    handle_infrahub_exceptions,
+    handle_infrahub_exceptions_decorator,
 )
+
+if TYPE_CHECKING:
+    from ansible.module_utils.basic import Display
 
 try:
     from infrahub_sdk import Config, InfrahubClientSync
@@ -32,14 +35,26 @@ else:
 if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
 
+    # def logger_callback(message: str, level: str) -> None:
+    #     logger = logging.getLogger(__name__)
+    #     if level == "ERROR":
+    #         logger.error(message)
+    #     elif level == "WARNING":
+    #         logger.warning(message)
+    #     elif level == "DEBUG":
+    #         logger.debug(message)
+    #     else:
+    #         logger.info(message)
+
     class InfrahubclientWrapper:
-        def __init__(
+        def __init__(  # noqa: PLR0917
             self,
             api_endpoint: str,
             branch: str,
             token: str,
             timeout: int | None = 10,
             validate_certs: str | None = True,
+            display: Display | None = None,
         ):
             """
             Initializes InfrahubclientWrapper.
@@ -49,14 +64,20 @@ if HAS_INFRAHUBCLIENT:
                 branch (str): Branch in which the request is made.
                 token (str): Toto API token.
                 timeout (int): Timeout for Toto requests in seconds.
+                display (Display, optional): Ansible Display to use during during execution. Defaults to None.
             """
             self.client = InfrahubClientSync(
                 address=api_endpoint,
                 config=Config(api_token=token, timeout=timeout, default_branch=branch, tls_insecure=not validate_certs),
             )
             self.branch_manager = InfrahubBranchManagerSync(self.client)
+            self.display = display
+            for method_name in dir(self):
+                if callable(getattr(self, method_name)) and method_name.startswith("fetch_"):
+                    original_method = getattr(self, method_name)
+                    decorated_method = handle_infrahub_exceptions_decorator(self.display)(original_method)
+                    setattr(self, method_name, decorated_method)
 
-        @handle_infrahub_exceptions
         def fetch_single_artifact(
             self,
             filters: dict[str, str],
@@ -89,7 +110,6 @@ if HAS_INFRAHUBCLIENT:
 
             return result
 
-        @handle_infrahub_exceptions
         def fetch_artifacts(
             self,
             filters: dict[str, str] | None = None,
@@ -128,7 +148,6 @@ if HAS_INFRAHUBCLIENT:
                 results.append(result)
             return results
 
-        @handle_infrahub_exceptions
         def fetch_single_node(  # noqa: PLR0917
             self,
             kind: str,
@@ -177,7 +196,6 @@ if HAS_INFRAHUBCLIENT:
             )
             return node
 
-        @handle_infrahub_exceptions
         def fetch_nodes(  # noqa: PLR0917
             self,
             kind: str,
@@ -231,7 +249,6 @@ if HAS_INFRAHUBCLIENT:
                 )
             return nodes
 
-        @handle_infrahub_exceptions
         def fetch_single_schema(
             self, kind: str, branch: str | None = None
         ) -> NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI:
@@ -247,7 +264,6 @@ if HAS_INFRAHUBCLIENT:
             """
             return self.client.schema.get(kind=kind, branch=branch)
 
-        @handle_infrahub_exceptions
         def fetch_schemas(
             self, branch: str | None = None
         ) -> dict[str, NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI] | None:
@@ -263,7 +279,6 @@ if HAS_INFRAHUBCLIENT:
             branch = branch or self.default_branch
             return self.client.schema.get(branch=branch)
 
-        @handle_infrahub_exceptions
         def fetch_branchs(self) -> dict[str, BranchData]:
             """
             Retrieves all available branches.
@@ -273,7 +288,6 @@ if HAS_INFRAHUBCLIENT:
             """
             return self.branch_manager.all()
 
-        @handle_infrahub_exceptions
         def fetch_branch(self, branch_name: str) -> BranchData:
             """
             Retrieves details of a specific branch.
@@ -306,7 +320,6 @@ if HAS_INFRAHUBCLIENT:
                 query_str = Query(query=query).render()
             return query_str
 
-        @handle_infrahub_exceptions
         def execute_graphql(
             self, query: str, variables: dict[str, Any] | None = None, branch: str | None = None
         ) -> dict:
@@ -326,8 +339,22 @@ if HAS_INFRAHUBCLIENT:
             return response
 
     class InfrahubBaseProcessor:
-        def __init__(self, client: InfrahubclientWrapper):
+        def __init__(
+            self,
+            client: InfrahubclientWrapper,
+            display: Display | None = None,
+        ):
             self.client = client
+            self.display = display
+
+        def _handle_exception(
+            self, message: str, exception: Exception | None = None, level: str | None = "ERROR"
+        ) -> None:
+            error_msg = f"{message}"
+            if exception:
+                error_msg = f": {exception!s}"
+            if self.display:
+                self.display(message=error_msg, level=level)
 
         def resolve_node_mapping(
             self, node: InfrahubNodeSync, attrs: list[str], schemas: dict[str, Any], include_id: bool = True
@@ -522,14 +549,22 @@ if HAS_INFRAHUBCLIENT:
                     include = None
                     exclude = None
                     filters = None
-                nodes_from_kind = self.client.fetch_nodes(
-                    kind=node_kind,
-                    include=include,
-                    exclude=exclude,
-                    filters=filters,
-                    prefetch_relationships=prefetch_relationships,
-                    order=order,
-                )
+                try:
+                    nodes_from_kind = self.client.fetch_nodes(
+                        kind=node_kind,
+                        include=include,
+                        exclude=exclude,
+                        filters=filters,
+                        prefetch_relationships=prefetch_relationships,
+                        order=order,
+                    )
+                except Exception as exc:
+                    self._handle_exception(
+                        exception=exc,
+                        message=f"Failed to fetch_nodes for kind '{node_kind}'",
+                        level="WARNING",
+                    )
+                    continue
 
                 if not nodes_from_kind:
                     continue
@@ -546,7 +581,15 @@ if HAS_INFRAHUBCLIENT:
                 related_kinds = self.get_related_nodes(schema=schema_dict[node_kind], attrs=node_attributes)
                 for related_kind in related_kinds:
                     schema_dict[related_kind] = self.client.fetch_single_schema(kind=related_kind)
-                    self.client.fetch_nodes(kind=related_kind, prefetch_relationships=False, order=order)
+                    try:
+                        self.client.fetch_nodes(kind=related_kind, prefetch_relationships=False, order=order)
+                    except Exception as exc:
+                        self._handle_exception(
+                            exception=exc,
+                            message=f"Failed to fetch_nodes for kind '{related_kind}'",
+                            level="WARNING",
+                        )
+                        continue
                 for host_node in all_nodes:
                     result = self.resolve_node_mapping(
                         node=host_node,

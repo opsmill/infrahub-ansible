@@ -96,7 +96,6 @@ from typing import Any
 from ansible.errors import AnsibleError, AnsibleLookupError
 from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
-from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
     InfrahubclientWrapper,
@@ -159,19 +158,20 @@ class LookupModule(LookupBase):
 
         results = {}
         try:
-            Display().v("Initializing Infrahub Client")
+            self.display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
                 api_endpoint=api_endpoint,
                 token=token,
                 branch=branch,
                 timeout=timeout,
                 validate_certs=validate_certs,
+                display=self.display,
             )
-            processor = InfrahubQueryProcessor(client=client)
-            Display().v("Processing Query")
+            processor = InfrahubQueryProcessor(client=client, display=self.display)
+            self.display().v("Processing Query")
             results = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
 
-        except Exception as exp:
-            raise_from(AnsibleError(str(exp)), exp)
+        except Exception as exc:
+            raise_from(AnsibleError(str(exc)), exc)
 
         return results

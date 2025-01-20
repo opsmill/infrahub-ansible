@@ -279,8 +279,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         try:
             if not self.nodes:
                 raise ValueError("node' is undefined.")
-        except ValueError as exp:
-            raise (AnsibleError(str(exp)))
+        except ValueError as exc:
+            raise (AnsibleError(str(exc)))
 
         host_node_attributes, need_to_load_from_api = self._fetch_from_cache()
 
@@ -293,12 +293,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                     token=self.token,
                     timeout=self.timeout,
                     validate_certs=self.validate_certs,
+                    display=self.display,
                 )
-                processor = InfrahubNodesProcessor(client=client)
+                processor = InfrahubNodesProcessor(client=client, display=self.display)
                 self.display.v("Processing Nodes request")
                 host_node_attributes = processor.fetch_and_process(nodes=self.nodes)
-            except Exception as exp:
-                raise_from(AnsibleError(str(exp)), exp)
+            except Exception as exc:
+                raise_from(AnsibleError(str(exc)), exc)
 
         if not host_node_attributes:
             self.display.v("No nodes processed.")
