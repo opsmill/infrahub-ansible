@@ -4,9 +4,9 @@
 A lookup function designed to return data from the Infrahub GraphQL API
 """
 
-from __future__ import absolute_import, annotations, division, print_function  # noqa: UP010
+from __future__ import absolute_import, annotations, division, print_function
 
-__metaclass__ = type  # noqa: UP001
+__metaclass__ = type
 
 DOCUMENTATION = """
     name: lookup

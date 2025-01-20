@@ -1,6 +1,6 @@
-from __future__ import absolute_import, annotations, division, print_function  # noqa: UP010
+from __future__ import absolute_import, annotations, division, print_function
 
-__metaclass__ = type  # noqa: UP001
+__metaclass__ = type
 
 import traceback
 from typing import TYPE_CHECKING, Any
