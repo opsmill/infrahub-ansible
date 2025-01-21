@@ -3,6 +3,8 @@
 
 from __future__ import absolute_import, annotations, division, print_function
 
+__metaclass__ = type
+
 
 class ModuleDocFragment:
     BASE = r"""
