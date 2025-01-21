@@ -2,6 +2,7 @@
 """Infrahub Action Plugin to Query GraphQL."""
 
 from __future__ import annotations
+from __future__ import (absolute_import, division, print_function)
 
 import os
 from typing import Any
