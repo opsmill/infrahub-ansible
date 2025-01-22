@@ -37,8 +37,6 @@ invoke = "^2.2.0"
 bandit = "^1.8.2"
 antsibull-docs = "^2.16.2"
 
-[tool.poetry.dev-dependencies]
-
 [tool.poetry.group.dev.dependencies]
 ruff = "0.9.1"
 
