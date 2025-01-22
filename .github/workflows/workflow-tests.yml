@@ -16,21 +16,44 @@ concurrency:
 
 jobs:
   sanity-tests:
-    name: Sanity (Ⓐ$${{ matrix.ansible-version }}-py${{  matrix.python-version }})
+    name: Sanity (Ⓐ${{ matrix.ansible-version }}-py${{ matrix.python-version }})
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - "3.9"
-          - "3.10"
-          - "3.11"
-        ansible-version:
-          - stable-2.14
-          - stable-2.15
+        include:
+          # FIXME: Sanity test complain about __future__ imports formatting
+          # # Ansible versions stable-2.16
+          # # Python 3.9, 3.10, 3.11, and 3.12
+          # - python-version: "3.9"
+          #   ansible-version: stable-2.16
+          # - python-version: "3.10"
+          #   ansible-version: stable-2.16
+          # - python-version: "3.11"
+          #   ansible-version: stable-2.16
+          # - python-version: "3.12"
+          #   ansible-version: stable-2.16
+          # Ansible stable-2.17, stable-2.18
+          # Python 3.9, 3.10, 3.11, and 3.12
+          - python-version: "3.9"
+            ansible-version: stable-2.17
+          - python-version: "3.10"
+            ansible-version: stable-2.17
+          - python-version: "3.11"
+            ansible-version: stable-2.17
+          - python-version: "3.12"
+            ansible-version: stable-2.17
+          - python-version: "3.9"
+            ansible-version: stable-2.18
+          - python-version: "3.10"
+            ansible-version: stable-2.18
+          - python-version: "3.11"
+            ansible-version: stable-2.18
+          - python-version: "3.12"
+            ansible-version: stable-2.18
     runs-on: "ubuntu-22.04"
     steps:
       - name: Perform sanity testing
-        uses: ansible-community/ansible-test-gh-action@release/v1
+        uses: ansible-community/ansible-test-gh-action@v1.16.0
         with:
           ansible-core-version: ${{ matrix.ansible-version }}
           target-python-version: ${{ matrix.python-version }}

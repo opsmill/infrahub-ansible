@@ -10,8 +10,8 @@ ns.configure(
             "project_name": "infrahub_ansible",
             "python_ver": "3.10",
             "local": False,
-        }
-    }
+        },
+    },
 )
 
 ns.add_collection(linter)
@@ -21,39 +21,39 @@ ns.add_collection(tests)
 
 
 @task(name="lint")
-def lint_all(context: Context):
+def lint_all(context: Context) -> None:
     linter.lint_all(context)
 
 
 @task(name="format")
-def format_all(context: Context):
+def format_all(context: Context) -> None:
     linter.format_all(context)
 
 
 @task(name="tests-all")
-def test_all(context: Context):
+def test_all(context: Context) -> None:
     tests.tests_sanity(context)
     tests.tests_unit(context)
     tests.tests_integration(context)
 
 
 @task(name="tests-sanity")
-def tests_sanity(context: Context):
+def tests_sanity(context: Context) -> None:
     tests.tests_sanity(context)
 
 
 @task(name="tests-unit")
-def tests_unit(context: Context):
+def tests_unit(context: Context) -> None:
     tests.tests_unit(context)
 
 
 @task(name="tests-integration")
-def tests_integration(context: Context):
+def tests_integration(context: Context) -> None:
     tests.tests_integration(context)
 
 
 @task(name="generate-doc")
-def generate_doc(context: Context):
+def generate_doc(context: Context) -> None:
     docs.generate_doc(context)
 
 
@@ -61,7 +61,7 @@ def generate_doc(context: Context):
     name="galaxy-build",
     optional=["force"],
 )
-def galaxy_build(context: Context, force=False):
+def galaxy_build(context: Context, force: bool = False) -> None:
     galaxy.galaxy_build(context, force=force)
 
 

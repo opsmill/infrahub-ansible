@@ -10,7 +10,7 @@ NAMESPACE = "INFRAHUB-ANSIBLE-GALAXY"
 # Ansible Galaxy tasks
 # ----------------------------------------------------------------------------
 @task(optional=["force"])
-def galaxy_build(context: Context, force=False):
+def galaxy_build(context: Context, force: bool = False) -> None:
     """Build the collection."""
     print(f" - [{NAMESPACE}] Building collection with ansible-galaxy")
     exec_cmd = f"ansible-galaxy collection build {MAIN_DIRECTORY} --output-path build"
