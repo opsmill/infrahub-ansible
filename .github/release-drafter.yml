@@ -23,7 +23,7 @@ categories:
 
   - title: "📖 Documentation Change"
     label:
-      - "type/doctumentation"
+      - "type/documentation"
 
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 exclude-labels:
