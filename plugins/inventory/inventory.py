@@ -6,97 +6,98 @@ from __future__ import absolute_import, annotations, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = """
-    name: inventory
-    author:
-        - Benoit Kohler (@bearchitek)
-    short_description: Infrahub inventory source (using GraphQL)
-    description:
-        - Get inventory hosts from Infrahub
-    extends_documentation_fragment:
-        - constructed
-        - inventory_cache
-    options:
-        plugin:
-            description:
-                - token that ensures this is a source file for the 'opsmill.infrahub' plugin.
-            required: True
-            choices: ['opsmill.infrahub.inventory']
-        api_endpoint:
-            description: Endpoint of the Infrahub API
-            required: True
-            env:
-                - name: INFRAHUB_ADDRESS
-        token:
-            required: True
-            description:
-                - Infrahub API token to be able to read against Infrahub.
-            env:
-                - name: INFRAHUB_API_TOKEN
-        timeout:
-            required: False
-            description: Timeout for Infrahub requests in seconds
-            type: int
-            default: 10
-        nodes:
-            required: True
-            description:
-                - Configuration for specific node types within Infrahub.
-                - Defines the attributes to include or exclude for each node.
-            type: dict
-            suboptions:
-                node_type:
-                    description:
-                        - Configuration settings for a specific node type, e.g., "InfraDevice".
-                        - Replace "node_type" with the actual node type name you want to configure.
-                    type: dict
-                    suboptions:
-                        filters:
-                            description:
-                                - List of filters to apply on the query for node_type.
-                            type: dict
-                            default: {}
-                        include:
-                            description:
-                                - List of attributes to include for node_type.
-                            type: list
-                            elements: str
-                            default: []
-                        exclude:
-                            description:
-                                - List of attributes to exclude for node_type.
-                            type: list
-                            elements: str
-                            default: []
-        branch:
-            required: False
-            description:
-                - Branch in which the request is made
-            type: str
-            default: main
-        compose:
-            description:
-                - List of custom ansible host vars to create from the objects fetched from Infrahub
-            type: dict
-            default: {}
-        keyed_groups:
-            required: False
-            description:
-                - Create groups based on attributes or relationships.
-                - groups is created as attribute__value
-            type: list
-            elements: str
-            default: []
-        groups:
-            required: False
-            description:
-                - Create groups based on jinja filter.
-            type: dict
-            default: {}
-        validate_certs:
-            description:
-                - Whether or not to validate SSL of the Infrahub instance
-            required: False
-            default: True
+---
+name: inventory
+author:
+    - Benoit Kohler (@bearchitek)
+short_description: Infrahub inventory source (using GraphQL)
+description:
+    - Get inventory hosts from Infrahub
+extends_documentation_fragment:
+    - constructed
+    - inventory_cache
+options:
+    plugin:
+        description:
+          - token that ensures this is a source file for the 'opsmill.infrahub' plugin.
+        required: True
+        choices: ['opsmill.infrahub.inventory']
+    api_endpoint:
+        description: Endpoint of the Infrahub API
+        required: True
+        env:
+          - name: INFRAHUB_ADDRESS
+    token:
+        required: True
+        description:
+          - Infrahub API token to be able to read against Infrahub.
+        env:
+          - name: INFRAHUB_API_TOKEN
+    timeout:
+        required: False
+        description: Timeout for Infrahub requests in seconds
+        type: int
+        default: 10
+    nodes:
+        required: True
+        description:
+          - Configuration for specific node types within Infrahub.
+          - Defines the attributes to include or exclude for each node.
+        type: dict
+        suboptions:
+            node_type:
+                description:
+                  - Configuration settings for a specific node type, e.g., "InfraDevice".
+                  - Replace "node_type" with the actual node type name you want to configure.
+                type: dict
+                suboptions:
+                    filters:
+                        description:
+                          - List of filters to apply on the query for node_type.
+                        type: dict
+                        default: {}
+                    include:
+                        description:
+                          - List of attributes to include for node_type.
+                        type: list
+                        elements: str
+                        default: []
+                    exclude:
+                        description:
+                          - List of attributes to exclude for node_type.
+                        type: list
+                        elements: str
+                        default: []
+    branch:
+        required: False
+        description:
+          - Branch in which the request is made
+        type: str
+        default: main
+    compose:
+        description:
+          - List of custom ansible host vars to create from the objects fetched from Infrahub
+        type: dict
+        default: {}
+    keyed_groups:
+        required: False
+        description:
+          - Create groups based on attributes or relationships.
+          - groups is created as attribute__value
+        type: list
+        elements: str
+        default: []
+    groups:
+        required: False
+        description:
+          - Create groups based on jinja filter.
+        type: dict
+        default: {}
+    validate_certs:
+        description:
+          - Whether or not to validate SSL of the Infrahub instance
+        required: False
+        default: True
 """
 
 EXAMPLES = """

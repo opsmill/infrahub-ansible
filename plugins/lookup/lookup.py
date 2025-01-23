@@ -9,51 +9,52 @@ from __future__ import absolute_import, annotations, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = """
-    name: lookup
-    author:
-        - Benoit Kohler (@bearchitek)
-    short_description: Queries and returns elements from Infrahub (using GraphQL)
-    description:
-        - Get inventory hosts from Infrahub
-    options:
-        api_endpoint:
-            description: Endpoint of the Infrahub API
-            required: True
-            env:
-                - name: INFRAHUB_ADDRESS
-        token:
-            required: True
-            description:
-                - Infrahub API token to be able to read against Infrahub.
-            env:
-                - name: INFRAHUB_API_TOKEN
-        timeout:
-            required: False
-            description: Timeout for Infrahub requests in seconds
-            type: int
-            default: 10
-        query:
-            required: True
-            description:
-                - GraphQL query to send to Infrahub to obtain desired data
-            type: str
-        graph_variables:
-            description:
-                - dictionary of keys/values to pass into the GraphQL query
-            required: False
-            type: dict
-            default: {}
-        branch:
-            required: False
-            description:
-                - Branch in which the request is made
-            type: str
-            default: main
-        validate_certs:
-            description:
-                - Whether or not to validate SSL of the Infrahub instance
-            required: False
-            default: True
+---
+name: lookup
+author:
+    - Benoit Kohler (@bearchitek)
+short_description: Queries and returns elements from Infrahub (using GraphQL)
+description:
+    - Get inventory hosts from Infrahub
+options:
+    api_endpoint:
+        description: Endpoint of the Infrahub API
+        required: True
+        env:
+          - name: INFRAHUB_ADDRESS
+    token:
+        required: True
+        description:
+          - Infrahub API token to be able to read against Infrahub.
+        env:
+          - name: INFRAHUB_API_TOKEN
+    timeout:
+        required: False
+        description: Timeout for Infrahub requests in seconds
+        type: int
+        default: 10
+    query:
+        required: True
+        description:
+          - GraphQL query to send to Infrahub to obtain desired data
+        type: str
+    graph_variables:
+        description:
+          - dictionary of keys/values to pass into the GraphQL query
+        required: False
+        type: dict
+        default: {}
+    branch:
+        required: False
+        description:
+          - Branch in which the request is made
+        type: str
+        default: main
+    validate_certs:
+        description:
+          - Whether or not to validate SSL of the Infrahub instance
+        required: False
+        default: True
 """
 
 EXAMPLES = """

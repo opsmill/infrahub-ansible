@@ -54,7 +54,7 @@ def tests_integration(context: Context) -> None:
 
 @task(name="generate-doc")
 def generate_doc(context: Context) -> None:
-    docs.generate_doc(context)
+    docs.generate_docs(context)
 
 
 @task(

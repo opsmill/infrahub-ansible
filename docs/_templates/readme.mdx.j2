@@ -1,0 +1,46 @@
+---
+title: Opsmill.Infrahub
+description: Collection of Infrahub Ansible plugins and roles
+---
+
+# Opsmill.Infrahub
+
+Collection version {{ collection_version }}
+
+## Description
+
+Infrahub modules for Ansible using Ansible Collections
+
+**Supported ansible-core versions:** {{ ansible_core_version }}
+
+## Plugin Index
+
+These are the plugins in the opsmill.infrahub collection:
+
+### Modules
+
+{% for plugin in plugins.modules %}
+- [{{ plugin.name }}](plugins/{{ plugin.name }}_module){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
+{% endfor %}
+
+### Inventory Plugins
+
+{% for plugin in plugins.inventory %}
+- [{{ plugin.name }}](plugins/{{ plugin.name }}_inventory){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
+{% endfor %}
+
+### Lookup Plugins
+
+{% for plugin in plugins.lookup %}
+- [{{ plugin.name }}](plugins/{{ plugin.name }}_lookup){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
+{% endfor %}
+
+{% if roles %}
+## Role Index
+
+These are the roles in the opsmill.infrahub collection:
+{% for role in roles %}
+- [{{ role.name }}](roles/{{ role.name }}){% if role.description %} – {{ role.description }}{% endif %}
+{% endfor %}
+
+{% endif %}
