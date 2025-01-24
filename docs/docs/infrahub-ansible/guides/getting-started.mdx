@@ -1,0 +1,59 @@
+---
+title: Getting Started
+description: Installation guide for Opsmill.Infrahub Ansible Collection
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Installation
+
+## Ansible galaxy
+
+Run the following command to install the `opsmill.infrahub` collection:
+```bash
+ansible-galaxy collection install opsmill.infrahub
+```
+
+:::info
+
+Installing Ansible Collections using Git within a requirements.yml is not supported until Ansible 2.10.
+
+:::
+
+Follow the [official docs](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html) to learn more about other installation methods.
+
+## Build
+
+<Tabs>
+<TabItem value="Build From Source" default>
+
+Follow these steps to install from source:
+```bash
+git clone git@github.com:opsmill/infrahub-ansible.git
+cd ansible_modules
+ansible-galaxy collection build .
+ansible-galaxy collection install opsmill-infrahub*.tar.gz
+```
+
+</TabItem>
+<TabItem value="Build From Source (Pull Request)">
+
+This is useful to test code within PRs.
+```bash
+git clone git@github.com:opsmill/infrahub-ansible.git
+cd ansible_modules
+git fetch origin pull/<pr #>/head:
+git checkout
+ansible-galaxy collection build .
+ansible-galaxy collection install opsmill-infrahub*.tar.gz
+```
+
+</TabItem>
+</Tabs>
+
+:::info
+
+The following link provides detailed information on checking out pull requests locally: [GitHub](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally)
+
+:::
