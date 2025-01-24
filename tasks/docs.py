@@ -13,6 +13,7 @@ MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-DOCS"
 
 DOCUMENTATION_DIRECTORY = Path("docs")
+ANSIBLE_DOCUMENTATION_DIRECTORY = DOCUMENTATION_DIRECTORY / "docs" / "infrahub-ansible"
 PLUGINS_DIRECTORY = Path("plugins")
 
 PLUGIN_TYPES: dict[str, str] = {"modules": "module", "inventory": "inventory", "lookup": "lookup"}
@@ -209,7 +210,7 @@ def get_roles() -> list[Role]:
                 meta_file = role_dir / "meta" / "main.yml"
                 if meta_file.exists():
                     try:
-                        with open(meta_file, encoding="utf-8") as f:
+                        with open(meta_file, encoding="utf-8") as f:  # noqa: PTH123
                             meta = yaml.safe_load(f)
                             roles.append(
                                 Role(name=role_dir.name, description=meta.get("galaxy_info", {}).get("description", ""))
@@ -243,7 +244,7 @@ def generate_docs(context: Context, debug: bool = False, plugin_type: str | None
     template_dir = DOCUMENTATION_DIRECTORY / "_templates"
     environment = jinja2.Environment(
         autoescape=False,  # noqa: S701
-        trim_blocks=True,
+        trim_blocks=False,
         lstrip_blocks=True,
     )
 
@@ -268,7 +269,7 @@ def generate_docs(context: Context, debug: bool = False, plugin_type: str | None
 
         for plugin_file in files:
             output_file = (
-                DOCUMENTATION_DIRECTORY / "docs" / "plugins" / f"{plugin_file.stem}_{PLUGIN_TYPES[p_type]}.mdx"
+                ANSIBLE_DOCUMENTATION_DIRECTORY / "references" / "plugins" / f"{plugin_file.stem}_{PLUGIN_TYPES[p_type]}.mdx"
             )
 
             try:
@@ -290,7 +291,7 @@ def generate_docs(context: Context, debug: bool = False, plugin_type: str | None
                     print(traceback.format_exc())
 
     # Generate landing page
-    readme_file = DOCUMENTATION_DIRECTORY / "docs" / "readme.mdx"
+    readme_file = ANSIBLE_DOCUMENTATION_DIRECTORY / "readme.mdx"
     readme_content = readme_template.render(
         collection_version=get_collection_version(),
         ansible_core_version=get_ansible_core_requirement(),
