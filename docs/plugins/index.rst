@@ -1,5 +1,5 @@
 .. meta::
-  :antsibull-docs: 2.16.2
+  :antsibull-docs: 2.16.3
 
 
 .. _plugins_in_opsmill.infrahub:
@@ -7,7 +7,7 @@
 Opsmill.Infrahub
 ================
 
-Collection version 1.2.2
+Collection version 1.2.3
 
 .. contents::
    :local:
@@ -24,7 +24,7 @@ This is a collection of Infrahub Ansible modules
 
 **Supported ansible-core versions:**
 
-* 2.14.0 or newer
+* 2.15.0 or newer
 
 .. ansible-links::
 
