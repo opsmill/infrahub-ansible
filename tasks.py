@@ -4,7 +4,7 @@ from pathlib import Path
 from invoke import Context, task
 
 CURRENT_DIRECTORY = Path(__file__).resolve()
-DOCUMENTATION_DIRECTORY = CURRENT_DIRECTORY.parent / "docs"
+DOCUMENTATION_DIRECTORY = CURRENT_DIRECTORY.parent / "docs-infrahub"
 
 MAIN_DIRECTORY_PATH = Path(__file__).parent
 
