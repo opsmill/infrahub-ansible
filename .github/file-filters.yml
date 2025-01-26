@@ -7,7 +7,7 @@ github_workflows: &github_workflows
   - ".github/workflows/*.yml"
 
 doc_files: &doc_files
-  - "docs/**"
+  - "docs-infrahub/**"
   - package.json
   - package-lock.json
 
