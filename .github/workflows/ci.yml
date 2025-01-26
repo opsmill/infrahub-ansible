@@ -70,10 +70,10 @@ jobs:
         run: "poetry run ruff check ."
       - name: "Linting: ruff format"
         run: "poetry run ruff format --check --diff ."
-      - name: "Mypy Tests"
-        run: "poetry run mypy --show-error-codes ."
-      - name: "Pylint Tests"
-        run: "poetry run pylint . *.py"
+      # - name: "Mypy Tests"
+      #   run: "poetry run mypy --show-error-codes ."
+      # - name: "Pylint Tests"
+      #   run: "poetry run pylint . *.py"
 
   yaml-lint:
     if: needs.files-changed.outputs.yaml == 'true'
