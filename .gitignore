@@ -11,6 +11,6 @@ docs/_build/*
 **/.ruff_cache
 .python-version
 .DS_Store
-
+**/.mypy_cache
 # https://github.com/ansible/ansible/issues/68499
 # ansible_collections/

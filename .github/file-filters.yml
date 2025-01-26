@@ -1,7 +1,15 @@
 ---
 ci_config: &ci_config
-  - ".github/workflow/*.yml"
+  - ".github/workflows/ci.yml"
   - ".github/file-filters.yml"
+
+github_workflows: &github_workflows
+  - ".github/workflows/*.yml"
+
+doc_files: &doc_files
+  - "docs/**"
+  - package.json
+  - package-lock.json
 
 ansible_plugins: &ansible_plugins
   - "plugins/**"
@@ -18,3 +26,10 @@ yaml_all: &yaml_all
 ansible_all:
   - *ansible_plugins
   - *ansible_docs
+
+markdown_all: &markdown_all
+  - "**/*.{md,mdx}"
+
+documentation_all:
+  - *doc_files
+  - *markdown_all

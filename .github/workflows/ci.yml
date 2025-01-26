@@ -1,0 +1,146 @@
+---
+# yamllint disable rule:truthy rule:truthy rule:line-length
+name: "CI"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VALE_VERSION: "3.7.1"
+
+jobs:
+  files-changed:
+    name: Detect which file has changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      documentation: ${{ steps.changes.outputs.documentation_all }}
+      python: ${{ steps.changes.outputs.python_all }}
+      yaml: ${{ steps.changes.outputs.yaml_all }}
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+      - name: Check for file changes
+        uses: opsmill/paths-filter@v3.0.2
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+
+  python-lint:
+    if: needs.files-changed.outputs.python == 'true'
+    needs: ["files-changed"]
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        python-version:
+          - "3.12"
+        poetry-version:
+          - "1.8.5"
+    timeout-minutes: 5
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+
+      - name: "Set up Python ${{ matrix.python-version }}"
+        uses: "actions/setup-python@v5"
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: "Install Poetry ${{ matrix.poetry-version }}"
+        uses: "snok/install-poetry@v1"
+        with:
+          version: ${{ matrix.poetry-version }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+      - name: "Setup Python environment"
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry env use ${{ matrix.python-version }}
+      - name: "Install dependencies"
+        run: "poetry install --no-interaction --no-ansi --with dev"
+
+      - name: "Linting: ruff check"
+        run: "poetry run ruff check ."
+      - name: "Linting: ruff format"
+        run: "poetry run ruff format --check --diff ."
+      - name: "Mypy Tests"
+        run: "poetry run mypy --show-error-codes ."
+      - name: "Pylint Tests"
+        run: "poetry run pylint . *.py"
+
+  yaml-lint:
+    if: needs.files-changed.outputs.yaml == 'true'
+    needs: ["files-changed"]
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+        with:
+          submodules: true
+      - name: "Setup environment"
+        run: "pip install yamllint==1.35.1"
+      - name: "Linting: yamllint"
+        run: "yamllint -s ."
+
+  documentation:
+    defaults:
+      run:
+        working-directory: ./docs-infrahub
+    if: |
+      always() && !cancelled() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
+      needs.files-changed.outputs.documentation == 'true'
+    needs: ["files-changed", "yaml-lint", "python-lint"]
+    runs-on: "ubuntu-22.04"
+    timeout-minutes: 5
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+        with:
+          submodules: true
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: docs-infrahub/package-lock.json
+      - name: "Install dependencies"
+        run: npm install
+      - name: "Setup Python environment"
+        run: "pip install invoke toml"
+      - name: "Build docs website"
+        run: "invoke docs"
+
+  validate-documentation-style:
+    if: |
+      always() && !cancelled() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    needs: ["files-changed", "yaml-lint", "python-lint"]
+    runs-on: "ubuntu-22.04"
+    timeout-minutes: 5
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v4"
+        with:
+          submodules: true
+
+      # The official GitHub Action for Vale doesn't work, installing manually instead:
+      # https://github.com/errata-ai/vale-action/issues/103
+      - name: Download Vale
+        run: |
+          curl -sL "https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz" -o vale.tar.gz
+          tar -xzf vale.tar.gz
+        env:
+          VALE_VERSION: ${{ env.VALE_VERSION }}
+      - name: "Validate documentation style"
+        run: ./vale $(find ./docs-infrahub -type f \( -name "*.mdx" -o -name "*.md" \) )
