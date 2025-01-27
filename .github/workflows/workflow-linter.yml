@@ -53,7 +53,7 @@ jobs:
               - '**.yml'
               - '**.yaml'
       - name: "Setup environment"
-        run: "pip install yamllint==${{ env.VALE_VERSION }}"
+        run: "pip install yamllint==${{ env.YAMLLINT_VERSION }}"
       - name: "Linting: yamllint"
         run: "yamllint ."
 
