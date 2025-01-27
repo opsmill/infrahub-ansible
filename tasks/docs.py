@@ -267,7 +267,10 @@ def generate_docs(context: Context, debug: bool = False, plugin_type: str | None
 
         for plugin_file in files:
             output_file = (
-                ANSIBLE_DOCUMENTATION_DIRECTORY / "references" / "plugins" / f"{plugin_file.stem}_{PLUGIN_TYPES[p_type]}.mdx"
+                ANSIBLE_DOCUMENTATION_DIRECTORY
+                / "references"
+                / "plugins"
+                / f"{plugin_file.stem}_{PLUGIN_TYPES[p_type]}.mdx"
             )
 
             try:
@@ -294,7 +297,7 @@ def generate_docs(context: Context, debug: bool = False, plugin_type: str | None
         collection_version=get_collection_version(),
         ansible_core_version=get_ansible_core_requirement(),
         plugins=processed_plugins,
-        roles=get_roles()
+        roles=get_roles(),
     )
     readme_file.write_text(readme_content)
     print(f"✓ {readme_file.name}")
