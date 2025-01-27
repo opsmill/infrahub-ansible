@@ -5,26 +5,15 @@ description: Fetch the content of an artifact from Infrahub
 
 # Modules
 
-
 Fetch the content of an artifact from Infrahub through Infrahub SDK
-
-
 
 ## Version added
 
 0.0.3
 
-
-
-
 ## Requirements
 
-
 - infrahub-sdk
-
-
-
-
 
 ## Parameters
 
@@ -37,8 +26,6 @@ Fetch the content of an artifact from Infrahub through Infrahub SDK
 | `target_id` | `str` | Yes |  | Id of the target for this artifact |
 | `branch` | `str` | No | main | Branch in which the request is made |
 | `validate_certs` | `bool` | No | True | Whether or not to validate SSL of the Infrahub instance |
-
-
 
 ## Examples
 
@@ -64,13 +51,9 @@ Fetch the content of an artifact from Infrahub through Infrahub SDK
       delegate_to: localhost
 ```
 
-
-
-
 ## Return values
 
 | Key | Type | Description |
 |-----|------|-------------|
 | `json` | `dict` | Content of the artifact in JSON format. |
 | `text` | `str` | Content of the artifact in TEXT format. |
-

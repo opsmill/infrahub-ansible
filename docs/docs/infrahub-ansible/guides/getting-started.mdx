@@ -11,7 +11,8 @@ import TabItem from '@theme/TabItem';
 ## Ansible galaxy
 
 Run the following command to install the `opsmill.infrahub` collection:
-```bash
+
+```console
 ansible-galaxy collection install opsmill.infrahub
 ```
 
@@ -29,7 +30,8 @@ Follow the [official docs](https://docs.ansible.com/ansible/latest/user_guide/co
 <TabItem value="Build From Source" default>
 
 Follow these steps to install from source:
-```bash
+
+```console
 git clone git@github.com:opsmill/infrahub-ansible.git
 cd ansible_modules
 ansible-galaxy collection build .
@@ -40,7 +42,8 @@ ansible-galaxy collection install opsmill-infrahub*.tar.gz
 <TabItem value="Build From Source (Pull Request)">
 
 This is useful to test code within PRs.
-```bash
+
+```console
 git clone git@github.com:opsmill/infrahub-ansible.git
 cd ansible_modules
 git fetch origin pull/<pr #>/head:

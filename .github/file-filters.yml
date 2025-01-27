@@ -20,7 +20,7 @@ ansible_all:
   - *ansible_docs
 
 doc_files: &doc_files
-  - "docs-infrahub/**"
+  - "docs/**"
   - package.json
   - package-lock.json
 
