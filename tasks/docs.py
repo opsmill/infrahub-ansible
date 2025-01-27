@@ -231,7 +231,7 @@ def get_ansible_core_requirement() -> str:
 @task(
     help={
         "debug": "Enable debug output",
-        "plugin_type": f'Generate docs for specific plugin type ({", ".join(PLUGIN_TYPES.keys())})',
+        "plugin_type": f"Generate docs for specific plugin type ({', '.join(PLUGIN_TYPES.keys())})",
     }
 )
 def generate_docs(context: Context, debug: bool = False, plugin_type: str | None = None) -> None:  # noqa: ARG001
