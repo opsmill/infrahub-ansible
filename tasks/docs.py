@@ -7,8 +7,6 @@ from typing import Any, NamedTuple
 import yaml
 from invoke import Context, task
 
-from .utils import ESCAPED_REPO_PATH
-
 MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-DOCS"
 
@@ -192,7 +190,7 @@ def parse_ansible_doc(plugin_file: Path, debug: bool = False) -> dict[str, Any]:
 def get_collection_version() -> str:
     """Get collection version from galaxy.yml."""
     try:
-        with open("galaxy.yml", encoding="utf-8") as f:
+        with open("galaxy.yml", encoding="utf-8") as f:  # noqa: PTH123
             galaxy_info = yaml.safe_load(f)
             return galaxy_info.get("version", "unknown")
     except (FileNotFoundError, yaml.YAMLError):
@@ -223,7 +221,7 @@ def get_roles() -> list[Role]:
 def get_ansible_core_requirement() -> str:
     """Get required ansible-core version from meta/runtime.yml."""
     try:
-        with open("meta/runtime.yml", encoding="utf-8") as f:
+        with open("meta/runtime.yml", encoding="utf-8") as f:  # noqa: PTH123
             runtime_info = yaml.safe_load(f)
             return runtime_info.get("requires_ansible", "unknown")
     except (FileNotFoundError, yaml.YAMLError):
