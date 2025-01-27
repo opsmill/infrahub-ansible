@@ -1,9 +1,9 @@
 ---
-title: Opsmill.Infrahub
+title: `opsmill.infrahub`
 description: Collection of Infrahub Ansible plugins and roles
 ---
 
-# Opsmill.Infrahub
+# `opsmill.infrahub`
 
 Collection version {{ collection_version }}
 
@@ -18,15 +18,17 @@ Infrahub modules for Ansible using Ansible Collections
 
 ## References
 
-These are the plugins in the opsmill.infrahub collection:
+These are the plugins in the `opsmill.infrahub` collection:
 
 #### Plugins
 
 #### Inventory
 
+<!-- vale off -->
 {% for plugin in plugins.modules %}
 - [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_module){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
-{% endfor %}
+{%- endfor %}
+<!-- vale on -->
 
 #### Inventory
 
@@ -44,7 +46,7 @@ These are the plugins in the opsmill.infrahub collection:
 
 ### Roles
 
-These are the roles in the opsmill.infrahub collection:
+These are the roles in the `opsmill.infrahub` collection:
 {% for role in roles %}
 - [{{ role.name }}](./references/roles/{{ role.name }}){% if role.description %} – {{ role.description }}{% endif %}
 {% endfor %}

@@ -65,7 +65,7 @@ const config: Config = {
       items: [
         {
           type: "docSidebar",
-          sidebarId: "docsSidebar",
+          sidebarId: "ansibleSidebar",
           position: "left",
           label: "Infrahub Ansible Collection",
         },

@@ -1,9 +1,11 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
-  docsSidebar: [
+  ansibleSidebar: [
     'infrahub-ansible/readme',
-    // 'infrahub-ansible/guides',
+    // Guides
+    'infrahub-ansible/guides/getting-started',
+    // References
     'infrahub-ansible/references/plugins/inventory_inventory',
     'infrahub-ansible/references/plugins/lookup_lookup',
     'infrahub-ansible/references/plugins/artifact_fetch_module',
