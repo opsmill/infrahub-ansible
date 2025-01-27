@@ -30,18 +30,6 @@ jobs:
       - name: "Generate Docs"
         run: "invoke generate-doc"
 
-      # - name: Generate new version in changelog.yaml
-      #   run: antsibull-changelog release -v --version "${{ inputs.version }}"
-
-      # - name: Generate changelog.yaml
-      #   run: antsichaut
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     SINCE_VERSION: "${{ steps.previoustag.outputs.tag }}"
-
-      # - name: Update Changelog.rst
-      #   run: antsibull-changelog generate -v
-
       - name: Sync folders
         run: |
           rm -rf target-repo/docs/docs-ansible/*
@@ -52,7 +40,10 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
-          if ! (git diff --quiet && git diff --staged --quiet); then git commit -m "Sync docs from infrahub-ansible repo" && git push; fi
+          if ! (git diff --quiet && git diff --staged --quiet); then
+            git commit -m "Sync docs from infrahub-ansible repo"
+            git push
+          fi
 
       - name: commit changelog and docs
         uses: github-actions-x/commit@v2.9
