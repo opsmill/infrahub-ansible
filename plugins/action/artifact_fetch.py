@@ -88,6 +88,13 @@ class ActionModule(ActionBase):
             Display().v("Fetch Artifacts")
             result = client.fetch_single_artifact(filters=filters)
 
+            # Better error handling
+            if not result:
+                return {
+                    "failed": True,
+                    "msg": f"Unable to find '{artifact_name}' for '{target_id}'.",
+                }
+
         except Exception as exp:
             raise_from(AnsibleError(str(exp)), exp)
 
