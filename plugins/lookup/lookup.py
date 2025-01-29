@@ -168,7 +168,7 @@ class LookupModule(LookupBase):
                 branch=branch,
                 timeout=timeout,
                 validate_certs=validate_certs,
-                display=self.display,
+                display=Display(),
             )
             processor = InfrahubQueryProcessor(client=client, display=Display())
             Display().v("Processing Query")
