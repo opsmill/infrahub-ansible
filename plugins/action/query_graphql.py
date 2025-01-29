@@ -90,8 +90,9 @@ class ActionModule(ActionBase):
                 branch=branch,
                 timeout=timeout,
                 validate_certs=validate_certs,
+                display=Display(),
             )
-            processor = InfrahubQueryProcessor(client=client)
+            processor = InfrahubQueryProcessor(client=client, display=Display())
             Display().v("Processing Query")
             response = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
             results["data"] = response
