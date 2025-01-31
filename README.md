@@ -17,13 +17,13 @@ To keep the code simple, we only officially support the two latest releases of I
 - The two latest Infrahub releases
 - Python >=3.9, <3.13
 - Python modules:
-  - infrahub-sdk >= 0.9.0
-- Ansible 2.12+
+  - infrahub-sdk >= 1.5.0
+- Ansible 2.16+
 - Infrahub write-enabled token when using modules or read-only token for `lookup/inventory`
 
 ## Documentation
 
-Please refer to the [opsmill.infrahub Ansible Collection](https://infrahub-ansible.readthedocs.io/en/latest/) documentation.
+Please refer to the [opsmill.infrahub Ansible Collection](https://docs.infrahub.app/ansible/ansible/) documentation.
 
 ## Releasing, Versioning, and Deprecation
 

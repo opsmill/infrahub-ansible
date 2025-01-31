@@ -1,0 +1,113 @@
+---
+title: Using the Infrahub Lookup Plugin in Ansible
+---
+
+The [**Lookup Plugin**](../references/plugins/lookup_lookup) in the **OpsMill Infrahub Ansible Collection** allows you to retrieve **structured GraphQL data** from Infrahub and use it dynamically in Ansible playbooks.
+
+# Using the Lookup plugin to retrieve data from Infrahub
+
+Use the **Lookup Plugin** to query Infrahub's GraphQL API and retrieve relevant information.
+
+## Example: Retrieving a list of locations
+
+This example retrieves a list of all locations (`LocationSite`) from Infrahub and prints them.
+
+```yaml title="lookup_infrahub.yml"
+- name: Infrahub lookup
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACT OF STRING
+      ansible.builtin.set_fact:
+        query_string: |
+          query {
+            LocationSite {
+              edges {
+                node {
+                  name {
+                    value
+                  }
+                }
+              }
+            }
+          }
+
+    - name: Obtain list of sites from Infrahub
+      ansible.builtin.set_fact:
+        query_response: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"
+
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "{{ query_response }}"
+```
+
+* The `query_string` defines a **GraphQL query** to retrieve **all locations**.
+* The **`opsmill.infrahub.lookup`** plugin executes the query.
+* The result is stored in `query_response` and printed.
+
+## Running the playbook
+
+To run the lookup playbook, use:
+
+```bash
+ansible-playbook lookup_infrahub.yml
+```
+
+This executes the lookup and retrieves the requested data.
+
+<details>
+<summary><b>Example Output from lookup playbook</b></summary>
+
+```console
+PLAY [Infrahub lookup] *************************************************************************************************************************************
+
+TASK [SET FACT OF STRING] **********************************************************************************************************************************
+ok: [localhost]
+
+TASK [Obtain list of sites from Infrahub] ******************************************************************************************************************
+ok: [localhost]
+
+TASK [Print result] ****************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        {
+            "node": {
+                "name": {
+                    "value": "atl1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "den1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "dfw1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "jfk1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "ord1"
+                }
+            }
+        }
+    ]
+}
+```
+
+</details>

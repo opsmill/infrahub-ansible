@@ -1,0 +1,38 @@
+---
+# yamllint disable rule:truthy rule:truthy rule:line-length
+name: Sync Docs Folders
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/docs/**'
+      - 'docs/sidebars.ts'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          path: source-repo
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: opsmill/infrahub-docs
+          token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
+          path: target-repo
+
+      - name: Sync folders
+        run: |
+          rm -rf target-repo/docs/docs-sync/*
+          rm -f target-repo/docs/sidebars-sync.ts
+          cp -r source-repo/docs/docs/* target-repo/docs/docs-sync/
+          cp source-repo/docs/sidebars.ts target-repo/docs/sidebars-sync.ts
+          cd target-repo
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          if ! (git diff --quiet && git diff --staged --quiet); then git commit -m "Sync docs from infrahub-demo-dc-fabric repo" && git push; fi

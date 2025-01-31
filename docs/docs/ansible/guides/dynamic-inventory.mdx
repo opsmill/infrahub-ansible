@@ -1,0 +1,222 @@
+---
+title: Infrahub as a Dynamic Inventory Source for Ansible
+---
+
+The [**Inventory Plugin**](../references/plugins/inventory_inventory) component of the OpsMill Infrahub Ansible Collection is used to dynamically generate the inventory from Infrahub to be used in Ansible playbooks.
+
+## Configuration
+
+In your `ansible.cfg` file, specify the inventory source as the `infrahub_inv.yml` file:
+
+ ```yaml title="ansible.cfg"
+[defaults]
+inventory = ./infrahub_inv.yml
+```
+
+## Infrahub inventory plugin configuration
+
+Configure the Infrahub inventory plugin in the `infrahub_inv.yml` file to define the returned hosts and groupings.
+Here's a minimal example:
+
+* Retrieving attributes for the `InfraDevice` Node Kind in a specific branch
+* Forcing the inclusion of specific attributes for `InfraDevice`
+* Creating composed variables for `hostname`
+
+ ```yaml title="infrahub_inv.yml"
+plugin: opsmill.infrahub.inventory
+api_endpoint: "http://localhost:8000"
+
+nodes:
+  InfraDevice:
+    include:
+      - name
+      - primary_address.address
+      - platform.ansible_network_os
+      - site.parent.name
+      - site.name
+      - role
+      - tags
+
+compose:
+  hostname: name
+```
+
+## Advanced configuration example
+
+This example demonstrates a more comprehensive configuration, including:
+
+* Retrieving attributes for the `InfraDevice` Node Kind in a specific branch
+* Forcing the inclusion of specific attributes for `InfraDevice`
+* Creating composed variables for `hostname` and `platform`
+* Creating groups based on the `site` name and `country` name
+
+ ```yaml title="infrahub_inv.yml (Advanced)"
+strict: true
+
+branch: "branch1"
+
+nodes:
+  InfraDevice:
+    include:
+      - name
+      - primary_address.address
+      - platform.ansible_network_os
+      - site.parent.name
+      - site.name
+      - role
+      - tags
+
+compose:
+  hostname: name
+  platform: platform.ansible_network_os
+  ansible_host: primary_address.address | ansible.utils.ipaddr('address')
+
+keyed_groups:
+  - prefix: site
+    key: site.name | lower
+  - prefix: country
+    key: site.parent.name | lower
+```
+
+## Viewing the inventory graph
+
+To visualize the inventory retrieved from Infrahub, run the `ansible-inventory` command with the `-i` flag, specifying the `infrahub_inv.yml` file as the source, followed by `--graph`:
+
+ ```bash
+ansible-inventory -i infrahub_inv.yml --graph
+```
+
+<details>
+<summary><b>Sample Output</b></summary>
+
+ ```plaintext
+@all:
+  |--@ungrouped:
+  |--@site_atl1:
+  |  |--atl1-edge1
+  |  |--atl1-edge2
+  |  |--atl1-core1
+  |  |--atl1-core2
+  |  |--atl1-leaf1
+  |  |--atl1-leaf2
+  |--@country_united_states_of_america:
+  |  |--atl1-edge1
+  |  |--atl1-edge2
+  |  |--atl1-core1
+  |  |--atl1-core2
+  |  |--atl1-leaf1
+  |  |--atl1-leaf2
+  |  |--ord1-edge1
+  |  |--ord1-edge2
+  |  |--ord1-core1
+  |  |--ord1-core2
+  |  |--ord1-leaf1
+  |  |--ord1-leaf2
+  |  |--jfk1-edge1
+  |  |--jfk1-edge2
+  |  |--jfk1-core1
+  |  |--jfk1-core2
+  |  |--jfk1-leaf1
+  |--@site_ord1:
+  |  |--ord1-edge1
+  |  |--ord1-edge2
+  |  |--ord1-core1
+  |  |--ord1-core2
+  |  |--ord1-leaf1
+  |  |--ord1-leaf2
+  |--@site_jfk1:
+  |  |--jfk1-edge1
+  |  |--jfk1-edge2
+  |  |--jfk1-core1
+  |  |--jfk1-core2
+  |  |--jfk1-leaf1
+```
+
+</details>
+
+## Viewing the inventory list
+
+To view the inventory list, run:
+
+ ```bash
+ansible-inventory -i infrahub_inv.yml --list
+```
+
+<details>
+<summary><b>Sample Output</b></summary>
+
+ ```json
+{
+    "_meta": {
+        "hostvars": {
+            "atl1-core1": {
+                "id": "181fd07a-e43c-f377-35bf-c513b592513f",
+                "site": {
+                    "id": "181fd075-b6d7-bd90-35b7-c51c888ef203",
+                    "name": "atl1"
+                }
+            },
+            "atl1-core2": {
+                "id": "181fd07b-2615-5c76-35b3-c519087e0eb5",
+                "site": {
+                    "id": "181fd075-b6d7-bd90-35b7-c51c888ef203",
+                    "name": "atl1"
+                }
+            },
+            ...
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "site_atl1",
+            "site_ord1",
+            "site_jfk1",
+            "site_den1",
+            "site_dfw1"
+        ]
+    },
+    "site_atl1": {
+        "hosts": [
+            "atl1-edge1",
+            "atl1-edge2",
+            "atl1-core1",
+            "atl1-core2",
+            "atl1-leaf1",
+            "atl1-leaf2"
+        ]
+    },
+    ...
+}
+```
+
+</details>
+
+## Running playbooks with dynamic inventory
+
+To run a playbook that uses the dynamic inventory, specify the inventory file when executing the playbook:
+
+ ```bash
+ansible-playbook -i infrahub_inv.yml your_playbook.yml
+```
+
+Replace `infrahub_inv.yml` with the path to your dynamic inventory file, and `your_playbook.yml` with the name of your playbook file.
+
+### Targeting groups in your playbook
+
+To target groups from the inventory in your playbook, reference the groups as normal.
+For example, to target the `site_atl1` group:
+
+ ```yaml title="playbook.yml"
+---
+- name: Playbook using Infrahub Dynamic Inventory
+  hosts: site_atl1
+
+  tasks:
+  - name: Gather facts
+    setup:
+
+  - name: Print host facts
+    debug:
+      var: ansible_facts
+```
