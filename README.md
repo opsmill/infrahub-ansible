@@ -23,7 +23,7 @@ To keep the code simple, we only officially support the two latest releases of I
 
 ## Documentation
 
-Please refer to the [opsmill.infrahub Ansible Collection](https://infrahub-ansible.readthedocs.io/en/latest/) documentation.
+Please refer to the [opsmill.infrahub Ansible Collection](https://docs.infrahub.app/ansible/ansible/) documentation.
 
 ## Releasing, Versioning, and Deprecation
 
