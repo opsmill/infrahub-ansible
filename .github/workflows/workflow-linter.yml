@@ -131,7 +131,7 @@ jobs:
       - name: "Setup Python environment"
         run: "pip install invoke toml"
       - name: "Build docs website"
-        run: "invoke docs"
+        run: "invoke docusaurus"
 
   validate-documentation-style:
     needs: ["files-changed", "yaml-lint", "python-lint"]

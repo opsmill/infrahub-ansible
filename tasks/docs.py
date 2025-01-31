@@ -301,3 +301,15 @@ def generate_docs(context: Context, debug: bool = False, plugin_type: str | None
     )
     readme_file.write_text(readme_content)
     print(f"✓ {readme_file.name}")
+
+
+@task
+def docusaurus(context: Context) -> None:
+    """Build documentation website."""
+    exec_cmd = "npm run build"
+
+    with context.cd(DOCUMENTATION_DIRECTORY):
+        output = context.run(exec_cmd)
+
+    if output.exited != 0:
+        sys.exit(-1)
