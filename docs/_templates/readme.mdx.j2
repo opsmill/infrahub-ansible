@@ -7,48 +7,41 @@ description: Collection of Infrahub Ansible plugins and roles
 
 Collection version {{ collection_version }}
 
-## Description
+## Collection overview
 
-Infrahub modules for Ansible using Ansible Collections
+The OpsMill InfraHub Ansible Collection provides is intend to help interact with Infrahub through Ansible.
 
-**Supported ansible-core versions:** {{ ansible_core_version }}
+This Ansible collection consists of a set of modules and plugins designed to work seamlessly with your existing infrastructure, enabling you to define and enforce the desired state of your infrastructure with ease.
 
 ## Guides
 
+To begin using the OpsMill InfraHub Ansible Collection, please follow our step-by-step guides:
+
+* **[Installation Guide](./installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
+* **[Dynamic Inventory Guide](./dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
 
 ## References
 
+### Plugins
+
 These are the plugins in the `opsmill.infrahub` collection:
 
-#### Plugins
-
-#### Inventory
+#### Modules
 
 <!-- vale off -->
-{% for plugin in plugins.modules %}
-- [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_module){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
-{%- endfor %}
+{% for plugin in plugins.modules %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_module){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{%- endfor %}
 <!-- vale on -->
 
 #### Inventory
 
-{% for plugin in plugins.inventory %}
-- [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_inventory){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
-{% endfor %}
+{% for plugin in plugins.inventory %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_inventory){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{% endfor %}
 
 #### Lookup
 
-{% for plugin in plugins.lookup %}
-- [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_lookup){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
-{% endfor %}
-
-{% if roles %}
+{% for plugin in plugins.lookup %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_lookup){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{% endfor %}
 
 ### Roles
 
 These are the roles in the `opsmill.infrahub` collection:
-{% for role in roles %}
-- [{{ role.name }}](./references/roles/{{ role.name }}){% if role.description %} – {{ role.description }}{% endif %}
-{% endfor %}
 
-{% endif %}
+{% for role in roles %}* [{{ role.name }}](./references/roles/{{ role.name }}){% if role.description %} – {{ role.description }}{% endif %}{% endfor %}

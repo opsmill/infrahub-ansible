@@ -1,0 +1,73 @@
+---
+title: Using the Infrahub Lookup Plugin in Ansible
+---
+
+The [**Lookup Plugin**](../reference/lookup_lookup) in the **OpsMill Infrahub Ansible Collection** allows you to retrieve **structured GraphQL data** from Infrahub and use it dynamically in Ansible playbooks.
+
+# Using the Lookup plugin to retrieve data from Infrahub
+
+Use the **Lookup Plugin** to query Infrahub's GraphQL API and retrieve relevant information.
+
+## Example: Retrieving a list of locations
+
+This example retrieves a list of all locations (`BuiltinLocation`) from Infrahub and prints them.
+
+```yaml title="lookup_infrahub.yml"
+- name: Infrahub lookup
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACT OF STRING
+      ansible.builtin.set_fact:
+        query_string: |
+          query {
+            BuiltinLocation {
+              edges {
+                node {
+                  name {
+                    value
+                  }
+                }
+              }
+            }
+          }
+
+    - name: Obtain list of sites from Infrahub
+      ansible.builtin.set_fact:
+        query_response: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"
+
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "{{ query_response }}"
+```
+
+* The `query_string` defines a **GraphQL query** to retrieve **all locations**.
+* The **`opsmill.infrahub.lookup`** plugin executes the query.
+* The result is stored in `query_response` and printed.
+
+## Running the playbook
+
+To run the lookup playbook, use:
+
+```bash
+ansible-playbook lookup_infrahub.yml
+```
+
+This executes the lookup and retrieves the requested data.
+
+<details>
+<summary><b>Example Output from Lookup Plugin</b></summary>
+
+```json
+{
+    "BuiltinLocation": {
+        "edges": [
+            {"node": {"name": {"value": "Data Center A"}}},
+            {"node": {"name": {"value": "Data Center B"}}}
+        ]
+    }
+}
+```
+
+</details>

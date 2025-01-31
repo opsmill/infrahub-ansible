@@ -1,0 +1,91 @@
+---
+title: Getting Started with OpsMill Infrahub Ansible Collection
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+:::info
+
+This guide assumes you have basic knowledge of Ansible and its ecosystem. For more information on using Ansible, please refer to the [official Ansible documentation](https://docs.ansible.com/ansible/latest/index.html).
+
+:::
+
+## Requirements
+
+* You must be running one of the two most recent releases of NetBox
+* A Infrahub API token when using modules (at least read-only for the inventory).
+* Python 3.10+
+* Python modules:
+    * infrahub-sdk
+* Ansible 2.15+
+
+## Installation
+
+### Python modules and Ansible
+
+```bash
+pip install pytz
+pip install infrahub-sdk
+pip install ansible
+```
+
+### Infrahub Ansible collection
+
+Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
+
+```bash
+ansible-galaxy collection install opsmill.infrahub
+```
+
+You can also include it in a `requirements.yml` file and install it with `ansible-galaxy collection install -r requirements.yml`, using the format:
+
+```yaml
+collections:
+  - name: opsmill.infrahub
+```
+
+To upgrade the collection to the latest available version, run the following command:
+
+```bash
+ansible-galaxy collection install netbox.netbox --upgrade
+```
+
+You can also install a specific version of the collection, for example, if you need to downgrade. Use the following syntax to install a specific version:
+
+```bash
+ansible-galaxy collection install netbox.netbox:==VERSION
+```
+
+See using [Ansible collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#installing-collections) for more details.
+
+### Other installation options
+
+#### Build from source
+
+<Tabs>
+<TabItem value="Build from source" default>
+
+1. **Step 1**: `git clone git@github.com:opsmill/infrahub-ansible.git`
+2. **Step 2**: `cd ansible_modules`
+3. **Step 3**: `ansible-galaxy collection build .`
+4. **Step 4**: `ansible-galaxy collection install opsmill-infrahub*.tar.gz`
+
+*For more details on building from source, please refer to [our dedicated documentation](link if available).*
+
+</TabItem>
+<TabItem value="Build from source (Pull Request)">
+
+*Useful for testing changes in Pull Requests.*
+
+1. **Step 1**: `git clone git@github.com:opsmill/infrahub-ansible.git`
+2. **Step 2**: `cd ansible_modules`
+3. **Step 3**: `git fetch origin pull/<pr #>/head:`
+4. **Step 4**: `git checkout <branch_name>`
+5. **Step 5**: `ansible-galaxy collection build .`
+6. **Step 6**: `ansible-galaxy collection install opsmill-infrahub*.tar.gz`
+
+*For detailed information on checking out pull requests locally, please refer to [GitHub's Documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally).*
+
+</TabItem>
+</Tabs>

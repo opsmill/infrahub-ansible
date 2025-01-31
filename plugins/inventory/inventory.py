@@ -76,14 +76,14 @@ options:
         default: main
     compose:
         description:
-          - List of custom ansible host vars to create from the objects fetched from Infrahub
+          - List of custom Ansible host vars to create from the objects fetched from Infrahub
         type: dict
         default: {}
     keyed_groups:
         required: False
         description:
           - Create groups based on attributes or relationships.
-          - groups is created as attribute__value
+          - groups is created as `attribute__value`
         type: list
         elements: str
         default: []

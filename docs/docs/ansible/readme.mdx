@@ -1,34 +1,47 @@
 ---
-title: Infrahub modules for Ansible
+title: `opsmill.infrahub`
+description: Collection of Infrahub Ansible plugins and roles
 ---
 
-Infrahub modules for Ansible using Ansible Collections.
+# `opsmill.infrahub`
 
-## Requirements
+Collection version 1.3.1
 
-**Supported ansible-core versions:** >=2.15.0
+## Collection overview
 
-## Contents
+The OpsMill InfraHub Ansible Collection provides is intend to help interact with Infrahub through Ansible.
+
+This Ansible collection consists of a set of modules and plugins designed to work seamlessly with your existing infrastructure, enabling you to define and enforce the desired state of your infrastructure with ease.
+
+## Guides
+
+To begin using the OpsMill InfraHub Ansible Collection, please follow our step-by-step guides:
+
+* **[Installation Guide](./installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
+* **[Dynamic Inventory Guide](./dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
+
+## References
 
 ### Plugins
 
 These are the plugins in the `opsmill.infrahub` collection:
 
+#### Modules
+
 <!-- vale off -->
-- [query_graphql](./references/plugins/query_graphql_module) – Queries and returns elements from Infrahub GraphQL API
-- [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
+* [query_graphql](./references/plugins/query_graphql_module) – Queries and returns elements from Infrahub GraphQL API* [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
 <!-- vale on -->
 
-### Inventory
+#### Inventory
 
-- [inventory](./references/plugins/inventory_inventory) – Infrahub inventory source (using GraphQL)
+* [inventory](./references/plugins/inventory_inventory) – Infrahub inventory source (using GraphQL)
 
-### Lookup
+#### Lookup
 
-- [lookup](./references/plugins/lookup_lookup) – Queries and returns elements from Infrahub (using GraphQL)
+* [lookup](./references/plugins/lookup_lookup) – Queries and returns elements from Infrahub (using GraphQL)
 
-## Roles
+### Roles
 
 These are the roles in the `opsmill.infrahub` collection:
 
-- [install](./references/roles/install) – Install Infrahub
+* [install](./references/roles/install) – Install Infrahub
