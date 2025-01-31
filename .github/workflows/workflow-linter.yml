@@ -26,6 +26,7 @@ jobs:
     outputs:
       python: ${{ steps.changes.outputs.python_all }}
       yaml: ${{ steps.changes.outputs.yaml_all }}
+      documentation: ${{ steps.changes.outputs.documentation_all }}
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v4"
@@ -99,7 +100,6 @@ jobs:
     name: ansible-lint
     runs-on: "ubuntu-22.04"
     steps:
-      # Important: This sets up your GITHUB_WORKSPACE environment variable
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0

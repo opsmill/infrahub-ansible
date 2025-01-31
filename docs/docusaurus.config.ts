@@ -3,7 +3,7 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Infrahub Ansible Collection',
+  title: 'Ansible Collection',
   tagline: 'opsmill.infrahub',
   favicon: 'img/favicon.ico',
 
@@ -67,7 +67,7 @@ const config: Config = {
           type: "docSidebar",
           sidebarId: "ansibleSidebar",
           position: "left",
-          label: "Infrahub Ansible Collection",
+          label: "Ansible Collection",
         },
         // {
         //   type: "search",
