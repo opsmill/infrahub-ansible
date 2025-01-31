@@ -7,7 +7,10 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Guides',
       items: [
-        'ansible/guides/getting-started',
+        'ansible/guides/installation',
+        'ansible/guides/dynamic-inventory',
+        'ansible/guides/lookup',
+        'ansible/guides/query',
       ],
     },
     {

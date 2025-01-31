@@ -2,7 +2,7 @@
 title: Using the Infrahub Query Plugin in Ansible
 ---
 
-The [**Lookup Plugin**](../reference/query_graphql_module) in the **OpsMill Infrahub Ansible Collection** allows you to send structured **GraphQL queries** to Infrahub and retrieve relevant data dynamically.
+The [**Lookup Plugin**](../references/plugins/query_graphql_module) in the **OpsMill Infrahub Ansible Collection** allows you to send structured **GraphQL queries** to Infrahub and retrieve relevant data dynamically.
 
 # Querying Infrahub with the action plugin
 
@@ -59,25 +59,129 @@ ansible-playbook query_infrahub.yml
 This executes the query and fetches data dynamically from **Infrahub**.
 
 <details>
-<summary><b>Example Output from Query Plugin</b></summary>
+<summary><b>Example Output from Query plugin</b></summary>
 
-```json
-{
-    "InfraDevice": {
-        "edges": [
-            {
-                "node": {
-                    "name": "atl1-edge1",
-                    "interfaces": {
-                        "edges": [
-                            {"node": {"name": "eth0"}},
-                            {"node": {"name": "eth1"}}
-                        ]
-                    }
+```console
+ok: [localhost] => {
+    "changed": false,
+    "data": [
+        {
+            "node": {
+                "interfaces": {
+                    "edges": [
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet1"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet10"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet11"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet12"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet2"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet3"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet4"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet5"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet6"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet7"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet8"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet9"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Loopback0"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Management0"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "port-channel1"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "name": {
+                    "value": "atl1-edge1"
                 }
             }
-        ]
-    }
+        }
+    ]
 }
 ```
 
