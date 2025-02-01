@@ -18,3 +18,15 @@ yaml_all: &yaml_all
 ansible_all:
   - *ansible_plugins
   - *ansible_docs
+
+doc_files: &doc_files
+  - "docs/**"
+  - package.json
+  - package-lock.json
+
+markdown_all: &markdown_all
+  - "**/*.{md,mdx}"
+
+documentation_all:
+  - *doc_files
+  - *markdown_all

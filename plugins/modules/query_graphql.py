@@ -58,8 +58,8 @@ options:
         default: True
     update_hostvars:
         description:
-            - Whether or not to populate data in the in the root (e.g. hostvars[inventory_hostname]) or within the
-              'data' key (e.g. hostvars[inventory_hostname]['data']). Beware, that the root keys provided by the query
+            - Whether or not to populate data in the in the root (example hostvars[inventory_hostname]) or within the
+              'data' key (example `hostvars[inventory_hostname]['data']`). Beware, that the root keys provided by the query
               will overwrite any root keys already present, leverage the GraphQL alias feature to avoid issues.
         required: False
         default: False

@@ -1,0 +1,188 @@
+---
+title: Using the Infrahub Query Plugin in Ansible
+---
+
+The [**Lookup Plugin**](../references/plugins/query_graphql_module) in the **OpsMill Infrahub Ansible Collection** allows you to send structured **GraphQL queries** to Infrahub and retrieve relevant data dynamically.
+
+# Querying Infrahub with the action plugin
+
+Use the **Query Plugin** to fetch structured data from Infrahub.
+
+## Example: Querying Infrahub for devices and interfaces
+
+This example queries Infrahub for a device named `"atl1-edge1"`, including its interfaces where `enabled=true`.
+
+```yaml title="query_infrahub.yml"
+- name: Infrahub action plugin
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
+      ansible.builtin.set_fact:
+        variables:
+          device_name: "atl1-edge1"
+          enabled: true
+
+        query_dict:
+          InfraDevice:
+            '@filters': {name__value: '$device_name'}
+            edges:
+              node:
+                name:
+                  value: null
+                interfaces:
+                  '@filters': {enabled__value: '$enabled'}
+                  edges:
+                    node:
+                      name:
+                        value: null
+
+    - name: Execute Query Plugin
+      opsmill.infrahub.query_graphql:
+        query: "{{ query_dict }}"
+        graph_variables: "{{ variables }}"
+```
+
+* The `query_dict` defines a **GraphQL query structure**.
+* The query filters devices by `name` and interfaces by `enabled`.
+* The **`opsmill.infrahub.query_graphql`** plugin executes the query and returns the results.
+
+## Running the playbook
+
+To run the query playbook, use:
+
+```bash
+ansible-playbook query_infrahub.yml
+```
+
+This executes the query and fetches data dynamically from **Infrahub**.
+
+<details>
+<summary><b>Example Output from Query plugin</b></summary>
+
+```console
+ok: [localhost] => {
+    "changed": false,
+    "data": [
+        {
+            "node": {
+                "interfaces": {
+                    "edges": [
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet1"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet10"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet11"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet12"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet2"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet3"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet4"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet5"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet6"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet7"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet8"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Ethernet9"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Loopback0"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "Management0"
+                                }
+                            }
+                        },
+                        {
+                            "node": {
+                                "name": {
+                                    "value": "port-channel1"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "name": {
+                    "value": "atl1-edge1"
+                }
+            }
+        }
+    ]
+}
+```
+
+</details>

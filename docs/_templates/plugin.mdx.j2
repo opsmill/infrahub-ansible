@@ -1,0 +1,35 @@
+---
+title: {{ name }}
+description: {{ documentation.get('short_description', '') }}
+---
+
+# {{ plugin_type.title() }}
+
+{% for description in documentation.get('description', '') %}{{ description }}{% endfor %}
+
+{% if documentation.get('options') -%}
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+{%- for param_name, param in documentation.options.items() %}
+| `{{ param_name }}` | `{{ param.get('type', '') }}` | {{ "Yes" if param.get('required', False) else "No" }} | {{ param.get('default', '') }} | {{ param.get('description', '') if param.get('description') is string else param.get('description', [])|join(' ') }} |
+{%- endfor %}
+{%- endif %}
+{% if examples %}
+## Examples
+
+```yaml
+{{ examples }}
+```
+
+{%- endif %}
+{% if returns %}
+## Return values
+
+| Key | Type | Description |
+|-----|------|-------------|
+{%- for key, data in returns.items() %}
+| `{{ key }}` | `{{ data.get('type', '') }}` | {{ data.get('description', '') if data.get('description') is string else data.get('description', [])|join(' ') }} |
+{%- endfor %}
+{% endif %}
