@@ -35,7 +35,7 @@
                   untagged_vlan:
                     node:
                       vlan_id:
-                          value: null
+                        value: null
                       name:
                         value: null
 
