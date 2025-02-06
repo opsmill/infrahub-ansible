@@ -95,7 +95,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 def main():
-    """Main definition of Action Plugin for create."""
+    """Main definition of Action Plugin for create_node."""
     AnsibleModule(
         argument_spec=dict(
             api_endpoint=dict(required=False, type="str", default=None),
