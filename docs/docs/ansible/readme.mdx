@@ -14,8 +14,10 @@ This Ansible collection consists of a set of modules and plugins designed to wor
 
 To begin using the OpsMill InfraHub Ansible Collection, please follow our step-by-step guides:
 
-* **[Installation Guide](./installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
-* **[Dynamic Inventory Guide](./dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
+* **[Installation Guide](./guides/installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
+* **[Dynamic Inventory Guide](./guides/dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
+* **[Lookup Guide](./guides/lookup.mdx)**: Explore how to retrieve structured GraphQL data from Infrahub.
+* **[Query Guide](./guides/query.mdx)**: Learn how to send structured GraphQL queries to Infrahub and retrieve relevant data dynamically.
 
 ## References
 
@@ -26,7 +28,12 @@ These are the plugins in the `opsmill.infrahub` collection:
 #### Modules
 
 <!-- vale off -->
-* [create_branch](./references/plugins/create_branch_module) – Creates a new branch in Infrahub* [query_graphql](./references/plugins/query_graphql_module) – Queries and returns elements from Infrahub GraphQL API* [create_node](./references/plugins/create_node_module) – Creates nodes in Infrahub using direct creation or GraphQL mutations* [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
+
+* [create_branch](./references/plugins/create_branch_module) – Creates a new branch in Infrahub
+* [query_graphql](./references/plugins/query_graphql_module) – Queries and returns elements from Infrahub GraphQL API
+* [create_node](./references/plugins/create_node_module) – Creates nodes in Infrahub
+* [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
+
 <!-- vale on -->
 
 #### Inventory

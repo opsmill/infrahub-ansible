@@ -21,6 +21,8 @@ const sidebars: SidebarsConfig = {
         'ansible/references/plugins/lookup_lookup',
         'ansible/references/plugins/artifact_fetch_module',
         'ansible/references/plugins/query_graphql_module',
+        'ansible/references/plugins/create_node_module',
+        'ansible/references/plugins/create_branch_module',
         // 'ansible/references/roles',
       ],
     },

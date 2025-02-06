@@ -10,7 +10,7 @@ Use the **Query Plugin** to fetch structured data from Infrahub.
 
 ## Example: Querying Infrahub for devices and interfaces
 
-This example queries Infrahub for a device named `"atl1-edge1"`, including its interfaces where `enabled=true`.
+This example queries Infrahub for the interfaces of the device named `"atl1-edge1"`, including only the interface where `enabled=true`.
 
 ```yaml title="query_infrahub.yml"
 - name: Infrahub action plugin
@@ -25,16 +25,31 @@ This example queries Infrahub for a device named `"atl1-edge1"`, including its i
           enabled: true
 
         query_dict:
-          InfraDevice:
-            '@filters': {name__value: '$device_name'}
+          InfraInterface:
+            '@filters': {enabled__value: '$enabled', device__name__value: '$device_name'}
             edges:
               node:
+                id: null
                 name:
                   value: null
-                interfaces:
-                  '@filters': {enabled__value: '$enabled'}
-                  edges:
+                ... on InfraInterfaceL3:
+                  ip_addresses:
+                    edges:
+                      node:
+                        address:
+                          value: null
+                ... on InfraInterfaceL2:
+                  tagged_vlan:
+                    edges:
+                      node:
+                        vlan_id:
+                          value: null
+                        name:
+                          value: null
+                  untagged_vlan:
                     node:
+                      vlan_id:
+                          value: null
                       name:
                         value: null
 
@@ -63,125 +78,264 @@ This executes the query and fetches data dynamically from **Infrahub**.
 
 ```console
 ok: [localhost] => {
-    "changed": false,
-    "data": [
-        {
-            "node": {
-                "interfaces": {
-                    "edges": [
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet1"
+    "msg": {
+        "edges": [
+            {
+                "node": {
+                    "id": "18219d8a-5417-acae-2dbc-c5156eefb194",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.0/31"
+                                    }
                                 }
                             }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet10"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet11"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet12"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet2"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet3"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet4"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet5"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet6"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet7"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet8"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Ethernet9"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Loopback0"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "Management0"
-                                }
-                            }
-                        },
-                        {
-                            "node": {
-                                "name": {
-                                    "value": "port-channel1"
-                                }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet1"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-afcc-3d1b-2db4-c510fcc52b8a",
+                    "ip_addresses": {
+                        "edges": []
+                    },
+                    "name": {
+                        "value": "Ethernet10"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-b7bc-dc82-2dba-c51741f8258e",
+                    "name": {
+                        "value": "Ethernet11"
+                    },
+                    "tagged_vlan": {
+                        "edges": []
+                    },
+                    "untagged_vlan": {
+                        "node": {
+                            "name": {
+                                "value": "atl1_server"
+                            },
+                            "vlan_id": {
+                                "value": 200
                             }
                         }
-                    ]
-                },
-                "name": {
-                    "value": "atl1-edge1"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-d71d-e7d1-2dba-c515e35ae516",
+                    "name": {
+                        "value": "Ethernet12"
+                    },
+                    "tagged_vlan": {
+                        "edges": []
+                    },
+                    "untagged_vlan": {
+                        "node": {
+                            "name": {
+                                "value": "atl1_server"
+                            },
+                            "vlan_id": {
+                                "value": 200
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-7e5a-df0a-2db2-c51e9967f805",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.2/31"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet2"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-8673-961c-2db0-c5179da68d60",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.20/31"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet3"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-8a01-a4b8-2db8-c51c7024f9dd",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.24/31"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet4"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-8d42-143c-2dbf-c51a0cc428a9",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "203.111.0.1/29"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet5"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-63d4-9267-2db4-c518a51761cf",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "203.111.0.9/29"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet6"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-8e96-24cf-2db4-c51ba3de6b92",
+                    "ip_addresses": {
+                        "edges": []
+                    },
+                    "name": {
+                        "value": "Ethernet7"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-921b-2dd9-2dbb-c519044a4a98",
+                    "ip_addresses": {
+                        "edges": []
+                    },
+                    "name": {
+                        "value": "Ethernet8"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-95ce-829d-2dbd-c519355daf70",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "203.111.0.17/29"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet9"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d89-dbf4-92da-2dbd-c51e7009abd0",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.0.0.1/32"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Loopback0"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-3900-2637-2db7-c511a30b601a",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "172.16.0.1/16"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Management0"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-dfe6-4944-2db9-c511dc191dc6",
+                    "name": {
+                        "value": "port-channel1"
+                    }
                 }
             }
-        }
-    ]
+        ]
+    }
 }
 ```
 

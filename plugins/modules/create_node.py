@@ -12,9 +12,9 @@ module: create_node
 author:
     - Benoit Kohler (@bearchitek)
 version_added: "1.4.0"
-short_description: Creates nodes in Infrahub using direct creation or GraphQL mutations
+short_description: Creates nodes in Infrahub
 description:
-    - Creates nodes in Infrahub either via direct node creation or GraphQL mutations through Infrahub SDK
+    - Creates nodes in Infrahub through Infrahub SDK
 requirements:
     - infrahub-sdk
 options:

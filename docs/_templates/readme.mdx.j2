@@ -14,8 +14,10 @@ This Ansible collection consists of a set of modules and plugins designed to wor
 
 To begin using the OpsMill InfraHub Ansible Collection, please follow our step-by-step guides:
 
-* **[Installation Guide](./installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
-* **[Dynamic Inventory Guide](./dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
+* **[Installation Guide](./guides/installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
+* **[Dynamic Inventory Guide](./guides/dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
+* **[Lookup Guide](./guides/lookup.mdx)**: Explore how to retrieve structured GraphQL data from Infrahub.
+* **[Query Guide](./guides/query.mdx)**: Learn how to send structured GraphQL queries to Infrahub and retrieve relevant data dynamically.
 
 ## References
 
@@ -26,7 +28,10 @@ These are the plugins in the `opsmill.infrahub` collection:
 #### Modules
 
 <!-- vale off -->
-{% for plugin in plugins.modules %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_module){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{%- endfor %}
+{% for plugin in plugins.modules %}
+* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_module){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
+{%- endfor %}
+
 <!-- vale on -->
 
 #### Inventory
