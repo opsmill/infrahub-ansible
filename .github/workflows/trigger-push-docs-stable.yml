@@ -1,0 +1,35 @@
+---
+# yamllint disable rule:truthy
+name: "Push Docs on stable"
+
+on:
+  push:
+    branches:
+      - stable
+    paths:
+      - 'docs/docs/**'
+      - 'docs/sidebars.ts'
+
+jobs:
+  check_commit:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.filter.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetches the commit history for the last 2 commits
+      - id: filter
+        run: |
+          commit_author=$(git log -1 --pretty=format:'%an')
+          commit_message=$(git log -1 --pretty=format:'%s')
+          if [[ "$commit_author" == "opsmill-bot" && \
+                "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+  sync_docs:
+    uses: ./.github/workflows/workflow-sync-docs.yml
+    secrets: inherit

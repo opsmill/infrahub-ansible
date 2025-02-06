@@ -37,17 +37,6 @@ else:
 if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
 
-    # def logger_callback(message: str, level: str) -> None:
-    #     logger = logging.getLogger(__name__)
-    #     if level == "ERROR":
-    #         logger.error(message)
-    #     elif level == "WARNING":
-    #         logger.warning(message)
-    #     elif level == "DEBUG":
-    #         logger.debug(message)
-    #     else:
-    #         logger.info(message)
-
     class InfrahubclientWrapper:
         def __init__(  # noqa: PLR0917
             self,
@@ -75,7 +64,7 @@ if HAS_INFRAHUBCLIENT:
             self.branch_manager = InfrahubBranchManagerSync(self.client)
             self.display = display
             for method_name in dir(self):
-                if callable(getattr(self, method_name)) and method_name.startswith("fetch_"):
+                if callable(getattr(self, method_name)) and not method_name.startswith("_"):
                     original_method = getattr(self, method_name)
                     decorated_method = handle_infrahub_exceptions_decorator(self.display)(original_method)
                     setattr(self, method_name, decorated_method)
@@ -308,7 +297,7 @@ if HAS_INFRAHUBCLIENT:
 
             Parameters:
                 query (dict): GraphQL Query to render, can be a query or a mutation
-                variables (dict | None): Variables to pass along with the GraphQL query. Defaults to None.
+                variables (dict, optional): Variables to pass along with the GraphQL query. Defaults to None.
 
             Returns:
                 Str: Graphql Query rendered as a string
@@ -330,15 +319,42 @@ if HAS_INFRAHUBCLIENT:
 
             Parameters:
                 query (str): The GraphQL query string to execute.
-                variables (dict | None): Variables to pass along with the GraphQL query. Defaults to None.
+                variables (dict, optional): Variables to pass along with the GraphQL query. Defaults to None.
                 branch (str, optional): Name of the branch to query from. Defaults to default_branch.
 
             Returns:
                 dict: The result of the executed GraphQL query.
             """
-            # TODO :  Do something wit the variables ?
+            # TODO: Do something wit the variables ?
             response = self.client.execute_graphql(query=query, variables=variables, branch_name=branch)
             return response
+
+        def create_node(self, kind: str, data: dict, branch: str | None = None, **kwargs: Any) -> InfrahubNodeSync:
+            """Create a new node of given kind with provided attributes"""
+            return self.client.create(kind=kind, data=data, branch=branch, kwargs=kwargs)
+
+        def create_branch(self, name: str, description: str | None = None, sync_with_git: bool = False) -> BranchData:
+            """
+            Create a new branch with provided attributes
+
+            Parameters:
+                name (str): The name of the branch to create
+                description (str, optional): The description of the branch
+                sync_with_git (bool, optional): If Infrahub have to extend the branch to Git
+
+            Returns:
+                BranchData: Details of the specified branch.
+            """
+            return self.client.branch.create(branch_name=name, description=description, sync_with_git=sync_with_git)
+
+        @staticmethod
+        def save_node(node: InfrahubNodeSync, allow_upsert: bool = True) -> None:
+            """
+            Save changes to a node
+
+
+            """
+            node.save(allow_upsert=allow_upsert)
 
     class InfrahubBaseProcessor:
         def __init__(
@@ -354,9 +370,15 @@ if HAS_INFRAHUBCLIENT:
         ) -> None:
             error_msg = f"{message}"
             if exception:
-                error_msg = f": {exception!s}"
+                error_msg = f"{message}: {exception!s}"
             if self.display:
-                self.display(message=error_msg, level=level)
+                self.display.debug(error_msg)
+                if level == "ERROR":
+                    self.display.error(error_msg)
+                elif level == "WARNING":
+                    self.display.warning(error_msg)
+                elif level == "INFO":
+                    self.display.v(error_msg)
 
         def resolve_node_mapping(
             self, node: InfrahubNodeSync, attrs: list[str], schemas: dict[str, Any], include_id: bool = True
@@ -604,6 +626,71 @@ if HAS_INFRAHUBCLIENT:
 
             return host_node_attributes
 
+        def create_node(self, kind: str, data: dict, allow_upsert: bool = True) -> InfrahubNodeSync:
+            """
+            Create a node after validating required fields against schema
+
+            """
+            schema = self.client.fetch_single_schema(kind=kind)
+            if not schema:
+                raise Exception(f"Non-existing kind '{kind}'")
+
+            validation_errors = []
+            validation_errors.extend(
+                f"Required attribute '{attr.name}' missing for '{kind}"
+                for attr in schema.attributes
+                if not attr.optional and not attr.read_only and attr.default_value is None and attr.name not in data
+            )
+            validation_errors.extend(
+                f"Required relationship '{rel.name}' missing for '{kind}'"
+                for rel in schema.relationships
+                if not rel.optional and rel.name not in data
+            )
+
+            if validation_errors:
+                raise Exception(f"Validation failed: {', '.join(validation_errors)}")
+
+            try:
+                node = self.client.create_node(kind=kind, data=data)
+                self.client.save_node(node=node, allow_upsert=allow_upsert)
+                if not node.id:
+                    raise Exception
+
+            except Exception as exc:
+                self._handle_exception(
+                    exception=exc,
+                    message=f"Failed to save node with {data} for kind '{kind}'",
+                    level="ERROR",
+                )
+                raise
+
+            return node
+
+        def create_branch(self, name: str, description: str, sync_with_git: bool = False) -> InfrahubNodeSync:
+            """
+            Create a branch
+
+            Parameters:
+                name (str): The name of the branch to create
+                description (str, optional): The description of the branch
+                sync_with_git (bool, optional): If Infrahub have to extend the branch to Git
+
+            Returns:
+                BranchData: Details of the specified branch.
+            """
+            try:
+                branch_data = self.client.create_branch(name=name, description=description, sync_with_git=sync_with_git)
+
+            except Exception as exc:
+                self._handle_exception(
+                    exception=exc,
+                    message=f"Failed to create branch '{name}'",
+                    level="ERROR",
+                )
+                raise
+
+            return branch_data
+
     class InfrahubQueryProcessor(InfrahubBaseProcessor):
         def fetch_and_process(
             self,
@@ -626,21 +713,46 @@ if HAS_INFRAHUBCLIENT:
             if not query:
                 return None
 
-            results = []
             if isinstance(query, dict):
                 query_str = self.client._render_query(query=query, variables=variables)
             elif isinstance(query, str):
-                if variables:
-                    # TODO Need a rendering
-                    raise Exception("query need to be a dict if your are using variables")
                 query_str = query
             else:
                 raise Exception("query is neither a string nor a dict")
 
-            response = self.client.execute_graphql(query=query_str, variables=variables)
-            for kind in response:
-                if response[kind]["edges"]:
-                    results += response[kind]["edges"]
+            self._handle_exception(
+                message=f"{query_str}",
+                level="WARNING",
+            )
+            try:
+                results = {}
+                results["changed"] = False
+                response = self.client.execute_graphql(query=query_str, variables=variables)
+                if not response:
+                    raise Exception
+
+                if any(key.endswith(("Create", "Update", "Delete")) for key in response):
+                    # Handle mutation response
+                    mutation_key = next(key for key in response if key.endswith(("Create", "Update", "Delete")))
+                    mutation_data = response[mutation_key]
+                    if mutation_data.get("ok"):
+                        if "object" in mutation_data:  # Create/Update will have object
+                            results["response"] = mutation_data.get("object", {})
+                        results["changed"] = True
+                    else:
+                        self._handle_exception(
+                            message=f"Mutation failed: {mutation_data.get('error', '')}'",
+                            level="ERROR",
+                        )
+                        raise Exception
+
+                # Handle query response
+                else:
+                    results["response"] = response
+
+            except Exception:
+                raise Exception(f"Failed to execute the grapqhl query '{query}'")
+
             return results
 
 

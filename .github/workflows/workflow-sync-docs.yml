@@ -2,12 +2,11 @@
 # yamllint disable rule:truthy rule:truthy rule:line-length
 name: Sync Docs Folders
 on:
-  push:
-    branches:
-      - stable
-    paths:
-      - 'docs/docs/**'
-      - 'docs/sidebars.ts'
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   sync:

@@ -1,3 +1,4 @@
+# Copyright (c) 2025 Opsmill
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """Infrahub Action Plugin to fetch the content of an artifact."""
 
@@ -84,6 +85,7 @@ class ActionModule(ActionBase):
                 branch=branch,
                 timeout=timeout,
                 validate_certs=validate_certs,
+                display=Display(),
             )
             Display().v("Fetch Artifacts")
             result = client.fetch_single_artifact(filters=filters)

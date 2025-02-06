@@ -5,6 +5,7 @@ ignore: |
   /.venv
   /examples
   /tests/**
+  /docs/node_modules/**
 
 rules:
   new-lines: disable

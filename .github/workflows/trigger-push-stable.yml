@@ -8,8 +8,6 @@ on:
       - stable
     paths-ignore:
       - 'docs/**'
-      - 'CHANGELOG.rst'
-      - 'changelogs/**'
 
 jobs:
   check_commit:
