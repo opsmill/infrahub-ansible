@@ -39,7 +39,7 @@
                       name:
                         value: null
 
-    - name: Action Plugin to retrieve Interfaces of '{{variables.device_name}}'
+    - name: Action Plugin to retrieve Interfaces of '{{ variables.device_name }}'
       opsmill.infrahub.query_graphql:
         query: "{{ query_dict }}"
         graph_variables: "{{ variables }}"
