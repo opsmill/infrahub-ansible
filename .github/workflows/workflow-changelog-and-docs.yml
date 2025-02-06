@@ -10,7 +10,7 @@ on:
         type: string
 
 jobs:
-  generate_cdocs:
+  generate_docs:
     runs-on: "ubuntu-22.04"
     name: "Create Docs"
     steps:
