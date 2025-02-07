@@ -33,7 +33,7 @@ jobs:
           installer-parallel: true
 
       - name: Install dependencies
-        run: poetry install --with dev
+        run: "poetry install --no-interaction --no-ansi --no-root --with dev"
 
       - name: "Generate Docs"
         run: "invoke generate-doc"
