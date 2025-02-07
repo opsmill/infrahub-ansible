@@ -135,7 +135,7 @@ jobs:
       run:
         working-directory: ./docs
     if: needs.files-changed.outputs.documentation == 'true'
-    needs: ["files-changed", "yaml-lint", "python-lint"]
+    needs: ["files-changed", "python-lint"]
     runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:
@@ -157,7 +157,7 @@ jobs:
         run: "invoke docusaurus"
 
   validate-documentation-style:
-    needs: ["files-changed", "yaml-lint", "python-lint"]
+    needs: ["files-changed", "python-lint"]
     runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:
