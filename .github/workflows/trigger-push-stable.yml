@@ -87,11 +87,9 @@ jobs:
           email: github-bot@opsmill.com
           rebase: true
 
-  changelog_and_docs:
+  docs:
     needs: ["prepare_release"]
     uses: ./.github/workflows/workflow-changelog-and-docs.yml
-    with:
-      version: ${{ needs.prepare_release.outputs.next_version }}
     secrets: inherit
 
   release:
