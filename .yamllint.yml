@@ -2,10 +2,10 @@
 extends: default
 
 ignore:
-- .venv
-- examples
-- tests/**
-- docs/node_modules/**
+  - .venv
+  - examples
+  - tests/**
+  - docs/node_modules/**
 
 rules:
   comments-indentation: disable
