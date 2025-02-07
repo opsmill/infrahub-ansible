@@ -9,12 +9,20 @@ on:
         required: false
         default: "ubuntu-22.04"
         type: string
+
   workflow_dispatch:
+    inputs:
+      runs-on:
+        description: "The OS to run the job on"
+        required: false
+        default: "ubuntu-22.04"
+        type: string
+
   schedule:
     - cron: '0 0 * * *'
 
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,6 +39,7 @@ jobs:
   #   with:
   #     collection_pre_install: >-
   #       git+https://github.com/ansible-collections/ansible.utils.git
+
   all_green:
     if: ${{ always() }}
     needs:
@@ -38,7 +47,7 @@ jobs:
       - ansible-lint
       # - unit-galaxy
       # - unit-source
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - run: >-
           python -c "assert 'failure' not in

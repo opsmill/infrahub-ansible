@@ -12,20 +12,8 @@ ansible-core = [
     { version = ">=2.15.13rc1", python = ">=3.9,<3.10" },
     { version = ">=2.17.7rc1", python = ">=3.10" },
 ]
-ansible-lint = "*"
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
-deepdiff = "*"
-cryptography = ">=42.0.0"
 jinja2 = ">=3.1.5"
-jmespath = "*"
-pyyaml = "*"
-importlib-metadata = "8.5.0"
-pytz = "*"
-packaging = "*"
-jsondiff = "*"
-hypothesis = "^6.123.16"
-parameterized = "^0.9.0"
-bandit = "^1.8.2"
 
 [tool.poetry.group.dev.dependencies]
 codecov = "*"

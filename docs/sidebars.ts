@@ -9,8 +9,9 @@ const sidebars: SidebarsConfig = {
       items: [
         'ansible/guides/installation',
         'ansible/guides/dynamic-inventory',
-        'ansible/guides/lookup',
-        'ansible/guides/query',
+        'ansible/guides/query-and-lookup',
+        'ansible/guides/create-node',
+        'ansible/guides/create-branch',
       ],
     },
     {

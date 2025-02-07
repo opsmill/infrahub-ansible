@@ -720,10 +720,6 @@ if HAS_INFRAHUBCLIENT:
             else:
                 raise Exception("query is neither a string nor a dict")
 
-            self._handle_exception(
-                message=f"{query_str}",
-                level="WARNING",
-            )
             try:
                 results = {}
                 results["changed"] = False
