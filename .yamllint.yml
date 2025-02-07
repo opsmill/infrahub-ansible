@@ -1,13 +1,13 @@
 ---
 extends: default
 
-ignore: |
-  /.venv
-  /examples
-  /tests/**
+ignore:
+  - .venv
+  - examples
+  - tests/**
+  - docs/node_modules/**
 
 rules:
-  new-lines: disable
   comments-indentation: disable
   comments:
     # Changed this to stop a mess between linters from Prettier (vscode) to yamllint

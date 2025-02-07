@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Benoit Kohler
+# Copyright (c) 2023 Opsmill
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """
 A lookup function designed to return data from the Infrahub GraphQL API
@@ -160,7 +160,7 @@ class LookupModule(LookupBase):
         if graph_variables is not None and not isinstance(graph_variables, dict):
             raise AnsibleLookupError("graph_variables parameter must be a list of dict")
 
-        results = {}
+        results = []
         try:
             Display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
@@ -173,7 +173,11 @@ class LookupModule(LookupBase):
             )
             processor = InfrahubQueryProcessor(client=client, display=Display())
             Display().v("Processing Query")
-            results = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
+            response = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
+            data = response["response"]
+            for kind in data:
+                if "edges" in data.get(kind):
+                    results.extend(data[kind].get("edges", []))
 
         except Exception as exc:
             raise_from(AnsibleError(str(exc)), exc)

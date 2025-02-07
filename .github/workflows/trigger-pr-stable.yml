@@ -11,6 +11,5 @@ jobs:
   linter:
     uses: ./.github/workflows/workflow-linter.yml
 
-  tests:
-    needs: ["linter"]
-    uses: ./.github/workflows/workflow-tests.yml
+  ansible_linter_and_tests:
+    uses: ./.github/workflows/workflow-ansible-linter-and-tests.yml

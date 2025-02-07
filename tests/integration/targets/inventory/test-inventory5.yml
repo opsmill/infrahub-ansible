@@ -2,7 +2,7 @@
 ### infrahub_inventory.yml file in YAML format
 ### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
-# This inventory will retrieve the InfraDevice with the differents Attribute & Relationships requested in `include`.
+# This inventory will retrieve the InfraDevice with the Attributes & Relationships requested in `include`.
 # The InfraDevice will be grouped by the Site (name), Platform (ansible_network_os) and role
 # Several extra variable will be compose based on the retrieved Attribute and Relationship
 # We are overriting the retrieved variable `platform` to have a string instead of a dict

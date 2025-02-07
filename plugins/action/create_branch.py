@@ -1,5 +1,5 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-"""Infrahub Action Plugin to Query GraphQL."""
+"""Infrahub Action Plugin to create nodes."""
 
 from __future__ import absolute_import, annotations, division, print_function
 
@@ -15,13 +15,13 @@ from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
     InfrahubclientWrapper,
-    InfrahubQueryProcessor,
+    InfrahubNodesProcessor,
 )
 
 
 class ActionModule(ActionBase):
     """
-    Ansible Action Module to interact with Infrahub GraphQL Endpoint.
+    Ansible Action Module to create nodes in Infrahub.
 
     Parameters:
         ActionBase (ActionBase): Ansible Action Plugin
@@ -29,7 +29,7 @@ class ActionModule(ActionBase):
 
     def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict:
         """
-        Run of action plugin for interacting with Infrahub GraphQL API.
+        Run of action plugin to create nodes.
 
         Parameters:
             tmp ([type], optional): [description]. Defaults to None.
@@ -69,19 +69,13 @@ class ActionModule(ActionBase):
         timeout = args.get("timeout", 10)
         branch = args.get("branch", "main")
 
-        query = args.get("query")
-        graph_variables = args.get("graph_variables")
-        update_hostvars = args.get("update_hostvars", False)
-        if query is None:
-            raise AnsibleError("Query parameter was not passed")
-        if isinstance(query, (dict, str)):
-            graphql_query = query
-        if graph_variables is not None and not isinstance(graph_variables, dict):
-            raise AnsibleError("graph_variables parameter must be a list of dict")
-        if not isinstance(update_hostvars, bool):
-            raise AnsibleError("update_hostvars must be a boolean")
+        name = args.get("name")
+        description = args.get("description")
+        sync_with_git = args.get("sync_with_git", False)
 
-        results = {}
+        if not name:
+            raise AnsibleError("Missing required parameter: 'name'")
+
         try:
             Display().v("Initializing Infrahub Client")
             client = InfrahubclientWrapper(
@@ -92,16 +86,20 @@ class ActionModule(ActionBase):
                 validate_certs=validate_certs,
                 display=Display(),
             )
-            processor = InfrahubQueryProcessor(client=client, display=Display())
-            Display().v("Processing Query")
-            response = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
-            results["changed"] = response["changed"]
-            results["response"] = response["response"]
 
-            if update_hostvars:
-                results["ansible_facts"] = response["response"]
+            Display().v(f"Creating branch {name}")
+            processor = InfrahubNodesProcessor(client=client, display=Display())
+            branch = processor.create_branch(name=name, description=description, sync_with_git=sync_with_git)
+            if not branch:
+                result["response"] = None
+            else:
+                result["changed"] = True
+                result["data"] = {
+                    "id": branch.id,
+                }
+                result["response"] = str(branch)
 
         except Exception as exp:
             raise_from(AnsibleError(str(exp)), exp)
 
-        return results
+        return result

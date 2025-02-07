@@ -19,7 +19,7 @@ argument_specs:
         default: https://infrahub.opsmill.io
       infrahub_install_directory:
         description:
-          - Install directory for the Infrahub files (docker-compose and config file).
+          - Install directory for the Infrahub files (docker-compose and configuration file).
         type: str
         default: /opt/infrahub
       infrahub_config:

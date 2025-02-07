@@ -2,13 +2,17 @@
 title: Infrahub as a Dynamic Inventory Source for Ansible
 ---
 
+# Use Infrahub for Ansible dynamic inventory
+
+## Overview
+
 The [**Inventory Plugin**](../references/plugins/inventory_inventory) component of the OpsMill Infrahub Ansible Collection is used to dynamically generate the inventory from Infrahub to be used in Ansible playbooks.
 
 ## Configuration
 
 In your `ansible.cfg` file, specify the inventory source as the `infrahub_inv.yml` file:
 
- ```yaml title="ansible.cfg"
+ ```ini title="ansible.cfg"
 [defaults]
 inventory = ./infrahub_inv.yml
 ```

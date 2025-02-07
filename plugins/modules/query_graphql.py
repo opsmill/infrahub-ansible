@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Benoit Kohler
+# Copyright (c) 2023 Opsmill
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """Ansible plugin definition for query_graphql action plugin."""
 
@@ -99,11 +99,11 @@ EXAMPLES = """
 """
 
 RETURN = """
-  data:
-    description:
-      - Data result from the Infrahub GraphQL endpoint
-    type: dict
-    returned: success
+data:
+  description:
+    - Data result from the Infrahub GraphQL endpoint
+  type: dict
+  returned: success
 """
 
 from ansible.module_utils.basic import AnsibleModule

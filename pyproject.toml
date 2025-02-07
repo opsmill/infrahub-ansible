@@ -7,38 +7,24 @@ package-mode = false
 license = "GPLv3"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.10,<3.13"
 ansible-core = [
     { version = ">=2.15.13rc1", python = ">=3.9,<3.10" },
     { version = ">=2.17.7rc1", python = ">=3.10" },
 ]
-ansible-lint = "*"
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
+jinja2 = ">=3.1.5"
+
+[tool.poetry.group.dev.dependencies]
 codecov = "*"
-deepdiff = "*"
-cryptography = ">=42.0.0"
-jinja2 = ">=3.1.4"
-jmespath = "*"
+invoke = "^2.2.0"
+ruff = "0.9.1"
+mock = "^5.1.0"
 pytest = "^8.3.4"
 pytest-mock = "*"
 pytest-xdist = "*"
-pyyaml = "*"
-mock = "^5.1.0"
-antsibull = "0.67.0"
-importlib-metadata = "8.5.0"
-pytz = "*"
-packaging = "*"
-jsondiff = "*"
-sphinx_rtd_theme = "*"
-hypothesis = "^6.123.16"
 pytest-pythonpath = "*"
-parameterized = "^0.9.0"
-invoke = "^2.2.0"
-bandit = "^1.8.2"
-antsibull-docs = "^2.16.2"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "0.9.1"
+ansible-lint = "^25.1.2"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

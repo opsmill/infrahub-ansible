@@ -15,7 +15,7 @@ To keep the code simple, we only officially support the two latest releases of I
 ## Requirements
 
 - The two latest Infrahub releases
-- Python >=3.9, <3.13
+- Python >=3.10, <3.13
 - Python modules:
   - infrahub-sdk >= 1.5.0
 - Ansible 2.16+
