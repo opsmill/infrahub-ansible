@@ -1,0 +1,455 @@
+---
+title: Using the Infrahub Query and Lookup Plugins in Ansible
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Retrieve data from Infrahub
+
+## Overview
+
+The **OpsMill Infrahub Ansible Collection** provides two ways to interact with Infrahub GraphQL API:
+
+* [**Query Plugin**](../references/plugins/query_graphql_module): The `opsmill.infrahub.query_graphql` module allows you to send a structured GraphQL query and dynamically process the returned results. This method is used as an action plugin within your playbook.
+* [**Lookup Plugin**](../references/plugins/lookup_lookup): The `opsmill.infrahub.lookup` plugin enables you to retrieve GraphQL data using a query and integrate the results into your playbook (using the lookup plugin syntax).
+
+## Usage
+
+<Tabs>
+<TabItem value="query-plugin" label="Querying Infrahub with the Query Plugin" default>
+
+```yaml title="query_infrahub.yml"
+- name: Infrahub action plugin
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
+      ansible.builtin.set_fact:
+        variables:
+          device_name: "atl1-edge1"
+          enabled: true
+
+        query_dict:
+          InfraInterface:
+            '@filters': {enabled__value: '$enabled', device__name__value: '$device_name'}
+            edges:
+              node:
+                id: null
+                name:
+                  value: null
+                ... on InfraInterfaceL3:
+                  ip_addresses:
+                    edges:
+                      node:
+                        address:
+                          value: null
+                ... on InfraInterfaceL2:
+                  tagged_vlan:
+                    edges:
+                      node:
+                        vlan_id:
+                          value: null
+                        name:
+                          value: null
+                  untagged_vlan:
+                    node:
+                      vlan_id:
+                          value: null
+                      name:
+                        value: null
+
+    - name: Execute Query Plugin
+      opsmill.infrahub.query_graphql:
+        query: "{{ query_dict }}"
+        graph_variables: "{{ variables }}"
+```
+
+* The `query_dict` defines a **GraphQL query structure**.
+* The query filters devices by `name` and interfaces by `enabled`.
+* The **`opsmill.infrahub.query_graphql`** plugin executes the query and returns the results.
+
+To run the query playbook, use:
+
+```bash
+ansible-playbook query_infrahub.yml
+```
+
+This executes the query and fetches data dynamically from **Infrahub**.
+
+<details>
+<summary><b>Example Output from Query plugin</b></summary>
+
+```console
+ok: [localhost] => {
+    "msg": {
+        "edges": [
+            {
+                "node": {
+                    "id": "18219d8a-5417-acae-2dbc-c5156eefb194",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.0/31"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet1"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-afcc-3d1b-2db4-c510fcc52b8a",
+                    "ip_addresses": {
+                        "edges": []
+                    },
+                    "name": {
+                        "value": "Ethernet10"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-b7bc-dc82-2dba-c51741f8258e",
+                    "name": {
+                        "value": "Ethernet11"
+                    },
+                    "tagged_vlan": {
+                        "edges": []
+                    },
+                    "untagged_vlan": {
+                        "node": {
+                            "name": {
+                                "value": "atl1_server"
+                            },
+                            "vlan_id": {
+                                "value": 200
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-d71d-e7d1-2dba-c515e35ae516",
+                    "name": {
+                        "value": "Ethernet12"
+                    },
+                    "tagged_vlan": {
+                        "edges": []
+                    },
+                    "untagged_vlan": {
+                        "node": {
+                            "name": {
+                                "value": "atl1_server"
+                            },
+                            "vlan_id": {
+                                "value": 200
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-7e5a-df0a-2db2-c51e9967f805",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.2/31"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet2"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-8673-961c-2db0-c5179da68d60",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.20/31"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet3"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-8a01-a4b8-2db8-c51c7024f9dd",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.1.0.24/31"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet4"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-8d42-143c-2dbf-c51a0cc428a9",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "203.111.0.1/29"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet5"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-63d4-9267-2db4-c518a51761cf",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "203.111.0.9/29"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet6"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-8e96-24cf-2db4-c51ba3de6b92",
+                    "ip_addresses": {
+                        "edges": []
+                    },
+                    "name": {
+                        "value": "Ethernet7"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-921b-2dd9-2dbb-c519044a4a98",
+                    "ip_addresses": {
+                        "edges": []
+                    },
+                    "name": {
+                        "value": "Ethernet8"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-95ce-829d-2dbd-c519355daf70",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "203.111.0.17/29"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Ethernet9"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d89-dbf4-92da-2dbd-c51e7009abd0",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "10.0.0.1/32"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Loopback0"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8a-3900-2637-2db7-c511a30b601a",
+                    "ip_addresses": {
+                        "edges": [
+                            {
+                                "node": {
+                                    "address": {
+                                        "value": "172.16.0.1/16"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "name": {
+                        "value": "Management0"
+                    }
+                }
+            },
+            {
+                "node": {
+                    "id": "18219d8b-dfe6-4944-2db9-c511dc191dc6",
+                    "name": {
+                        "value": "port-channel1"
+                    }
+                }
+            }
+        ]
+    }
+}
+```
+
+</details>
+</TabItem>
+<TabItem value="lookup-plugin" label="Querying Infrahub with the Lookup Plugin" default>
+This example retrieves a list of all locations (`LocationSite`) from Infrahub and prints them.
+
+```yaml title="lookup_infrahub.yml"
+- name: Infrahub lookup
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACT OF STRING
+      ansible.builtin.set_fact:
+        query_string: |
+          query {
+            LocationSite {
+              edges {
+                node {
+                  name {
+                    value
+                  }
+                }
+              }
+            }
+          }
+
+    - name: Obtain list of sites from Infrahub
+      ansible.builtin.set_fact:
+        query_response: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"
+
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "{{ query_response }}"
+```
+
+* The `query_string` defines a **GraphQL query** to retrieve **all locations**.
+* The **`opsmill.infrahub.lookup`** plugin executes the query.
+* The result is stored in `query_response` and printed.
+
+To run the lookup playbook, use:
+
+```bash
+ansible-playbook lookup_infrahub.yml
+```
+
+This executes the lookup and retrieves the requested data.
+
+<details>
+<summary><b>Example Output from lookup playbook</b></summary>
+
+```console
+PLAY [Infrahub lookup] *************************************************************************************************************************************
+
+TASK [SET FACT OF STRING] **********************************************************************************************************************************
+ok: [localhost]
+
+TASK [Obtain list of sites from Infrahub] ******************************************************************************************************************
+ok: [localhost]
+
+TASK [Print result] ****************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        {
+            "node": {
+                "name": {
+                    "value": "atl1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "den1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "dfw1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "jfk1"
+                }
+            }
+        },
+        {
+            "node": {
+                "name": {
+                    "value": "ord1"
+                }
+            }
+        }
+    ]
+}
+```
+
+</details>
+</TabItem>
+</Tabs>
+
+## Conclusion
+
+Both the Query Plugin and Lookup Plugin allow you to perform GraphQL queries against Infrahub, but they are tailored to different usage patterns in your Ansible playbooks.
+Use the Query Plugin when you want to execute complex, structured queries with variables as an action, and the Lookup Plugin when you prefer a simpler query string approach for integrating query results directly into variables.

@@ -2,7 +2,7 @@
 - name: Configure Infrahub systemd service
   ansible.builtin.template:
     src: infrahub.service.j2
-    dest: "{{ infrahub_systemd_directory }}/infrahub.service"
+    dest: "{{ install_infrahub_systemd_directory }}/infrahub.service"
     owner: root
     group: root
     mode: "644"

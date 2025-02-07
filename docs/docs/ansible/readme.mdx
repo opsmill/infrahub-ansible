@@ -16,6 +16,9 @@ To begin using the OpsMill InfraHub Ansible Collection, please follow our step-b
 
 * **[Installation Guide](./guides/installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
 * **[Dynamic Inventory Guide](./guides/dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
+* **[Query & Lookup Guide](./guides/query-and-lookup.mdx)**: Learn how to retrieve structured GraphQL data from Infrahub using Query and Lookup plugins.
+* **[Create Nodes Guide](./guides/create-node.mdx)**: Learn how to create nodes in Infrahub by sending structured GraphQL mutations or with the help of our SDK.
+* **[Create Branch Guide](./guides/create-branch.mdx)**: Learn how to create Branch in Infrahub.
 
 ## References
 
@@ -26,7 +29,12 @@ These are the plugins in the `opsmill.infrahub` collection:
 #### Modules
 
 <!-- vale off -->
-* [query_graphql](./references/plugins/query_graphql_module) – Queries and returns elements from Infrahub GraphQL API* [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
+
+* [create_branch](./references/plugins/create_branch_module) – Creates a new branch in Infrahub
+* [query_graphql](./references/plugins/query_graphql_module) – Queries and returns elements from Infrahub GraphQL API
+* [create_node](./references/plugins/create_node_module) – Creates nodes in Infrahub
+* [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
+
 <!-- vale on -->
 
 #### Inventory

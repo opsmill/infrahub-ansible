@@ -1,0 +1,59 @@
+---
+- name: Create hierarchical nodes and branch
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    # Using node mode
+    - name: Create a LocationContinent 'europe'
+      opsmill.infrahub.create_node:
+        kind: "LocationContinent"
+        data:
+          name: "europe"
+
+    - name: Create a LocationCountry 'netherlands'
+      opsmill.infrahub.create_node:
+        kind: "LocationCountry"
+        data:
+          name: "netherlands"
+          parent: "europe"
+
+    - name: Create a LocationSite 'ams'
+      opsmill.infrahub.create_node:
+        kind: "LocationSite"
+        data:
+          name: "ams1"
+          parent: "netherlands"
+
+    - name: Create a Branch 'test'
+      opsmill.infrahub.create_branch:
+        name: "test"
+        sync_with_git: false
+        description: "This is a test branch"
+
+    - name: Create a Platform 'Test Plaform'
+      opsmill.infrahub.create_node:
+        kind: "InfraPlatform"
+        branch: "test"
+        data:
+          name: "Test Platform"
+
+    - name: Should fail as the plaform is not present in main
+      opsmill.infrahub.create_node:
+        kind: "InfraDevice"
+        data:
+          name: "ams1-sw2"
+          type: "MX204"
+          site: "ams1"
+          platform: "Test Platform"
+      ignore_errors: true
+
+    - name: Create a InfraDevice 'ams1-sw2' in branch 'test'
+      opsmill.infrahub.create_node:
+        kind: "InfraDevice"
+        branch: "test"
+        data:
+          name: "ams1-sw2"
+          type: "MX204"
+          site: "ams1"
+          platform: "Test Platform"

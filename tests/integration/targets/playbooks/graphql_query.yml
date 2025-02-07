@@ -11,25 +11,40 @@
           enabled: true
 
         query_dict:
-          InfraDevice:
-            '@filters': {name__value: '$device_name'}
+          InfraInterface:
+            '@filters': {enabled__value: '$enabled', device__name__value: '$device_name'}
             edges:
               node:
+                id: null
                 name:
                   value: null
-                interfaces:
-                  '@filters': {enabled__value: '$enabled'}
-                  edges:
+                ... on InfraInterfaceL3:
+                  ip_addresses:
+                    edges:
+                      node:
+                        address:
+                          value: null
+                ... on InfraInterfaceL2:
+                  tagged_vlan:
+                    edges:
+                      node:
+                        vlan_id:
+                          value: null
+                        name:
+                          value: null
+                  untagged_vlan:
                     node:
+                      vlan_id:
+                        value: null
                       name:
                         value: null
 
-    - name: Action Plugin
+    - name: Action Plugin to retrieve Interfaces of '{{ variables.device_name }}'
       opsmill.infrahub.query_graphql:
         query: "{{ query_dict }}"
         graph_variables: "{{ variables }}"
-      register: query_response
+        update_hostvars: true
 
-    - name: Print result
+    - name: Print InfraInterface from ansible_facts
       ansible.builtin.debug:
-        msg: "{{ query_response }}"
+        msg: "{{ ansible_facts.InfraInterface }}"

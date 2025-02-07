@@ -11,7 +11,7 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-linter
   cancel-in-progress: true
 
 env:
@@ -45,14 +45,6 @@ jobs:
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v4"
-      - name: "Identify which files have changed"
-        uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          filters: |
-            src:
-              - '**.yml'
-              - '**.yaml'
       - name: "Setup environment"
         run: "pip install yamllint==${{ env.YAMLLINT_VERSION }}"
       - name: "Linting: yamllint"
@@ -96,23 +88,12 @@ jobs:
       - name: "Linting: ruff format"
         run: "poetry run ruff format --check --diff ."
 
-  ansible-lint:
-    name: ansible-lint
-    runs-on: "ubuntu-22.04"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run ansible-lint
-        uses: ansible/ansible-lint-action@v6
-
   documentation-lint:
     defaults:
       run:
         working-directory: ./docs
     if: needs.files-changed.outputs.documentation == 'true'
-    needs: ["files-changed", "yaml-lint", "python-lint"]
+    needs: ["files-changed", "python-lint"]
     runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:
@@ -134,7 +115,7 @@ jobs:
         run: "invoke docusaurus"
 
   validate-documentation-style:
-    needs: ["files-changed", "yaml-lint", "python-lint"]
+    needs: ["files-changed", "python-lint"]
     runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:

@@ -1,0 +1,51 @@
+---
+- name: Create BuiltinTag using Query module and retrieved them
+  gather_facts: false
+  hosts: localhost
+  vars:
+    infrahub_tags:
+      - name: my-tag10
+        description: "This is tag 10 description"
+      - name: my-tag11
+        description: "This is tag 11 description"
+
+  tasks:
+    - name: Create tags
+      opsmill.infrahub.query_graphql:
+        query: |
+          mutation CreateTag($name: String!, $description: String!) {
+            BuiltinTagCreate(
+              data: {
+                name: {value: $name},
+                description: {value: $description}
+              }
+            ) {
+              ok
+              object {
+                id
+              }
+            }
+          }
+        graph_variables:
+          name: "{{ item.name }}"
+          description: "{{ item.description }}"
+      loop: "{{ infrahub_tags }}"
+      register: created_tags
+
+    - name: Query created tags
+      opsmill.infrahub.query_graphql:
+        query:
+          BuiltinTag:
+            '@filters': {name__values: "{{ infrahub_tags | map(attribute='name') | list }}"}
+            edges:
+              node:
+                id: null
+                name:
+                  value: null
+                description:
+                  value: null
+      register: queried_tags
+
+    - name: Show queried tags
+      ansible.builtin.debug:
+        var: queried_tags

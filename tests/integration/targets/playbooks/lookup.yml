@@ -19,11 +19,6 @@
             }
           }
 
-    - name: Obtain list of sites from Infrahub
-      ansible.builtin.set_fact:
-        query_response: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"
-      register: query_response
-
     - name: Print result
       ansible.builtin.debug:
-        msg: "{{ query_response }}"
+        msg: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"

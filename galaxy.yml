@@ -50,7 +50,7 @@ tags:
 repository: https://github.com/opsmill/infrahub-ansible
 
 # The URL to any online docs
-documentation: https://infrahub-ansible.readthedocs.io/en/latest/
+documentation: https://docs.infrahub.app/ansible/ansible
 
 # The URL to the homepage of the collection/project
 homepage: https://www.opsmill.com/

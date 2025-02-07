@@ -9,8 +9,9 @@ const sidebars: SidebarsConfig = {
       items: [
         'ansible/guides/installation',
         'ansible/guides/dynamic-inventory',
-        'ansible/guides/lookup',
-        'ansible/guides/query',
+        'ansible/guides/query-and-lookup',
+        'ansible/guides/create-node',
+        'ansible/guides/create-branch',
       ],
     },
     {
@@ -21,6 +22,8 @@ const sidebars: SidebarsConfig = {
         'ansible/references/plugins/lookup_lookup',
         'ansible/references/plugins/artifact_fetch_module',
         'ansible/references/plugins/query_graphql_module',
+        'ansible/references/plugins/create_node_module',
+        'ansible/references/plugins/create_branch_module',
         // 'ansible/references/roles',
       ],
     },

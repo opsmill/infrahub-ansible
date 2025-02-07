@@ -57,30 +57,37 @@ def handle_infrahub_exceptions(display: Display | None) -> Callable[[Callable], 
             except GraphQLError as exc:
                 msg1 = f"A GraphQL error occurred while executing Infrahub operation. {args}"
                 msg2 = f"Parameters: {kwargs}"
+                # Extract error messages from GraphQL response if available
+                error_msg = str(exc)
+                if hasattr(exc, "errors"):
+                    error_messages = [err.get("message", "") for err in exc.errors]
+                    error_msg = ", ".join(error_messages)
                 if display:
                     display.warning(msg1)
-                    display.debug(f"GraphQLError: {exc}")
+                    display.warning(f"Reason: {error_msg}")
+                    display.verbose(f"Full error: {exc}", caplevel=4)
                     display.verbose(msg2, caplevel=2)
+
             except SchemaNotFoundError as exc:
                 msg1 = f"An error occurred while looking for a Schema in Infrahub. {args}"
                 msg2 = f"Parameters: {kwargs}"
                 if display:
                     display.warning(msg1)
-                    display.debug(f"SchemaNotFoundError: {exc}")
+                    display.verbose(f"Full error: {exc}", caplevel=4)
                     display.verbose(msg2, caplevel=2)
             except (ServerNotReachableError, ServerNotResponsiveError) as exc:
                 msg1 = f"Server became unreacheable or unresponsive while executing Infrahub operation. {args}"
                 msg2 = f"Parameters: {kwargs}"
                 if display:
                     display.error(msg1)
-                    display.debug(f"ServerNotResponsiveError: {exc}")
+                    display.verbose(f"Full error: {exc}", caplevel=4)
                     display.verbose(msg2, caplevel=2)
             except Exception as exc:
                 msg1 = f"An unexpected error occurred while executing Infrahub operation. {args}"
                 msg2 = f"Parameters: {kwargs}"
                 if display:
                     display.warning(msg1)
-                    display.debug(f"Error: {exc}")
+                    display.verbose(f"Full error: {exc}", caplevel=4)
                     display.verbose(msg2, caplevel=2)
 
         return wrapper

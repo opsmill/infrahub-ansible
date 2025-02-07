@@ -1,4 +1,17 @@
 ---
+profile: production
+
 exclude_paths:
-    - .github/
-    - changelogs/changelog.yaml
+  - .cache/ # implicit unless exclude_paths is defined in config
+  - .venv/
+  - .github/
+  - tests/
+  - docs/node_modules/
+
+skip_list:
+  - args[module]
+  - no-handler
+  - yaml[key-duplicates]
+  - yaml[line-length]
+
+offline: false

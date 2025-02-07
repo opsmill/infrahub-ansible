@@ -4,7 +4,7 @@
 
 # This inventory will retrieve the InfraDevice matching *all* the filters.
 # So it will retrieved the InfraDevice present on site 'jfk1' with the role 'edge'
-# For all those InfraDevice, it will retrieved the differents Attribute & Relationships requested in `include`.
+# For all those InfraDevice, it will retrieved the Attribute & Relationships requested in `include`.
 # The InfraDevice will be grouped by the Platform ansible_network_os without prefix or seperator
 # Several extra variable will be compose based on the retrieved Attribute and Relationship
 # We are overriting the retrieved variable `platform` to have a string instead of a dict
