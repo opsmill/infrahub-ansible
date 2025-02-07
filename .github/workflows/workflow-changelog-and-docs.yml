@@ -4,15 +4,18 @@ name: "Update Documentation"
 
 on:
   workflow_call:
-    inputs:
-      version:
-        required: true
-        type: string
+  workflow_dispatch:
 
 jobs:
   generate_docs:
     runs-on: "ubuntu-22.04"
     name: "Create Docs"
+    strategy:
+      matrix:
+        python-version:
+          - "3.12"
+        poetry-version:
+          - "1.8.5"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,21 +25,21 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v5"
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
       - name: "Install Poetry"
         uses: "snok/install-poetry@v1"
         with:
-          version: 1.8.5
+          version: ${{ matrix.poetry-version }}
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
 
       - name: Install dependencies
-        run: poetry install --with dev
+        run: "poetry install --no-interaction --no-ansi --no-root --with dev"
 
       - name: "Generate Docs"
-        run: "invoke generate-doc"
+        run: "poetry run invoke generate-doc"
 
       - name: commit docs
         uses: github-actions-x/commit@v2.9
