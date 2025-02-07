@@ -13,45 +13,25 @@ files = [
 
 [[package]]
 name = "ansible-compat"
-version = "24.10.0"
+version = "25.1.2"
 description = "Ansible compatibility goodies"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 files = [
-    {file = "ansible_compat-24.10.0-py3-none-any.whl", hash = "sha256:0415bcd82f7d84e5b344c03439154c1f16576809dc3a523b81178354c86ae5a1"},
-    {file = "ansible_compat-24.10.0.tar.gz", hash = "sha256:0ad873e0dae8b2de79bc33ced813d6c92c716c4d7b82f9a4693e1fd57f43776e"},
+    {file = "ansible_compat-25.1.2-py3-none-any.whl", hash = "sha256:02436ba6011d283aa3346b703f4c6379d4609443d333654a187cec7895787124"},
+    {file = "ansible_compat-25.1.2.tar.gz", hash = "sha256:0dc51fc1cb35a1dd060ec977290a1290f434bb3e81c864b6375762767c035b25"},
 ]
 
 [package.dependencies]
-ansible-core = ">=2.14"
+ansible-core = ">=2.16"
 jsonschema = ">=4.6.0"
 packaging = "*"
 PyYAML = "*"
 subprocess-tee = ">=0.4.1"
-typing-extensions = {version = ">=4.5.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 docs = ["argparse-manpage", "black", "mkdocs-ansible (>=24.3.1)"]
-test = ["coverage", "pip", "pytest (>=7.2.0)", "pytest-mock", "pytest-plus (>=0.6.1)", "uv (>=0.4.30)"]
-
-[[package]]
-name = "ansible-core"
-version = "2.15.13"
-description = "Radically simple IT automation"
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "ansible_core-2.15.13-py3-none-any.whl", hash = "sha256:e7f50bbb61beae792f5ecb86eff82149d3948d078361d70aedb01d76bc483c30"},
-    {file = "ansible_core-2.15.13.tar.gz", hash = "sha256:f542e702ee31fb049732143aeee6b36311ca48b7d13960a0685afffa0d742d7f"},
-]
-
-[package.dependencies]
-cryptography = "*"
-importlib-resources = {version = ">=5.0,<5.1", markers = "python_version < \"3.10\""}
-jinja2 = ">=3.0.0"
-packaging = "*"
-PyYAML = ">=5.1"
-resolvelib = ">=0.5.3,<1.1.0"
+test = ["coverage", "pip", "pytest (>=7.2.0)", "pytest-instafail", "pytest-mock", "pytest-plus (>=0.6.1)", "uv (>=0.4.30)"]
 
 [[package]]
 name = "ansible-core"
@@ -73,31 +53,37 @@ resolvelib = ">=0.5.3,<1.1.0"
 
 [[package]]
 name = "ansible-lint"
-version = "6.8.7"
+version = "25.1.2"
 description = "Checks playbooks for practices and behavior that could potentially be improved"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 files = [
-    {file = "ansible-lint-6.8.7.tar.gz", hash = "sha256:de3de4e57cd54e17c1ec3a0b4a21d4811838e77d67b56cbe8f91107f2a434432"},
-    {file = "ansible_lint-6.8.7-py3-none-any.whl", hash = "sha256:1824afce2a5619b47c19f6377a0d85b4f39e80b1fc1857191d6a908d68396bf9"},
+    {file = "ansible_lint-25.1.2-py3-none-any.whl", hash = "sha256:a7c84f67a9c4f37312f70c65a34ae2d7ffc6f756458b965141830ae721be62d8"},
+    {file = "ansible_lint-25.1.2.tar.gz", hash = "sha256:4d9de2726829ca700a9b4cc6d52506f5cc8e086ce52760131eb0aabfe7e61ce5"},
 ]
 
 [package.dependencies]
-ansible-compat = ">=2.2.5"
-ansible-core = {version = ">=2.12.0", markers = "python_version >= \"3.9\""}
-black = ">=22.1.0"
-filelock = "*"
-jsonschema = ">=4.17.0"
-packaging = "*"
-pyyaml = ">=5.4.1"
-rich = ">=12.6.0"
-"ruamel.yaml" = ">=0.17.21,<0.18"
-wcmatch = ">=8.4.1"
-yamllint = ">=1.28.0"
+ansible-compat = ">=25.1.2"
+ansible-core = ">=2.16.0"
+black = ">=24.3.0"
+filelock = ">=3.8.2"
+importlib-metadata = "*"
+jsonschema = ">=4.10.0"
+packaging = ">=22.0"
+pathspec = ">=0.10.3"
+pyyaml = ">=6.0.2"
+referencing = ">=0.36.2"
+"ruamel.yaml" = ">=0.18.5,<0.18.7 || >0.18.7,<0.18.8 || >0.18.8"
+subprocess-tee = ">=0.4.1"
+wcmatch = [
+    {version = ">=8.1.2", markers = "python_version < \"3.12\""},
+    {version = ">=8.5.0", markers = "python_version >= \"3.12\""},
+]
+yamllint = ">=1.34.0"
 
 [package.extras]
-docs = ["myst-parser (>=0.16.1)", "pipdeptree (>=2.2.1)", "sphinx (>=4.4.0)", "sphinx-ansible-theme (>=0.9.1)", "sphinx-rtd-theme (>=1.0.0,<2.0.0)", "sphinxcontrib-apidoc (>=0.3.0)", "sphinxcontrib-programoutput2 (>=2.0a1)"]
-test = ["black", "coverage-enable-subprocess", "coverage[toml] (>=6.4.4)", "flake8", "flake8-future-annotations", "flaky (>=3.7.0)", "mypy", "psutil", "pylint", "pytest (>=7.2.0)", "pytest-mock", "pytest-plus (>=0.2)", "pytest-xdist (>=2.1.0)"]
+docs = ["mkdocs-ansible (>=24.12.0)", "uv (>=0.5.5)"]
+test = ["black", "coverage-enable-subprocess", "coverage[toml] (>=6.4.4)", "jmespath", "license-expression (>=30.3.0)", "mypy", "netaddr", "pip", "psutil", "pylint", "pytest (>=7.2.2)", "pytest-instafail (>=0.5.0)", "pytest-mock", "pytest-plus (>=0.6)", "pytest-xdist[psutil,setproctitle] (>=2.1.0)", "ruamel-yaml-clib", "ruamel.yaml (>=0.17.31)", "tox (>=4.0.0)", "types-jsonschema", "types-pyyaml"]
 
 [[package]]
 name = "anyio"
@@ -681,20 +667,6 @@ paramiko = ["paramiko"]
 pgp = ["gpg"]
 
 [[package]]
-name = "eval-type-backport"
-version = "0.2.2"
-description = "Like `typing._eval_type`, but lets older Python versions use newer typing features."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "eval_type_backport-0.2.2-py3-none-any.whl", hash = "sha256:cb6ad7c393517f476f96d456d0412ea80f0a8cf96f6892834cd9340149111b0a"},
-    {file = "eval_type_backport-0.2.2.tar.gz", hash = "sha256:f0576b4cf01ebb5bd358d02314d31846af5e07678387486e2c798af0e7d849c1"},
-]
-
-[package.extras]
-tests = ["pytest"]
-
-[[package]]
 name = "exceptiongroup"
 version = "1.2.2"
 description = "Backport of PEP 654 (exception groups)"
@@ -748,9 +720,6 @@ files = [
     {file = "graphql_core-3.2.6-py3-none-any.whl", hash = "sha256:78b016718c161a6fb20a7d97bbf107f331cd1afe53e45566c59f776ed7f0b45f"},
     {file = "graphql_core-3.2.6.tar.gz", hash = "sha256:c08eec22f9e40f0bd61d805907e3b3b1b9a320bc606e23dc145eebca07c8fbab"},
 ]
-
-[package.dependencies]
-typing-extensions = {version = ">=4,<5", markers = "python_version < \"3.10\""}
 
 [[package]]
 name = "h11"
@@ -879,21 +848,6 @@ test = ["flufl.flake8", "importlib-resources (>=1.3)", "jaraco.test (>=5.4)", "p
 type = ["pytest-mypy"]
 
 [[package]]
-name = "importlib-resources"
-version = "5.0.7"
-description = "Read resources from Python packages"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "importlib_resources-5.0.7-py3-none-any.whl", hash = "sha256:2238159eb743bd85304a16e0536048b3e991c531d1cd51c4a834d1ccf2829057"},
-    {file = "importlib_resources-5.0.7.tar.gz", hash = "sha256:4df460394562b4581bb4e4087ad9447bd433148fba44241754ec3152499f1d1b"},
-]
-
-[package.extras]
-docs = ["jaraco.packaging (>=8.2)", "rst.linker (>=1.9)", "sphinx"]
-testing = ["pytest (>=3.5,!=3.7.3)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=1.2.3)", "pytest-cov", "pytest-enabler", "pytest-flake8", "pytest-mypy"]
-
-[[package]]
 name = "infrahub-sdk"
 version = "1.7.1"
 description = "Python Client to interact with Infrahub"
@@ -906,7 +860,6 @@ files = [
 
 [package.dependencies]
 dulwich = ">=0.21.4,<0.22.0"
-eval-type-backport = {version = ">=0.2.2,<0.3.0", markers = "python_version >= \"3.9\" and python_version < \"3.10\""}
 graphql-core = ">=3.1,<3.3"
 httpx = [
     {version = ">=0.20", markers = "python_version >= \"3.9\" and python_version < \"3.11\""},
@@ -1997,13 +1950,13 @@ files = [
 
 [[package]]
 name = "ruamel-yaml"
-version = "0.17.40"
+version = "0.18.10"
 description = "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order"
 optional = false
-python-versions = ">=3"
+python-versions = ">=3.7"
 files = [
-    {file = "ruamel.yaml-0.17.40-py3-none-any.whl", hash = "sha256:b16b6c3816dff0a93dca12acf5e70afd089fa5acb80604afd1ffa8b465b7722c"},
-    {file = "ruamel.yaml-0.17.40.tar.gz", hash = "sha256:6024b986f06765d482b5b07e086cc4b4cd05dd22ddcbc758fa23d54873cf313d"},
+    {file = "ruamel.yaml-0.18.10-py3-none-any.whl", hash = "sha256:30f22513ab2301b3d2b577adc121c6471f28734d3d9728581245f1e76468b4f1"},
+    {file = "ruamel.yaml-0.18.10.tar.gz", hash = "sha256:20c86ab29ac2153f80a428e1254a8adf686d3383df04490514ca3b79a362db58"},
 ]
 
 [package.dependencies]
@@ -2431,5 +2384,5 @@ type = ["pytest-mypy"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.9,<3.13"
-content-hash = "5c6b86d0cedf9b1f274ba66ddc6a1864fbca4e37070b70b1fe3b4d9bbbd71715"
+python-versions = ">=3.10,<3.13"
+content-hash = "1a8e7f8116c39d8ce34e0304ebcb9f85c83e0f614313a70afa583dc2908d79e8"

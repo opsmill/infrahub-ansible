@@ -9,55 +9,58 @@ on:
         required: false
         default: "ubuntu-22.04"
         type: string
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-jobs:
-  sanity-tests:
-    name: Sanity (Ⓐ${{ matrix.ansible-version }}-py${{ matrix.python-version }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # FIXME: Sanity test complain about __future__ imports formatting
-          # # Ansible versions stable-2.16
-          # # Python 3.9, 3.10, 3.11, and 3.12
-          # - python-version: "3.9"
-          #   ansible-version: stable-2.16
-          # - python-version: "3.10"
-          #   ansible-version: stable-2.16
-          # - python-version: "3.11"
-          #   ansible-version: stable-2.16
-          # - python-version: "3.12"
-          #   ansible-version: stable-2.16
-          # Ansible stable-2.17, stable-2.18
-          # Python 3.9, 3.10, 3.11, and 3.12
-          - python-version: "3.9"
-            ansible-version: stable-2.17
-          - python-version: "3.10"
-            ansible-version: stable-2.17
-          - python-version: "3.11"
-            ansible-version: stable-2.17
-          - python-version: "3.12"
-            ansible-version: stable-2.17
-          - python-version: "3.9"
-            ansible-version: stable-2.18
-          - python-version: "3.10"
-            ansible-version: stable-2.18
-          - python-version: "3.11"
-            ansible-version: stable-2.18
-          - python-version: "3.12"
-            ansible-version: stable-2.18
-    runs-on: "ubuntu-22.04"
-    steps:
-      - name: Perform sanity testing
-        uses: ansible-community/ansible-test-gh-action@v1.16.0
-        with:
-          ansible-core-version: ${{ matrix.ansible-version }}
-          target-python-version: ${{ matrix.python-version }}
-          testing-type: sanity
+# jobs:
+#   sanity-tests:
+#     name: Sanity (Ⓐ${{ matrix.ansible-version }}-py${{ matrix.python-version }})
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         include:
+#           # FIXME: Sanity test complain about __future__ imports formatting
+#           # # Ansible versions stable-2.16
+#           # # Python 3.9, 3.10, 3.11, and 3.12
+#           # - python-version: "3.9"
+#           #   ansible-version: stable-2.16
+#           # - python-version: "3.10"
+#           #   ansible-version: stable-2.16
+#           # - python-version: "3.11"
+#           #   ansible-version: stable-2.16
+#           # - python-version: "3.12"
+#           #   ansible-version: stable-2.16
+#           # Ansible stable-2.17, stable-2.18
+#           # Python 3.9, 3.10, 3.11, and 3.12
+#           - python-version: "3.9"
+#             ansible-version: stable-2.17
+#           - python-version: "3.10"
+#             ansible-version: stable-2.17
+#           - python-version: "3.11"
+#             ansible-version: stable-2.17
+#           - python-version: "3.12"
+#             ansible-version: stable-2.17
+#           - python-version: "3.9"
+#             ansible-version: stable-2.18
+#           - python-version: "3.10"
+#             ansible-version: stable-2.18
+#           - python-version: "3.11"
+#             ansible-version: stable-2.18
+#           - python-version: "3.12"
+#             ansible-version: stable-2.18
+#     runs-on: "ubuntu-22.04"
+#     steps:
+#       - name: Perform sanity testing
+#         uses: ansible-community/ansible-test-gh-action@v1.16.0
+#         with:
+#           ansible-core-version: ${{ matrix.ansible-version }}
+#           target-python-version: ${{ matrix.python-version }}
+#           testing-type: sanity
 
   # unit-tests:
   #   strategy:
@@ -112,3 +115,35 @@ jobs:
 
   #     - name: "Unit Tests"
   #       run: "invoke integration-unit"
+
+jobs:
+  build-import:
+    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@main
+  ansible-lint:
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+  sanity:
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
+  unit-galaxy:
+    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
+  unit-source:
+    uses: ansible-network/github_actions/.github/workflows/unit_source.yml@main
+    with:
+      collection_pre_install: >-
+        git+https://github.com/ansible-collections/ansible.utils.git
+  all_green:
+    if: ${{ always() }}
+    needs:
+      - sanity
+      - ansible-lint
+      - unit-galaxy
+      - unit-source
+    runs-on: ubuntu-latest
+    steps:
+      - run: >-
+          python -c "assert 'failure' not in
+          set([
+          '${{ needs.sanity.result }}',
+          '${{ needs.unit-galaxy.result }}',
+          '${{ needs.unit-source.result }}',
+          '${{ needs.ansible-lint.result }}'
+          ])"
