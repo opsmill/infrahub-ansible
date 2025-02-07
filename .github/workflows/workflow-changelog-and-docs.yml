@@ -39,7 +39,7 @@ jobs:
         run: "poetry install --no-interaction --no-ansi --no-root --with dev"
 
       - name: "Generate Docs"
-        run: "invoke generate-doc"
+        run: "poetry run invoke generate-doc"
 
       - name: commit docs
         uses: github-actions-x/commit@v2.9
