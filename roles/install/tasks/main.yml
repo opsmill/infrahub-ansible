@@ -17,7 +17,7 @@
   ansible.builtin.get_url:
     url: "{{ install_infrahub_url }}"
     dest: "{{ install_infrahub_install_directory }}/docker-compose.yml"
-    mode: "0640"
+    mode: "0644"
     force_basic_auth: true
     username: "{{ install_infrahub_url_username | default(omit) }}"
     password: "{{ install_infrahub_url_password | default(omit) }}"

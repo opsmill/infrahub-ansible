@@ -27,15 +27,15 @@ This role requires:
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `infrahub_version` | `str` | | Version of Infrahub to install. Can be any Docker image tag name. |
-| `infrahub_url` | `str` | `https://infrahub.opsmill.io` | URL from where to fetch the Infrahub docker-compose file. |
-| `infrahub_install_directory` | `str` | `/opt/infrahub` | Install directory for the Infrahub files (docker-compose and configuration file). |
-| `infrahub_config` | `dict` | | Environment variables to pass as configuration for Infrahub. |
-| `infrahub_docker_project` | `str` | `infrahub` | Docker project name to use when starting Infrahub. |
-| `infrahub_docker_pull_images` | `bool` | `true` | Whether to pull the required Docker images. |
-| `infrahub_setup_systemd` | `bool` | `true` | Whether to install the `systemd` service for Infrahub. |
-| `infrahub_systemd_directory` | `str` | `/etc/systemd/system/` | Where to install the `systemd` service unit file. |
-| `infrahub_systemd_service_state` | `str` | `restarted` | Target state of the `systemd` service. Can be used to avoid starting Infrahub during the role's execution. |
+| `install_infrahub_version` | `str` | | Version of Infrahub to install. Can be any Docker image tag name. |
+| `install_infrahub_url` | `str` | `https://infrahub.opsmill.io` | URL from where to fetch the Infrahub docker-compose file. |
+| `install_infrahub_install_directory` | `str` | `/opt/infrahub` | Install directory for the Infrahub files (docker-compose and configuration file). |
+| `install_infrahub_config` | `dict` | | Environment variables to pass as configuration for Infrahub. |
+| `install_infrahub_docker_project` | `str` | `infrahub` | Docker project name to use when starting Infrahub. |
+| `install_infrahub_docker_pull_images` | `bool` | `true` | Whether to pull the required Docker images. |
+| `install_infrahub_setup_systemd` | `bool` | `true` | Whether to install the `systemd` service for Infrahub. |
+| `install_infrahub_systemd_directory` | `str` | `/etc/systemd/system/` | Where to install the `systemd` service unit file. |
+| `install_infrahub_systemd_service_state` | `str` | `restarted` | Target state of the `systemd` service. Can be used to avoid starting Infrahub during the role's execution. |
 
 # Installation example
 
@@ -52,7 +52,7 @@ For a basic installation with default settings:
   roles:
     - role: opsmill.infrahub.install
       vars:
-        infrahub_version: "latest"
+        install_infrahub_version: "latest"
 
 ```
 
@@ -71,12 +71,12 @@ For a production environment with custom configuration:
   roles:
     - role: opsmill.infrahub.install
       vars:
-        infrahub_version: "2.0.0"
-        infrahub_install_directory: "/usr/local/infrahub"
-        infrahub_docker_project: "infrahub_prod"
-        infrahub_docker_pull_images: true
-        infrahub_setup_systemd: true
-        infrahub_systemd_service_state: "started"
+        install_infrahub_version: "2.0.0"
+        install_infrahub_install_directory: "/usr/local/infrahub"
+        install_infrahub_docker_project: "infrahub_prod"
+        install_infrahub_docker_pull_images: true
+        install_infrahub_setup_systemd: true
+        install_infrahub_systemd_service_state: "started"
         infrahub_config:
           INFRAHUB_ADMIN_EMAIL: "admin@example.com"
           INFRAHUB_ADMIN_PASSWORD: "secure_password"
