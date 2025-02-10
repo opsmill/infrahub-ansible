@@ -7,17 +7,17 @@ argument_specs:
       - This role requires Docker Engine with Docker Compose v2 to be installed.
 
     options:
-      infrahub_version:
+      install_infrahub_version:
         description:
           - Version of Infrahub to install.
           - Can be any Docker image tag name.
         type: str
-      infrahub_url:
+      install_infrahub_url:
         description:
           - URL from where to fetch the Infrahub docker-compose file.
         type: str
         default: https://infrahub.opsmill.io
-      infrahub_install_directory:
+      install_infrahub_install_directory:
         description:
           - Install directory for the Infrahub files (docker-compose and configuration file).
         type: str
@@ -26,27 +26,27 @@ argument_specs:
         description:
           - Environment variables to pass as configuration for Infrahub.
         type: dict
-      infrahub_docker_project:
+      install_infrahub_docker_project:
         description:
           - Docker project name to use when starting Infrahub.
         type: str
         default: infrahub
-      infrahub_docker_pull_images:
+      install_infrahub_docker_pull_images:
         description:
           - Whether to pull the required Docker images.
         type: bool
         default: true
-      infrahub_setup_systemd:
+      install_infrahub_setup_systemd:
         description:
           - Whether to install the systemd service for Infrahub.
         type: bool
         default: true
-      infrahub_systemd_directory:
+      install_infrahub_systemd_directory:
         description:
           - Where to install the systemd service unit file.
         type: str
         default: /etc/systemd/system/
-      infrahub_systemd_service_state:
+      install_infrahub_systemd_service_state:
         description:
           - Target state of the systemd service.
           - Can be used to avoid starting Infrahub during the role's execution.
