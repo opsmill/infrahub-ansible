@@ -1,0 +1,71 @@
+---
+title: inventory
+description: Infrahub inventory source (using GraphQL)
+---
+
+# Inventory inventory
+
+Get inventory hosts from Infrahub
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `plugin` | `` | Yes |  | token that ensures this is a source file for the 'opsmill.infrahub' plugin. |
+| `api_endpoint` | `` | Yes |  | Endpoint of the Infrahub API |
+| `token` | `` | Yes |  | Infrahub API token to be able to read against Infrahub. |
+| `timeout` | `int` | No | 10 | Timeout for Infrahub requests in seconds |
+| `nodes` | `dict` | Yes |  | Configuration for specific node types within Infrahub. Defines the attributes to include or exclude for each node. |
+| `branch` | `str` | No | main | Branch in which the request is made |
+| `compose` | `dict` | No | {} | List of custom Ansible host vars to create from the objects fetched from Infrahub |
+| `keyed_groups` | `list` | No | [] | Create groups based on attributes or relationships. groups is created as `attribute__value` |
+| `groups` | `dict` | No | {} | Create groups based on jinja filter. |
+| `validate_certs` | `` | No | True | Whether or not to validate SSL of the Infrahub instance |
+
+## Examples
+
+```yaml
+# inventory.yml file in YAML format
+# Example command line: ansible-inventory -v --list -i .yml
+# Add -vvv to the command to also see the GraphQL query that gets sent in the debug output.
+# Add -vvvv to the command to also see the JSON response that comes back in the debug output.
+
+# Minimum required parameters
+plugin: opsmill.infrahub.inventory
+api_endpoint: http://localhost:8000  # Can be omitted if the INFRAHUB_ADDRESS environment variable is set
+token: 1234567890123456478901234567  # Can be omitted if the INFRAHUB_API_TOKEN environment variable is set
+
+# Complete Example
+# This will :
+# - Retrieve in the branch "branch1" attributes for the Node Kind "InfraDevice"
+# - The attributes wanted for "InfraDevice" are forced with the keyword "include"
+# - Create 2 compose variable "hostname" ad "platform" (platform will override the attribute platform retrieved)
+# - Create group based on the "site" name
+
+strict: true
+
+branch: "branch1"
+
+nodes:
+  InfraDevice:
+    include:
+      - name
+      - platform.ansible_network_os
+      - primary_address.address
+      - site.name
+      - interfaces
+
+compose:
+  hostname: name
+  platform: platform.ansible_network_os
+
+keyed_groups:
+  - prefix: site
+    key: site.name
+```
+
+## Return values
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `_list` | `list` | list of composed dictionaries with key and value |
