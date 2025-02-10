@@ -11,7 +11,7 @@ MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-DOCS"
 
 DOCUMENTATION_DIRECTORY = Path("docs")
-ANSIBLE_DOCUMENTATION_DIRECTORY = DOCUMENTATION_DIRECTORY / "docs" / "ansible"
+ANSIBLE_DOCUMENTATION_DIRECTORY = DOCUMENTATION_DIRECTORY / "docs"
 PLUGINS_DIRECTORY = Path("plugins")
 
 PLUGIN_TYPES: dict[str, str] = {"modules": "module", "inventory": "inventory", "lookup": "lookup"}
