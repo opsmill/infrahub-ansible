@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "infrahub_ansible_modules"
-version = "1.4.0"
+version = "1.4.2"
 description = "Ansible collection to interact with Infrahub's API"
 authors = ["OpsMill <info@opsmill.com>"]
 package-mode = false
