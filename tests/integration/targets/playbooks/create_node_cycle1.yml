@@ -11,7 +11,15 @@
           name: "tag1"
         state: present
 
-    - name: Create tag1 (Changed=True)
+    - name: Update tag1 (Changed=True)
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          name: "tag1"
+          description: "new description"
+        state: present
+
+    - name: Existing tag1 (Changed=False)
       opsmill.infrahub.node:
         kind: "BuiltinTag"
         data:
