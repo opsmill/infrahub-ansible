@@ -1,7 +1,5 @@
 from __future__ import absolute_import, annotations, division, print_function
 
-from infrahub_sdk.node import generate_relationship_property
-
 __metaclass__ = type
 
 import traceback
@@ -24,6 +22,7 @@ try:
         InfrahubNodeSync,
         RelatedNodeSync,
         RelationshipManagerSync,
+        generate_relationship_property,
     )
     from infrahub_sdk.schema import (
         GenericSchemaAPI,
