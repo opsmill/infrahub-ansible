@@ -78,8 +78,8 @@ if HAS_INFRAHUBCLIENT:
             Initializes InfrahubclientWrapper.
 
             Parameters:
-                api_endpoint (str): API endpoint for the Toto service.
-                token (str): Toto API token.
+                api_endpoint (str): API endpoint for the Infrahub service.
+                token (str): Infrahub API token.
                 branch (str, optional): Branch in which the request is made.
                 timeout (int, optional): Timeout for Infrahub requests in seconds.
                 validate_certs (bool, optional): Whether or not to validate SSL of the Infrahub instance. Defaults to True
