@@ -10,6 +10,11 @@
         description: "This is a test branch"
         state: present
 
+    - name: Confirm a Branch 'test' exists
+      opsmill.infrahub.branch:
+        name: "test"
+        state: present
+
     - name: Delete a Branch 'test'
       opsmill.infrahub.branch:
         name: "test"

@@ -45,6 +45,8 @@ def _handle_exc(
             display.warning(msg1)
         display.verbose(f"Full error: {exc}", caplevel=4)
         display.verbose(msg2, caplevel=2)
+    elif exc.__class__ == BranchNotFoundError:
+        raise exc
     else:
         raise Exception(exc)
 

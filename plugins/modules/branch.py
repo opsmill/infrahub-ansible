@@ -111,7 +111,7 @@ def main():
         description=dict(required=False, type="str"),
     )
 
-    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     branch_module = BranchModule(module=module)
     branch_module.run()

@@ -1,5 +1,7 @@
 from __future__ import absolute_import, annotations, division, print_function
 
+from infrahub_sdk.node import generate_relationship_property
+
 __metaclass__ = type
 
 import traceback
@@ -17,7 +19,12 @@ try:
     from infrahub_sdk import Config, InfrahubClientSync
     from infrahub_sdk.exceptions import BranchNotFoundError
     from infrahub_sdk.graphql import Query
-    from infrahub_sdk.node import InfrahubNodeSync, RelatedNodeSync, RelationshipManagerSync
+    from infrahub_sdk.node import (
+        Attribute,
+        InfrahubNodeSync,
+        RelatedNodeSync,
+        RelationshipManagerSync,
+    )
     from infrahub_sdk.schema import (
         GenericSchemaAPI,
         NodeSchemaAPI,
@@ -26,6 +33,7 @@ try:
         RelationshipKind,
     )
     from infrahub_sdk.types import Order
+    from infrahub_sdk.utils import dict_hash
 
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None
@@ -695,7 +703,7 @@ if HAS_INFRAHUBCLIENT:
             if not schema:
                 raise Exception(f"Non-existing kind '{kind}'")
 
-            # Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/268
+            # TODO: Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/268
             validation_errors = []
             validation_errors.extend(
                 f"Required attribute '{attr.name}' missing for '{kind}"
@@ -718,14 +726,42 @@ if HAS_INFRAHUBCLIENT:
 
             try:
                 node = self.client.create_node(kind=kind, data=data)
-                self.client.save_node(node=node)
-
             except Exception as exc:
-                raise Exception(f"Failed to save node with {data} for kind '{kind}' due to {exc}")
+                raise Exception(f"Failed to create node with {data} for kind '{kind}' due to {exc}")
+
+            return node
+
+        def save_node(self, node: InfrahubNodeSync) -> None:
+            """
+            Save a node
+
+            Parameters:
+                node (InfrahubNodeSync): the node to save in Infrahub
+            """
+            try:
+                self.client.save_node(node=node)
+            except Exception as exc:
+                raise Exception(f"Failed to save node {node} {exc}")
 
             # TODO: Improve this check -> If there is no ID, it mean that the save failed. Reason ?
             if not node.id:
-                raise Exception(f"Failed to save node with {data} for kind '{kind}'")
+                raise Exception(f"Failed to save node {node}")
+
+        def delete_node(self, node: InfrahubNodeSync) -> bool:
+            """
+            Delete a node from Infrahub
+
+            """
+            try:
+                self.client.delete_node(node=node)
+
+            except Exception as exc:
+                self._handle_exception(
+                    exception=exc,
+                    message=f"Failed to delete node with {node}",
+                    level="ERROR",
+                )
+                raise
 
             return node
 
@@ -752,46 +788,23 @@ if HAS_INFRAHUBCLIENT:
 
             return branch_data
 
-        def delete_branch(self, name: str) -> BranchData | str:
+        def delete_branch(self, name: str) -> bool:
             """
             Delete an InfrahubBranch
 
             Parameters:
-                name (str): The name of the branch to create
+                name (str): The name of the branch to delete
 
             Returns:
                 BranchData  |str: Details of the specified branch.
             """
             try:
-                branch_data = self.client.delete_branch(name=name)
-
+                success = self.client.delete_branch(name=name)
             except Exception as exc:
-                self._handle_exception(
-                    exception=exc,
-                    message=f"Failed to create branch '{name}'",
-                    level="ERROR",
-                )
-                raise
-
-            return branch_data
-
-        def delete_node(self, node: InfrahubNodeSync) -> bool:
-            """
-            Delete a node from Infrahub
-
-            """
-            try:
-                self.client.delete_node(node=node)
-
-            except Exception as exc:
-                self._handle_exception(
-                    exception=exc,
-                    message=f"Failed to delete node with {node}",
-                    level="ERROR",
-                )
-                raise
-
-            return node
+                raise Exception(f"Failed to delete InfrahubBranch with '{name}' due to {exc}")
+            if not success:
+                raise Exception(f"Failed to delete InfrahubBranch with '{name}'")
+            return success
 
     class InfrahubQueryProcessor(InfrahubBaseProcessor):
         def fetch_and_process(
@@ -919,7 +932,7 @@ if HAS_INFRAHUBCLIENT:
             """
             return {"before": before, "after": after}
 
-        # Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/267
+        # TODO: Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/267
         def rebuild_hfid_from_data(
             self, schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, data: dict
         ) -> list[str] | None:
@@ -961,11 +974,14 @@ if HAS_INFRAHUBCLIENT:
             """
             try:
                 node = self.client.fetch_branch(name=name)
-            # Until https://github.com/opsmill/infrahub-sdk-python/issues/269
-            except BranchNotFoundError:
-                return None
+            # TODO: Until https://github.com/opsmill/infrahub-sdk-python/issues/269
             except Exception as exc:
-                self._handle_errors(f"An error occurred while retrieving InfrahubBranch {name} due to {exc}")
+                if exc.__class__ == BranchNotFoundError:
+                    return None
+
+                self._handle_errors(
+                    f"An error occurred while retrieving InfrahubBranch {name} due to {exc.__class__} {exc}"
+                )
             return node
 
         def _get_object(
@@ -1017,24 +1033,24 @@ if HAS_INFRAHUBCLIENT:
             except Exception as exc:
                 self._handle_errors(msg=str(exc))
 
-            serialized = str(branch)
-            diff = self._build_diff(before=None, after=serialized)
-
+            diff = self._build_diff(before={"state": "absent"}, after={"state": "present"})
             return branch, diff
 
-        def _delete_branch(self) -> dict:
+        def _delete_branch(self, name: str) -> dict:
             """
             Delete an InfrahubBranch.
+
+            Parameters:
+                name (str): The name of the branch to delete
 
             Returns:
                 dict: Ansible diff.
             """
-            if not self.check_mode:
-                try:
-                    processor = InfrahubNodesProcessor(client=self.client)
-                    processor.delete_branch(self.infrahub_node)
-                except Exception as exc:
-                    self._handle_errors(msg=str(exc))
+            try:
+                processor = InfrahubNodesProcessor(client=self.client)
+                processor.delete_branch(name=name)
+            except Exception as exc:
+                self._handle_errors(msg=str(exc))
 
             diff = self._build_diff(before={"state": "present"}, after={"state": "absent"})
             return diff
@@ -1053,12 +1069,12 @@ if HAS_INFRAHUBCLIENT:
             processor = InfrahubNodesProcessor(client=self.client)
             try:
                 node = processor.create_node(kind=kind, data=data)
+                if not self.check_mode:
+                    processor.save_node(node=node)
             except Exception as exc:
                 self._handle_errors(msg=str(exc))
 
-            serialized = node.get_raw_graphql_data()
-            diff = self._build_diff(before=None, after=serialized)
-
+            diff = self._build_diff(before={"state": "absent"}, after={"state": "present"})
             return node, diff
 
         def _update_object(self, data: dict) -> tuple[InfrahubNodeSync, dict]:
@@ -1072,23 +1088,53 @@ if HAS_INFRAHUBCLIENT:
                 tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
             """
             tmp_obj = deepcopy(self.infrahub_node)
-            for key, value in data.items():
-                setattr(tmp_obj, key, value)
 
-            if self.infrahub_node == tmp_obj:
+            # TODO: SDK should provide a way to do that
+            # https://github.com/opsmill/infrahub-sdk-python/issues/272
+            for attr_name in data:
+                if attr_name in tmp_obj._schema.attribute_names:
+                    attr_schema = next(attr for attr in tmp_obj._schema.attributes if attr.name == attr_name)
+                    attr_data = data.get(attr_name)
+                    new_attr = Attribute(name=attr_name, schema=attr_schema, data=attr_data)
+                    setattr(tmp_obj, attr_name, new_attr)
+                elif attr_name in tmp_obj._schema.relationship_names:
+                    rel_schema = next(rel for rel in self._schema.relationships if rel.name == attr_name)
+                    rel_data = data.get(attr_name)
+                    if rel_schema.cardinality == RelationshipCardinality.ONE:
+                        setattr(tmp_obj, f"_{attr_name}", None)
+                        setattr(
+                            tmp_obj,
+                            attr_name,
+                            generate_relationship_property(name=attr_name, node=tmp_obj),
+                        )
+                    elif rel_schema.cardinality == RelationshipCardinality.MANY:
+                        setattr(
+                            tmp_obj,
+                            attr_name,
+                            RelationshipManagerSync(
+                                name=attr_name,
+                                client=tmp_obj._client,
+                                node=tmp_obj,
+                                branch=tmp_obj._branch,
+                                schema=rel_schema,
+                                data=rel_data,
+                            ),
+                        )
+
+            # TODO: SDK should provide a way to do that too ...
+            # https://github.com/opsmill/infrahub-sdk-python/issues/271
+            if dict_hash(self.infrahub_node._generate_input_data()) == dict_hash(tmp_obj._generate_input_data()):
                 return self.infrahub_node, None
 
             data_before, data_after = {}, {}
-            try:
-                serialized_existing_obj = self.infrahub_node.__dict__.get("_data")
-                serialized_tmp_obj = tmp_obj.__dict__.get("_data")
-                for key in data:
-                    if serialized_existing_obj[key] != serialized_tmp_obj[key]:
-                        data_before[key] = serialized_existing_obj[key]
-                        data_after[key] = serialized_tmp_obj[key]
-            except KeyError:
-                msg = f"{key} does not exist on existing object. Check to make sure valid field."
-                self._handle_errors(msg=msg)
+            serialized_existing_obj = self.infrahub_node._generate_input_data().get("data").get("data")
+            serialized_tmp_obj = tmp_obj._generate_input_data().get("data").get("data")
+            for key in data:
+                key_before = serialized_existing_obj.get(key)
+                key_after = serialized_tmp_obj.get(key)
+                if key_before != key_after:
+                    data_before[key] = key_before
+                    data_after[key] = key_after
 
             if not self.check_mode:
                 self.infrahub_node = deepcopy(tmp_obj)
@@ -1144,8 +1190,9 @@ if HAS_INFRAHUBCLIENT:
             if not self.branch:
                 self.result["msg"] = f"InfrahubBranch {data.get('name')} already absent"
             else:
-                diff = self._delete_branch()
-                self.result["msg"] = f"InfrahubBranch {data.get('name')} deleted"
+                branch_name = data.get("name")
+                diff = self._delete_branch(name=branch_name)
+                self.result["msg"] = f"InfrahubBranch {branch_name} deleted"
                 self.result["changed"] = True
                 self.result["diff"] = diff
 
