@@ -6,54 +6,55 @@
   tasks:
     # Using node mode
     - name: Create a LocationContinent 'europe'
-      opsmill.infrahub.create_node:
+      opsmill.infrahub.node:
         kind: "LocationContinent"
         data:
           name: "europe"
+        state: present
 
     - name: Create a LocationCountry 'netherlands'
-      opsmill.infrahub.create_node:
+      opsmill.infrahub.node:
         kind: "LocationCountry"
         data:
           name: "netherlands"
           parent: "europe"
 
     - name: Create a LocationSite 'ams'
-      opsmill.infrahub.create_node:
+      opsmill.infrahub.node:
         kind: "LocationSite"
         data:
           name: "ams1"
           parent: "netherlands"
 
+    - name: Create a Platform 'Test Plaform'
+      opsmill.infrahub.node:
+        kind: "InfraPlatform"
+        data:
+          name: "Test Platform"
+          description: "test plaform"
+
     - name: Create a Branch 'test'
-      opsmill.infrahub.create_branch:
+      opsmill.infrahub.branch:
         name: "test"
         sync_with_git: false
         description: "This is a test branch"
+        state: present
 
     - name: Create a Platform 'Test Plaform'
-      opsmill.infrahub.create_node:
+      opsmill.infrahub.node:
         kind: "InfraPlatform"
         branch: "test"
         data:
           name: "Test Platform"
+          description: "test plaform"
 
-    - name: Should fail as the plaform is not present in main
-      opsmill.infrahub.create_node:
-        kind: "InfraDevice"
-        data:
-          name: "ams1-sw2"
-          type: "MX204"
-          site: "ams1"
-          platform: "Test Platform"
-      ignore_errors: true
-
-    - name: Create a InfraDevice 'ams1-sw2' in branch 'test'
-      opsmill.infrahub.create_node:
+    - name: Create a InfraDevice 'ams1-sw1' in branch 'test'
+      opsmill.infrahub.node:
         kind: "InfraDevice"
         branch: "test"
         data:
-          name: "ams1-sw2"
+          name: "ams1-sw3"
           type: "MX204"
           site: "ams1"
           platform: "Test Platform"
+        state: present

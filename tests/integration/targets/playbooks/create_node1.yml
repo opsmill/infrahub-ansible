@@ -1,5 +1,5 @@
 ---
-- name: Create BuiltinTag examples
+- name: Create BuiltinTag example
   gather_facts: false
   hosts: localhost
 

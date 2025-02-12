@@ -1,0 +1,26 @@
+---
+- name: Create and Delete Tags
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Create tag1 [Changed=True]
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          name: "tag1"
+        state: present
+
+    - name: Delete tag1 [Changed=True]
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          name: "tag1"
+        state: absent
+
+    - name: Delete tag1 [Changed=False]
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          name: "tag1"
+        state: absent

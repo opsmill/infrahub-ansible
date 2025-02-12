@@ -6,25 +6,25 @@ from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = """
+DOCUMENTATION = r"""
 ---
-module: create_branch
+module: branch
 author:
     - Benoit Kohler (@bearchitek)
 version_added: "1.4.0"
-short_description: Creates a new branch in Infrahub
+short_description: Creates, Updates or Deletes a branch in Infrahub
 description:
-    - Creates a new branch in Infrahub through Infrahub SDK
+    - Creates, Updates or Deletes a branch (InrahubBranch) in Infrahub through Infrahub SDK
 requirements:
     - infrahub-sdk
 options:
     api_endpoint:
-        required: False
+        required: True
         description:
           - Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS
         type: str
     token:
-        required: False
+        required: True
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
         type: str
@@ -55,51 +55,66 @@ options:
         required: False
         type: bool
         default: True
+    state:
+        description:
+            - "Use C(present) or C(absent) for adding or removing."
+        choices: [ absent, present ]
+        default: present
+        type: str
 """
 
-EXAMPLES = """
-- name: Infrahub action plugin create_branch
+EXAMPLES = r"""
+- name:  Infrahub playbook for opsmill.infrahub.branch
   gather_facts: false
   hosts: localhost
 
   tasks:
     - name: Create a Branch 'test'
-      opsmill.infrahub.create_branch:
+      opsmill.infrahub.branch:
         name: "test"
         sync_with_git: false
         description: "This is a test branch"
+        state: present
+
+    - name: Delete a Branch 'test'
+      opsmill.infrahub.branch:
+        name: "test"
+        state: absent
 """
 
-RETURN = """
-response:
-  description:
-    - String representation of created branch.
+RETURN = r"""
+object:
+  description: Serialized Branch object as created or already existent within Infrahub
+  returned: success (when I(state=present))
   type: dict
-  returned: success
-data:
-  description:
-    - branch id.
+msg:
+  description: Message indicating failure or info about what has been achieved
+  returned: always
   type: str
-  returned: success
 """
+
+from copy import deepcopy
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.opsmill.infrahub.plugins.module_utils.branch import BranchModule
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import INFRAHUB_ARG_SPEC
 
 
 def main():
-    """Main definition of Action Plugin for create_branch."""
-    AnsibleModule(
-        argument_spec=dict(
-            api_endpoint=dict(required=False, type="str", default=None),
-            token=dict(required=False, type="str", no_log=True, default=None),
-            timeout=dict(required=False, type="int", default=10),
-            validate_certs=dict(required=False, type="bool", default=True),
-            name=dict(required=True, type="str"),
-            sync_with_git=dict(required=False, type="bool", default=False),
-            description=dict(required=False, type="str"),
-        ),
-        supports_check_mode=False,
+    """
+    Main entry point for module execution to create/update/delete InfrahubBranch.
+    """
+    argument_spec = deepcopy(INFRAHUB_ARG_SPEC)
+    argument_spec.update(
+        name=dict(required=True, type="str"),
+        sync_with_git=dict(required=False, type="bool", default=False),
+        description=dict(required=False, type="str"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
+
+    branch_module = BranchModule(module=module)
+    branch_module.run()
 
 
 if __name__ == "__main__":  # pragma: no cover

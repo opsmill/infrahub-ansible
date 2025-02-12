@@ -6,25 +6,27 @@
   tasks:
     # Using node mode
     - name: Create a InfraDevice 'atl1-sw1'
-      opsmill.infrahub.create_node:
+      opsmill.infrahub.node:
         kind: "InfraDevice"
         data:
           name: "atl1-sw1"
           type: "MX204"
           site: "atl1"
           platform: "Juniper JunOS"
+        state: present
 
     - name: Create a VLAN 'atl1-vlan10'
-      opsmill.infrahub.create_node:
+      opsmill.infrahub.node:
         kind: "InfraVLAN"
         data:
           name: "atl1-vlan10"
           vlan_id: 10
           status: "active"
           role: "server"
+        state: present
 
     - name: Create a InterfaceL2 'xe-0/0/1' on 'atl1-sw1' and add VLAN 'atl1-vlan10'
-      opsmill.infrahub.create_node:
+      opsmill.infrahub.node:
         kind: "InfraInterfaceL2"
         data:
           name: "xe-0/0/1"
@@ -33,3 +35,4 @@
           l2_mode: "Access"
           tagged_vlan:
             - ["atl1-vlan10", "10"]
+        state: present

@@ -40,7 +40,7 @@ class ActionModule(ActionBase):
             raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
 
         self._supports_check_mode = True
-        self._supports_async = True
+        self._supports_async = False
 
         result = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
         del tmp
@@ -95,11 +95,10 @@ class ActionModule(ActionBase):
             processor = InfrahubQueryProcessor(client=client, display=Display())
             Display().v("Processing Query")
             response = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
-            results["changed"] = response["changed"]
-            results["response"] = response["response"]
+            results["response"] = response
 
             if update_hostvars:
-                results["ansible_facts"] = response["response"]
+                results["ansible_facts"] = response
 
         except Exception as exp:
             raise_from(AnsibleError(str(exp)), exp)

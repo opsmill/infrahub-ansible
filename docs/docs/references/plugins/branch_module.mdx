@@ -1,0 +1,49 @@
+---
+title: branch
+description: Creates, Updates or Deletes a branch in Infrahub
+---
+
+# Modules modules
+
+Creates, Updates or Deletes a branch (InrahubBranch) in Infrahub through Infrahub SDK
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `api_endpoint` | `str` | Yes |  | Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS |
+| `token` | `str` | Yes |  | The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN |
+| `timeout` | `int` | No | 10 | Timeout for Infrahub requests in seconds |
+| `name` | `str` | Yes |  | Name of the branch to create |
+| `sync_with_git` | `bool` | No | False | Whether to sync the branch with git |
+| `description` | `str` | No |  | Description of the branch |
+| `validate_certs` | `bool` | No | True | Whether or not to validate SSL of the Infrahub instance |
+| `state` | `str` | No | present | Use C(present) or C(absent) for adding or removing. |
+
+## Examples
+
+```yaml
+- name:  Infrahub playbook for opsmill.infrahub.branch
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Create a Branch 'test'
+      opsmill.infrahub.branch:
+        name: "test"
+        sync_with_git: false
+        description: "This is a test branch"
+        state: present
+
+    - name: Delete a Branch 'test'
+      opsmill.infrahub.branch:
+        name: "test"
+        state: absent
+```
+
+## Return values
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `object` | `dict` | Serialized Branch object as created or already existent within Infrahub |
+| `msg` | `str` | Message indicating failure or info about what has been achieved |

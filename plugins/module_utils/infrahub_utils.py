@@ -3,18 +3,19 @@ from __future__ import absolute_import, annotations, division, print_function
 __metaclass__ = type
 
 import traceback
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
-from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import (
-    handle_infrahub_exceptions_decorator,
-)
+from ansible.module_utils.basic import env_fallback
+from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
 
 if TYPE_CHECKING:
-    from ansible.module_utils.basic import Display
+    from ansible.module_utils.basic import AnsibleModule, Display
+    from infrahub_sdk.branch import BranchData
 
 try:
     from infrahub_sdk import Config, InfrahubClientSync
-    from infrahub_sdk.branch import BranchData, InfrahubBranchManagerSync
+    from infrahub_sdk.exceptions import BranchNotFoundError
     from infrahub_sdk.graphql import Query
     from infrahub_sdk.node import InfrahubNodeSync, RelatedNodeSync, RelationshipManagerSync
     from infrahub_sdk.schema import (
@@ -34,15 +35,41 @@ except ImportError:
 else:
     HAS_INFRAHUBCLIENT = True
 
+INFRAHUB_ARG_SPEC = dict(
+    api_endpoint=dict(type="str", required=True, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
+    token=dict(type="str", required=True, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
+    state=dict(required=False, default="present", choices=["present", "absent"]),
+    validate_certs=dict(type="bool", default=True),
+    timeout=dict(required=False, type="int", default=10),
+)
+
 if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
+
+    def get_node_identifier(node: InfrahubNodeSync) -> str:
+        """
+        Return an identifier for the node
+        Prefer the ID if available; otherwise, use the HFID
+
+        Parameters:
+            node (InfrahubNodeSync): A node instance
+
+        Returns:
+            str: identifier for the node as a string
+
+        """
+        if node.id:
+            return str(node.id)
+        if node.hfid:
+            return str(node.get_human_friendly_id())
+        return "unknown"
 
     class InfrahubclientWrapper:
         def __init__(  # noqa: PLR0917
             self,
             api_endpoint: str,
-            branch: str,
             token: str,
+            branch: str | None = None,
             timeout: int | None = 10,
             validate_certs: str | None = True,
             display: Display | None = None,
@@ -52,16 +79,24 @@ if HAS_INFRAHUBCLIENT:
 
             Parameters:
                 api_endpoint (str): API endpoint for the Toto service.
-                branch (str): Branch in which the request is made.
                 token (str): Toto API token.
-                timeout (int): Timeout for Toto requests in seconds.
+                branch (str, optional): Branch in which the request is made.
+                timeout (int, optional): Timeout for Infrahub requests in seconds.
+                validate_certs (bool, optional): Whether or not to validate SSL of the Infrahub instance. Defaults to True
                 display (Display, optional): Ansible Display to use during during execution. Defaults to None.
             """
-            self.client = InfrahubClientSync(
-                address=api_endpoint,
-                config=Config(api_token=token, timeout=timeout, default_branch=branch, tls_insecure=not validate_certs),
-            )
-            self.branch_manager = InfrahubBranchManagerSync(self.client)
+            if branch:
+                self.client = InfrahubClientSync(
+                    address=api_endpoint,
+                    config=Config(
+                        api_token=token, timeout=timeout, default_branch=branch, tls_insecure=not validate_certs
+                    ),
+                )
+            else:
+                self.client = InfrahubClientSync(
+                    address=api_endpoint,
+                    config=Config(api_token=token, timeout=timeout, tls_insecure=not validate_certs),
+                )
             self.display = display
             for method_name in dir(self):
                 if callable(getattr(self, method_name)) and not method_name.startswith("_"):
@@ -73,12 +108,12 @@ if HAS_INFRAHUBCLIENT:
             self,
             filters: dict[str, str],
             branch: str | None = None,
-        ) -> list[InfrahubNodeSync]:
+        ) -> dict[str, Any]:
             """
             Retrieve all artifact content
 
             Parameters:
-                artifact (dict[str, str], optional): dict of filters to apply on the query
+                filters (dict[str, str], optional): dict of filters to apply on the query
                 branch (str, optional): Name of the branch to query from. Defaults to default_branch.
 
             Returns:
@@ -105,7 +140,7 @@ if HAS_INFRAHUBCLIENT:
             self,
             filters: dict[str, str] | None = None,
             branch: str | None = None,
-        ) -> list[InfrahubNodeSync]:
+        ) -> list[dict[str, Any]]:
             """
             Retrieve all artifact content
 
@@ -149,6 +184,7 @@ if HAS_INFRAHUBCLIENT:
             filters: dict[str, str] | None = None,
             branch: str | None = None,
             prefetch_relationships: bool | None = True,
+            raise_when_missing: bool | None = False,
         ) -> InfrahubNodeSync:
             """
             Retrieve a single node of a given kind based on filters
@@ -162,29 +198,39 @@ if HAS_INFRAHUBCLIENT:
                 filters (dict[str, str], optional): dict of filters to apply on the query
                 branch (str, optional): Name of the branch to query from. Defaults to default_branch.
                 prefetch_relationships (bool, optional): Whether to prefetch relationships when fetching nodes. Defaults to True.
+                raise_when_missing (bool, optional): Whether we want to raise an Exception in case of missing object. Defaults to False.
 
             Returns:
                 InfrahubNodeSync: Single Infrahub Node
             """
-            if id:
-                filters["ids"] = [id]
-            if hfid:
-                filters["hfid"] = hfid
+            if not filters and not hfid and not id:
+                raise Exception("At least one filter must be provided.")
 
-            if not filters:
-                raise Exception("At least one filter must be provided")
-
-            node = self.client.get(
-                kind=kind,
-                id=id,
-                hfid=hfid,
-                include=include,
-                populate_store=True,
-                exclude=exclude,
-                branch=branch,
-                prefetch_relationships=prefetch_relationships,
-                **filters,
-            )
+            if filters:
+                node = self.client.get(
+                    kind=kind,
+                    id=id,
+                    hfid=hfid,
+                    include=include,
+                    populate_store=True,
+                    exclude=exclude,
+                    branch=branch,
+                    prefetch_relationships=prefetch_relationships,
+                    raise_when_missing=raise_when_missing,
+                    **filters,
+                )
+            else:
+                node = self.client.get(
+                    kind=kind,
+                    id=id,
+                    hfid=hfid,
+                    include=include,
+                    populate_store=True,
+                    exclude=exclude,
+                    branch=branch,
+                    prefetch_relationships=prefetch_relationships,
+                    raise_when_missing=raise_when_missing,
+                )
             return node
 
         def fetch_nodes(  # noqa: PLR0917
@@ -268,7 +314,7 @@ if HAS_INFRAHUBCLIENT:
                 dict[str, NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI]:: A dict of node kind, Schema.
             """
             branch = branch or self.default_branch
-            return self.client.schema.get(branch=branch)
+            return self.client.schema.all(branch=branch)
 
         def fetch_branchs(self) -> dict[str, BranchData]:
             """
@@ -277,23 +323,23 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict[str, BranchData]: A dictionary containing all branches.
             """
-            return self.branch_manager.all()
+            return self.client.branch.all()
 
-        def fetch_branch(self, branch_name: str) -> BranchData:
+        def fetch_branch(self, name: str) -> BranchData:
             """
             Retrieves details of a specific branch.
 
             Parameters:
-                branch_name (str): The name of the branch to be fetched.
+                name (str): The name of the branch to be fetched.
 
             Returns:
                 BranchData: Details of the specified branch.
             """
-            return self.branch_manager.get(branch_name=branch_name)
+            return self.client.branch.get(branch_name=name)
 
         def _render_query(self, query: dict, variables: dict | None = None) -> str:
             """
-            Render a Grapql Query from a dict to a String
+            Render a GraphQL Query from a dict to a String
 
             Parameters:
                 query (dict): GraphQL Query to render, can be a query or a mutation
@@ -325,17 +371,29 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict: The result of the executed GraphQL query.
             """
-            # TODO: Do something wit the variables ?
+            # TODO: Do something with the variables ?
             response = self.client.execute_graphql(query=query, variables=variables, branch_name=branch)
             return response
 
         def create_node(self, kind: str, data: dict, branch: str | None = None, **kwargs: Any) -> InfrahubNodeSync:
-            """Create a new node of given kind with provided attributes"""
+            """
+            Create a new node of given kind with provided attributes
+
+            Parameters:
+                kind (str): The Kind of the Object to create
+                data (dict): The data for this object
+                branch (str, optional): Name of the branch to use. Defaults to default_branch.
+
+            Returns:
+                BranchData | str: Details of the specified branch.
+            """
             return self.client.create(kind=kind, data=data, branch=branch, kwargs=kwargs)
 
-        def create_branch(self, name: str, description: str | None = None, sync_with_git: bool = False) -> BranchData:
+        def create_branch(
+            self, name: str, description: str | None = "", sync_with_git: bool = False
+        ) -> BranchData | str:
             """
-            Create a new branch with provided attributes
+            Create a new InfrahubBranch with provided attributes
 
             Parameters:
                 name (str): The name of the branch to create
@@ -343,18 +401,35 @@ if HAS_INFRAHUBCLIENT:
                 sync_with_git (bool, optional): If Infrahub have to extend the branch to Git
 
             Returns:
-                BranchData: Details of the specified branch.
+                BranchData | str: Details of the specified branch.
             """
             return self.client.branch.create(branch_name=name, description=description, sync_with_git=sync_with_git)
+
+        def delete_branch(self, name: str) -> bool:
+            """
+            Delete a InfrahubBranch
+
+            Parameters:
+                name (str): The name of the branch to delete
+
+            Returns:
+                bool: result of the mutation ["BranchDelete"]["ok"].
+            """
+            return self.client.branch.delete(branch_name=name)
 
         @staticmethod
         def save_node(node: InfrahubNodeSync, allow_upsert: bool = True) -> None:
             """
             Save changes to a node
-
-
             """
             node.save(allow_upsert=allow_upsert)
+
+        @staticmethod
+        def delete_node(node: InfrahubNodeSync) -> None:
+            """
+            Save changes to a node
+            """
+            node.delete()
 
     class InfrahubBaseProcessor:
         def __init__(
@@ -476,8 +551,9 @@ if HAS_INFRAHUBCLIENT:
             """
             exclude = exclude or []
             attributes_by_kind = []
-            # From https://docs.infrahub.app/python-sdk/10_query/#control-what-will-be-queried
-            #  "By default the query will include, the attributes, the relationships of cardinality one and the relationships of kind Attribute"
+            # From https://docs.infrahub.app/python-sdk/guides/query_data#attributes-and-relationships
+            #  By default, the result of a query will include attributes, relationships of cardinality one
+            #  and relationships of kind Attribute or Parent
             for attr_name in schema.attribute_names:
                 if exclude and attr_name in exclude:
                     continue
@@ -513,28 +589,6 @@ if HAS_INFRAHUBCLIENT:
             """
             relationship_schemas = [schema.peer for schema in schema.relationships if schema.name in attrs]
             return list(set(relationship_schemas))
-
-        @staticmethod
-        def build_include_from_constructed(compose: dict, groups: list[dict]) -> list[str]:
-            """
-            Build a list of str, based on the compose and keyed_groups options.
-
-            Parameters:
-                compose (dict): A dictionary containing the compose options details.
-                groups (list[dict]): A list of dictionaries, each representing a group with specific attributes.
-
-            Returns:
-                list[str]: A list of strings constructed based on the input parameters.
-
-            """
-            include = []
-            if compose:
-                include_compose = [value.split(".")[0] for value in compose.values()]
-                include += include_compose
-            if groups:
-                include_groups = [group["key"].split(".")[0] for group in groups if "key" in group]
-                include += include_groups
-            return include
 
         def fetch_and_process(
             self,
@@ -626,15 +680,22 @@ if HAS_INFRAHUBCLIENT:
 
             return host_node_attributes
 
-        def create_node(self, kind: str, data: dict, allow_upsert: bool = True) -> InfrahubNodeSync:
+        def create_node(self, kind: str, data: dict) -> InfrahubNodeSync:
             """
             Create a node after validating required fields against schema
 
+            Parameters:
+                kind (str): The Kind of the Object to create
+                data (dict): The data for this object
+
+            Returns:
+                InfrahubNodeSync: the node created in Infrahub
             """
             schema = self.client.fetch_single_schema(kind=kind)
             if not schema:
                 raise Exception(f"Non-existing kind '{kind}'")
 
+            # Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/268
             validation_errors = []
             validation_errors.extend(
                 f"Required attribute '{attr.name}' missing for '{kind}"
@@ -646,29 +707,33 @@ if HAS_INFRAHUBCLIENT:
                 for rel in schema.relationships
                 if not rel.optional and rel.name not in data
             )
+            validation_errors.extend(
+                f"Field '{field}' is not defined for kind '{kind}'"
+                for field in data
+                if field not in schema.attribute_names + schema.relationship_names
+            )
 
             if validation_errors:
                 raise Exception(f"Validation failed: {', '.join(validation_errors)}")
 
             try:
                 node = self.client.create_node(kind=kind, data=data)
-                self.client.save_node(node=node, allow_upsert=allow_upsert)
-                if not node.id:
-                    raise Exception
+                self.client.save_node(node=node)
 
             except Exception as exc:
-                self._handle_exception(
-                    exception=exc,
-                    message=f"Failed to save node with {data} for kind '{kind}'",
-                    level="ERROR",
-                )
-                raise
+                raise Exception(f"Failed to save node with {data} for kind '{kind}' due to {exc}")
+
+            # TODO: Improve this check -> If there is no ID, it mean that the save failed. Reason ?
+            if not node.id:
+                raise Exception(f"Failed to save node with {data} for kind '{kind}'")
 
             return node
 
-        def create_branch(self, name: str, description: str, sync_with_git: bool = False) -> InfrahubNodeSync:
+        def create_branch(
+            self, name: str, description: str | None = "", sync_with_git: bool = False
+        ) -> BranchData | str:
             """
-            Create a branch
+            Create an InfrahubBranch
 
             Parameters:
                 name (str): The name of the branch to create
@@ -676,10 +741,29 @@ if HAS_INFRAHUBCLIENT:
                 sync_with_git (bool, optional): If Infrahub have to extend the branch to Git
 
             Returns:
-                BranchData: Details of the specified branch.
+                BranchData | str: Details of the specified branch.
             """
             try:
                 branch_data = self.client.create_branch(name=name, description=description, sync_with_git=sync_with_git)
+            except Exception as exc:
+                raise Exception(f"Failed to create InfrahubBranch with '{name}' due to {exc}")
+            if not branch_data:
+                raise Exception(f"Failed to create InfrahubBranch with '{name}'")
+
+            return branch_data
+
+        def delete_branch(self, name: str) -> BranchData | str:
+            """
+            Delete an InfrahubBranch
+
+            Parameters:
+                name (str): The name of the branch to create
+
+            Returns:
+                BranchData  |str: Details of the specified branch.
+            """
+            try:
+                branch_data = self.client.delete_branch(name=name)
 
             except Exception as exc:
                 self._handle_exception(
@@ -690,6 +774,24 @@ if HAS_INFRAHUBCLIENT:
                 raise
 
             return branch_data
+
+        def delete_node(self, node: InfrahubNodeSync) -> bool:
+            """
+            Delete a node from Infrahub
+
+            """
+            try:
+                self.client.delete_node(node=node)
+
+            except Exception as exc:
+                self._handle_exception(
+                    exception=exc,
+                    message=f"Failed to delete node with {node}",
+                    level="ERROR",
+                )
+                raise
+
+            return node
 
     class InfrahubQueryProcessor(InfrahubBaseProcessor):
         def fetch_and_process(
@@ -722,34 +824,383 @@ if HAS_INFRAHUBCLIENT:
 
             try:
                 results = {}
-                results["changed"] = False
                 response = self.client.execute_graphql(query=query_str, variables=variables)
                 if not response:
                     raise Exception
 
-                if any(key.endswith(("Create", "Update", "Delete")) for key in response):
-                    # Handle mutation response
-                    mutation_key = next(key for key in response if key.endswith(("Create", "Update", "Delete")))
-                    mutation_data = response[mutation_key]
-                    if mutation_data.get("ok"):
-                        if "object" in mutation_data:  # Create/Update will have object
-                            results["response"] = mutation_data.get("object", {})
-                        results["changed"] = True
-                    else:
-                        self._handle_exception(
-                            message=f"Mutation failed: {mutation_data.get('error', '')}'",
-                            level="ERROR",
-                        )
-                        raise Exception
-
-                # Handle query response
-                else:
-                    results["response"] = response
-
             except Exception:
                 raise Exception(f"Failed to execute the grapqhl query '{query}'")
 
+            if any(key.endswith(("Create", "Update", "Delete")) for key in response):
+                # Handle mutation response
+                mutation_key = next(key for key in response if key.endswith(("Create", "Update", "Delete")))
+                mutation_data = response[mutation_key]
+                if mutation_data.get("ok"):
+                    if "object" in mutation_data:  # Create/Update will have object
+                        results = mutation_data.get("object", {})
+                else:
+                    raise Exception(f"Mutation failed: {mutation_data.get('error', '')}'")
+
+            # Handle query response
+            else:
+                results = response
+
             return results
+
+    class InfrahubModule:
+        """
+        Initialize connection to Infrahub
+        sets AnsibleModule passed in to self.module to be used throughout the class
+
+        Parameters:
+            module (AnsibleModule): Ansible Module object
+            client (InfrahubclientWrapper): Wrapper to interract with Infrahub API
+
+        """
+
+        def __init__(self, module: AnsibleModule, client: InfrahubclientWrapper | None = None) -> None:
+            self.module = module
+            self.state = self.module.params["state"]
+            self.check_mode = self.module.check_mode
+
+            api_endpoint = self.module.params.get("api_endpoint")
+            token = self.module.params.get("token")
+            if api_endpoint is None:
+                self.module.fail_json(msg="Missing Infrahub API Endpoint")
+            if token is None:
+                self.module.fail_json(msg="Missing Infrahub TOKEN")
+
+            api_endpoint = api_endpoint.strip("/")
+
+            validate_certs = self.module.params.get("validate_certs")
+
+            if not isinstance(validate_certs, bool):
+                self.module.fail_json(msg="validate_certs must be a boolean")
+
+            timeout = self.module.params.get("timeout")
+            branch = self.module.params.get("branch")
+
+            try:
+                if client is None:
+                    self.client = InfrahubclientWrapper(
+                        api_endpoint=api_endpoint,
+                        token=token,
+                        branch=branch,
+                        timeout=timeout,
+                        validate_certs=validate_certs,
+                    )
+                else:
+                    self.client = client
+            except Exception as exc:
+                self._handle_errors(msg=str(exc))
+
+            # TODO: cleanup and normalized data ?
+            self.data = module.params
+
+        def _handle_errors(self, msg: Any):
+            """
+            Returns message and changed = False
+
+            Parameters:
+                msg (Any): Message indicating why there is no change
+            """
+            self.module.fail_json(msg=msg, changed=False)
+
+        def _build_diff(self, before: dict | None, after: dict | None) -> dict:
+            """
+            Builds diff of before and after changes
+
+            Parameters:
+                before (dict): Data before the change
+                after (dict): Data after the change
+
+            Returns:
+                dict: Ansible Diff Before and After
+            """
+            return {"before": before, "after": after}
+
+        # Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/267
+        def rebuild_hfid_from_data(
+            self, schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, data: dict
+        ) -> list[str] | None:
+            """
+            Rebuild the HFID filters from the provided data based on a schema human_friendly_id.
+
+            For each composite key in schema.human_friendly_id, split it into individual keys.
+            Then, for each key, get its value from the flat data. If all parts are found,
+            join them together to form a filter string.
+
+            Parameters:
+                schema: An object that has a 'human_friendly_id' attribute (a list of composite key strings).
+                data (dict): The flat data provided by the user.
+
+            Returns:
+                list[str]: A list of filter strings. If some fields are missing, returning None
+            """
+            hfid_values = []
+            # Iterate over each composite key defined in the schema.
+            for composite in schema.human_friendly_id:
+                # Split the composite key into individual field names.
+                element = composite.split("__")[0]
+                value = data.get(element)
+                if value is None:
+                    return None
+                hfid_values.append(str(value))
+
+            return hfid_values
+
+        def _get_branch(self, name: str) -> BranchData | None:
+            """
+            Retrieve a single branch using the branch name
+
+            Parameters:
+                name (str): The name of the InfrahubBranch
+
+            Returns:
+                BranchData | None: The BranchData or None if not found.
+            """
+            try:
+                node = self.client.fetch_branch(name=name)
+            # Until https://github.com/opsmill/infrahub-sdk-python/issues/269
+            except BranchNotFoundError:
+                return None
+            except Exception as exc:
+                self._handle_errors(f"An error occurred while retrieving InfrahubBranch {name} due to {exc}")
+            return node
+
+        def _get_object(
+            self, schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, kind: str, data: dict
+        ) -> InfrahubNodeSync | None:
+            """
+            Build filters based on the data, and retrieve a single object with these filters
+
+            Parameters:
+                kind (str): The Kind of the Object to create
+                data (dict): The data for this object
+
+            Returns:
+                InfrahubNodeSync: The node or None if not found.
+            """
+            node_id = data.get("id")
+            node_hfid = data.get("hfid")
+
+            if not node_id and not node_hfid and schema.human_friendly_id:
+                node_hfid = self.rebuild_hfid_from_data(schema, data)
+            if not node_id and not node_hfid:
+                # TODO: Should we build filters from data, example: data["name"] => name__value
+                pass
+            try:
+                node = self.client.fetch_single_node(kind=kind, id=node_id, hfid=node_hfid, raise_when_missing=False)
+            except Exception as exc:
+                self._handle_errors(f"An error occurred while retrieving {kind} {data} due to {exc}")
+
+            return node
+
+        def _create_branch(self, data: dict) -> tuple[InfrahubNodeSync, dict]:
+            """
+            Create an InfrahubBranch after validating required fields.
+
+            Parameters:
+                data (dict): The data for this object
+
+            Returns:
+                tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
+            """
+            processor = InfrahubNodesProcessor(client=self.client)
+            branch_name = data.get("name")
+            branch_description = data.get("description") or ""
+            sync_with_git = data.get("sync_with_git")
+            try:
+                branch = processor.create_branch(
+                    name=branch_name, description=branch_description, sync_with_git=sync_with_git
+                )
+            except Exception as exc:
+                self._handle_errors(msg=str(exc))
+
+            serialized = str(branch)
+            diff = self._build_diff(before=None, after=serialized)
+
+            return branch, diff
+
+        def _delete_branch(self) -> dict:
+            """
+            Delete an InfrahubBranch.
+
+            Returns:
+                dict: Ansible diff.
+            """
+            if not self.check_mode:
+                try:
+                    processor = InfrahubNodesProcessor(client=self.client)
+                    processor.delete_branch(self.infrahub_node)
+                except Exception as exc:
+                    self._handle_errors(msg=str(exc))
+
+            diff = self._build_diff(before={"state": "present"}, after={"state": "absent"})
+            return diff
+
+        def _create_object(self, kind: str, data: dict) -> tuple[InfrahubNodeSync, dict]:
+            """
+            Create an Infrahub Object.
+
+            Parameters:
+                kind (str): The Kind of the Object to create
+                data (dict): The data for this object
+
+            Returns:
+                tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
+            """
+            processor = InfrahubNodesProcessor(client=self.client)
+            try:
+                node = processor.create_node(kind=kind, data=data)
+            except Exception as exc:
+                self._handle_errors(msg=str(exc))
+
+            serialized = node.get_raw_graphql_data()
+            diff = self._build_diff(before=None, after=serialized)
+
+            return node, diff
+
+        def _update_object(self, data: dict) -> tuple[InfrahubNodeSync, dict]:
+            """
+            Update an Infrahub Object.
+
+            Parameters:
+                data (dict): The data for this object
+
+            Returns:
+                tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
+            """
+            tmp_obj = deepcopy(self.infrahub_node)
+            for key, value in data.items():
+                setattr(tmp_obj, key, value)
+
+            if self.infrahub_node == tmp_obj:
+                return self.infrahub_node, None
+
+            data_before, data_after = {}, {}
+            try:
+                serialized_existing_obj = self.infrahub_node.__dict__.get("_data")
+                serialized_tmp_obj = tmp_obj.__dict__.get("_data")
+                for key in data:
+                    if serialized_existing_obj[key] != serialized_tmp_obj[key]:
+                        data_before[key] = serialized_existing_obj[key]
+                        data_after[key] = serialized_tmp_obj[key]
+            except KeyError:
+                msg = f"{key} does not exist on existing object. Check to make sure valid field."
+                self._handle_errors(msg=msg)
+
+            if not self.check_mode:
+                self.infrahub_node = deepcopy(tmp_obj)
+                self.infrahub_node.update()
+
+            diff = self._build_diff(before=data_before, after=data_after)
+            return self.infrahub_node, diff
+
+        def _delete_object(self) -> dict:
+            """
+            Delete an Infrahub Object.
+
+            Returns:
+                dict: Ansible diff.
+            """
+            if not self.check_mode:
+                try:
+                    processor = InfrahubNodesProcessor(client=self.client)
+                    processor.delete_node(self.infrahub_node)
+                except Exception as exc:
+                    self._handle_errors(msg=str(exc))
+
+            diff = self._build_diff(before={"state": "present"}, after={"state": "absent"})
+            return diff
+
+        def _ensure_branch_exists(self, data: dict) -> None:
+            """
+            Used when `state` is present to make sure an InfrahubBranch exists
+
+            Parameters:
+                data (dict):  User defined data passed into the module
+            """
+            identifier = data.get("name")
+            if not self.branch:
+                self.result["msg"] = data
+                self.branch, diff = self._create_branch(data=data)
+                self.result["msg"] = f"InfrahubBranch {identifier} created"
+                self.result["changed"] = True
+                self.result["diff"] = diff
+            else:
+                # It is currently no possible to edit a Branch
+                self.result["msg"] = f"InfrahubBranch {identifier} already exists."
+                self.result["diff"] = None
+
+        def _ensure_branch_absent(self, data: dict) -> None:
+            """
+            Used when `state` is absent to make sure an InfrahubBranch does not exist
+
+            Parameters:
+                kind (str): The Kind of the Object to create
+                data (dict):  User defined data passed into the module
+            """
+            if not self.branch:
+                self.result["msg"] = f"InfrahubBranch {data.get('name')} already absent"
+            else:
+                diff = self._delete_branch()
+                self.result["msg"] = f"InfrahubBranch {data.get('name')} deleted"
+                self.result["changed"] = True
+                self.result["diff"] = diff
+
+        def _ensure_object_exists(self, kind: str, data: dict) -> None:
+            """
+            Used when `state` is present to make sure an object exists.
+            - if the object exists it will be updated
+            - if the object does not exists it will be created
+
+            Parameters:
+                kind (str): The Kind of the Object to create
+                data (dict):  User defined data passed into the module
+            """
+            object_data = data.get("data") or {}
+            if not self.infrahub_node:
+                self.result["msg"] = data
+                self.infrahub_node, diff = self._create_object(kind=kind, data=object_data)
+                identifier = get_node_identifier(node=self.infrahub_node)
+                self.result["msg"] = f"{kind} {identifier} created"
+                self.result["changed"] = True
+                self.result["diff"] = diff
+            else:
+                self.infrahub_node, diff = self._update_object(data=object_data)
+                identifier = get_node_identifier(node=self.infrahub_node)
+                if diff:
+                    self.result["msg"] = f"{kind} {identifier} updated"
+                    self.result["changed"] = True
+                    self.result["diff"] = diff
+                else:
+                    self.result["msg"] = f"{kind} {identifier} already exists"
+
+        def _ensure_object_absent(self, kind: str, data: dict) -> None:
+            """
+            Used when `state` is absent to make sure an object does not exist
+            - if the object exists it will be deleted
+            - if the object does not exists we confirm it
+
+            Parameters:
+                kind (str): The Kind of the Object to create
+                data (dict):  User defined data passed into the module
+            """
+            if not self.infrahub_node:
+                self.result["msg"] = f"{kind} {data.get('data', {})} already absent"
+            else:
+                identifier = get_node_identifier(self.infrahub_node)
+                diff = self._delete_object()
+                self.result["msg"] = f"{kind} {identifier} deleted"
+                self.result["changed"] = True
+                self.result["diff"] = diff
+
+        def run(self):
+            """
+            Must be implemented in subclasses
+            """
+            raise NotImplementedError
 
 
 if not HAS_INFRAHUBCLIENT:
@@ -761,4 +1212,7 @@ if not HAS_INFRAHUBCLIENT:
         pass
 
     class InfrahubQueryProcessor:
+        pass
+
+    class InfrahubModule:
         pass

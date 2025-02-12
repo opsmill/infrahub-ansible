@@ -126,7 +126,7 @@ def main():
             graph_variables=dict(required=False, type="dict", default={}),
             update_hostvars=dict(required=False, type="bool", default=False),
         ),
-        supports_check_mode=False,
+        supports_check_mode=True,
     )
 
 

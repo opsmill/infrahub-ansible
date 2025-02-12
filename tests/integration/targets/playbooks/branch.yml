@@ -1,0 +1,16 @@
+- name: Infrahub playbook for opsmill.infrahub.branch
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Create a Branch 'test'
+      opsmill.infrahub.branch:
+        name: "test"
+        sync_with_git: false
+        description: "This is a test branch"
+        state: present
+
+    - name: Delete a Branch 'test'
+      opsmill.infrahub.branch:
+        name: "test"
+        state: absent
