@@ -58,7 +58,8 @@ options:
 """
 
 EXAMPLES = """
-- name: Infrahub action plugin Fetch_artifact
+---
+- name: Infrahub action plugin artifact_fetch
   gather_facts: false
   hosts: platform_eos
   vars:

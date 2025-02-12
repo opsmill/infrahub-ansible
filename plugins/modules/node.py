@@ -6,7 +6,7 @@ from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = r"""
+DOCUMENTATION = """
 ---
 module: node
 author:
@@ -63,7 +63,8 @@ options:
         type: str
 """
 
-EXAMPLES = r"""
+EXAMPLES = """
+---
 - name: Infrahub playbook for opsmill.infrahub.node
   gather_facts: false
   hosts: localhost
@@ -84,7 +85,7 @@ EXAMPLES = r"""
         state: absent
 """
 
-RETURN = r"""
+RETURN = """
 object:
   description: Serialized object as created or already existent within Infrahub
   returned: success (when I(state=present))

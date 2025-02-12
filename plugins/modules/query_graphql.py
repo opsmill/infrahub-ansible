@@ -67,7 +67,8 @@ options:
 """
 
 EXAMPLES = """
-- name: Infrahub action plugin
+---
+- name: Infrahub action plugin query_graphql
   gather_facts: false
   hosts: localhost
 
