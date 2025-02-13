@@ -8,23 +8,23 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-module: create_node
+module: node
 author:
     - Benoit Kohler (@bearchitek)
 version_added: "1.4.0"
-short_description: Creates nodes in Infrahub
+short_description: Creates, Updates or Deletes a node in Infrahub
 description:
-    - Creates nodes in Infrahub through Infrahub SDK
+    - Creates, Updates or Deletes a node of a given Kind in Infrahub through Infrahub SDK
 requirements:
     - infrahub-sdk
 options:
     api_endpoint:
-        required: False
+        required: True
         description:
           - Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS
         type: str
     token:
-        required: False
+        required: True
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
         type: str
@@ -55,60 +55,69 @@ options:
         required: False
         type: bool
         default: True
-    allow_upsert:
+    state:
         description:
-            - Allow upsert when saving node
-        required: False
-        type: bool
-        default: True
+            - "Use C(present) or C(absent) for adding or removing."
+        choices: [ absent, present ]
+        default: present
+        type: str
 """
 
 EXAMPLES = """
-- name: Infrahub action plugin create_branch
+---
+- name: Infrahub playbook for opsmill.infrahub.node
   gather_facts: false
   hosts: localhost
 
   tasks:
-    - name: Create device
-      opsmill.infrahub.create:
-        kind: "InfraDevice"
-        allow_upsert: true
+    - name: Create tag1
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
         data:
-          name: "device1"
-          status: "active"
+          name: "tag1"
+        state: present
+
+    - name: Delete tag1
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          name: "tag1"
+        state: absent
 """
 
 RETURN = """
-response:
-  description:
-    - String representation of created node.
+object:
+  description: Serialized object as created or already existent within Infrahub
+  returned: success (when I(state=present))
   type: dict
-  returned: success
-data:
-  description:
-    - Node id and hfid.
+msg:
+  description: Message indicating failure or info about what has been achieved
+  returned: always
   type: str
-  returned: success
 """
 
+from copy import deepcopy
+
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import INFRAHUB_ARG_SPEC
+from ansible_collections.opsmill.infrahub.plugins.module_utils.node import NodeModule
 
 
 def main():
-    """Main definition of Action Plugin for create_node."""
-    AnsibleModule(
-        argument_spec=dict(
-            api_endpoint=dict(required=False, type="str", default=None),
-            token=dict(required=False, type="str", no_log=True, default=None),
-            timeout=dict(required=False, type="int", default=10),
-            validate_certs=dict(required=False, type="bool", default=True),
-            branch=dict(required=False, type="str", default="main"),
-            kind=dict(required=True, type="str"),
-            data=dict(required=True, type="raw"),
-            allow_upsert=dict(required=False, type="bool", default=True),
-        ),
-        supports_check_mode=False,
+    """
+    Main entry point for module execution to create/update/delete Node.
+    """
+    argument_spec = deepcopy(INFRAHUB_ARG_SPEC)
+    argument_spec.update(
+        kind=dict(required=True, type="str"),
+        data=dict(required=True, type="raw"),
+        branch=dict(required=False, type="str", default="main"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
+
+    node_module = NodeModule(module=module)
+    node_module.run()
 
 
 if __name__ == "__main__":  # pragma: no cover

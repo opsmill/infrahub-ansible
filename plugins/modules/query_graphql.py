@@ -67,7 +67,8 @@ options:
 """
 
 EXAMPLES = """
-- name: Infrahub action plugin
+---
+- name: Infrahub action plugin query_graphql
   gather_facts: false
   hosts: localhost
 
@@ -126,7 +127,7 @@ def main():
             graph_variables=dict(required=False, type="dict", default={}),
             update_hostvars=dict(required=False, type="bool", default=False),
         ),
-        supports_check_mode=False,
+        supports_check_mode=True,
     )
 
 

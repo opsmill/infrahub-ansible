@@ -147,6 +147,7 @@ RETURN = """
     type: list
 """
 import json
+import os
 from typing import Any
 
 from ansible.errors import AnsibleError
@@ -192,7 +193,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         Handle Infrahub API authentication
         """
         if version.parse(ansible_version) < version.parse("2.11"):
-            self.token = self.get_option("token")
+            self.token = self.get_option("token") or os.getenv("INFRAHUB_API_TOKEN")
         else:
             self.templar.available_variables = self._vars
             self.token = self.templar.template(self.get_option("token"), fail_on_undefined=False)
@@ -202,7 +203,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         Fetches data from the cache (if available)
 
         Returns:
-        Tuple[Optional[dict], bool]: A tuple containing two elements:
+        tuple[Optional[dict], bool]: A tuple containing two elements:
             1. A dictionary representing the host node attributes fetched from cache, or None if not available.
             2. A boolean indicating if there's a need to load data from the API. True indicates data should be fetched from the API.
         """
@@ -273,7 +274,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for key, value in attributes.items():
             self.inventory.set_variable(host_node, key, value)
 
-        self._set_composite_vars(self.compose, attributes, host_node, strict=self.strict)
+        self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=self.strict)
 
     def main(self):
         """Main function"""
@@ -324,8 +325,14 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         # Handle extra "/" from api_endpoint configuration and trim if necessary
         self.api_endpoint = self.get_option("api_endpoint").strip("/")
         self.validate_certs = self.get_option("validate_certs")
-        self.timeout = self.get_option("timeout")
 
+        self.api_endpoint = self.get_option("api_endpoint") or os.getenv("INFRAHUB_ADDRESS")
+        if self.api_endpoint is None:
+            raise AnsibleError("Missing Infrahub API Endpoint.")
+
+        self.api_endpoint = self.api_endpoint.strip("/")
+        self.timeout = self.get_option("timeout")
+        self.validate_certs = self.get_option("validate_certs", True)
         self.branch = self.get_option("branch")
         self.nodes = self.get_option("nodes")
 
@@ -335,5 +342,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.groups = self.get_option("groups")
 
         self._set_authorization()
+        if self.token is None:
+            raise AnsibleError("Missing Infrahub Token.")
 
         self.main()

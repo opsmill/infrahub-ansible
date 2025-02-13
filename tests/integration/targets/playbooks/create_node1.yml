@@ -1,12 +1,11 @@
 ---
-- name: Create BuiltinTag examples
+- name: Create BuiltinTag example
   gather_facts: false
   hosts: localhost
 
   tasks:
-    # Using node mode
-    - name: Create tag using node mode allow_upsert=True
-      opsmill.infrahub.create_node:
+    - name: Create tag using node mode
+      opsmill.infrahub.node:
         kind: "BuiltinTag"
         data:
           name: "my-tag1"
