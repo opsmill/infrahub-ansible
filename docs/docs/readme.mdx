@@ -17,8 +17,8 @@ To begin using the OpsMill InfraHub Ansible Collection, please follow our step-b
 * **[Installation Guide](./guides/installation.mdx)**: Learn how to install the collection, including Python module and Ansible setup, as well as alternative installation options.
 * **[Dynamic Inventory Guide](./guides/dynamic-inventory.mdx)**: Discover how to leverage the collection's dynamic inventory features to streamline your infrastructure management.
 * **[Query & Lookup Guide](./guides/query-and-lookup.mdx)**: Learn how to retrieve structured GraphQL data from Infrahub using Query and Lookup plugins.
-* **[Create Nodes Guide](./guides/create-node.mdx)**: Learn how to create nodes in Infrahub by sending structured GraphQL mutations or with the help of our SDK.
-* **[Create Branch Guide](./guides/create-branch.mdx)**: Learn how to create Branch in Infrahub.
+* **[Create, Update and Delete Nodes Guide](./guides/node.mdx)**: Learn how to create, update and delete nodes in Infrahub using GraphQL action plugin or the node module.
+* **[Manipulate Branch Guide](./guides/branch.mdx)**: Learn how to manipulate Branch in Infrahub.
 
 ## References
 
@@ -30,10 +30,10 @@ These are the plugins in the `opsmill.infrahub` collection:
 
 <!-- vale off -->
 
-* [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
+* [branch](./references/plugins/branch_module) – Creates, Updates or Deletes a branch in Infrahub
 * [query_graphql](./references/plugins/query_graphql_module) – Queries and returns elements from Infrahub GraphQL API
-* [create_branch](./references/plugins/create_branch_module) – Creates a new branch in Infrahub
-* [create_node](./references/plugins/create_node_module) – Creates nodes in Infrahub
+* [node](./references/plugins/node_module) – Creates, Updates or Deletes a node in Infrahub
+* [artifact_fetch](./references/plugins/artifact_fetch_module) – Fetch the content of an artifact from Infrahub
 
 <!-- vale on -->
 

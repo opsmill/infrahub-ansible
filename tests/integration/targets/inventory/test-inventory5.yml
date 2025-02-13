@@ -11,7 +11,7 @@
 plugin: opsmill.infrahub.inventory
 api_endpoint: "http://localhost:8000"
 
-strict: true
+strict: false
 
 branch: "main"
 
@@ -35,5 +35,5 @@ keyed_groups:
     key: site.name
   - prefix: platform
     key: platform
-  - prefix: role
-    key: role
+  # - prefix: role
+  #   key: role

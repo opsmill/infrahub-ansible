@@ -174,10 +174,9 @@ class LookupModule(LookupBase):
             processor = InfrahubQueryProcessor(client=client, display=Display())
             Display().v("Processing Query")
             response = processor.fetch_and_process(query=graphql_query, variables=graph_variables)
-            data = response["response"]
-            for kind in data:
-                if "edges" in data.get(kind):
-                    results.extend(data[kind].get("edges", []))
+            for kind in response:
+                if "edges" in response.get(kind):
+                    results.extend(response[kind].get("edges", []))
 
         except Exception as exc:
             raise_from(AnsibleError(str(exc)), exc)
