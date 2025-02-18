@@ -50,7 +50,7 @@ tags:
 repository: https://github.com/opsmill/infrahub-ansible
 
 # The URL to any online docs
-documentation: https://docs.infrahub.app/ansible/ansible
+documentation: https://docs.infrahub.app/ansible/
 
 # The URL to the homepage of the collection/project
 homepage: https://www.opsmill.com/
@@ -59,7 +59,7 @@ homepage: https://www.opsmill.com/
 issues: https://github.com/opsmill/infrahub-ansible/issues
 
 # Files to ignore when building collection. Only supported when building with Ansible 2.10
-# https://github.com/ansible/ansible/issues/67543
+# https://github.com/ /issues/67543
 # https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#ignoring-files-and-folders
 build_ignore:
   - "venv"
