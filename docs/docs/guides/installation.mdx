@@ -15,7 +15,7 @@ This guide assumes you have basic knowledge of Ansible and its ecosystem. For mo
 
 ## Requirements
 
-* You must be running one of the two most recent releases of NetBox
+* You must be running one of the two most recent releases of Infrahub
 * A Infrahub API token when using modules (at least read-only for the inventory).
 * Python 3.10+
 * Python modules:
@@ -49,13 +49,13 @@ collections:
 To upgrade the collection to the latest available version, run the following command:
 
 ```bash
-ansible-galaxy collection install netbox.netbox --upgrade
+ansible-galaxy collection install opsmill.infrahub --upgrade
 ```
 
 You can also install a specific version of the collection, for example, if you need to downgrade. Use the following syntax to install a specific version:
 
 ```bash
-ansible-galaxy collection install netbox.netbox:==VERSION
+ansible-galaxy collection install opsmill.infrahub:==VERSION
 ```
 
 See using [Ansible collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#installing-collections) for more Collapsible.
