@@ -38,6 +38,11 @@ options:
         description: Timeout for Infrahub requests in seconds
         type: int
         default: 10
+    prefetch_relationships:
+        required: False
+        description: Prefetch relationships for Infrahub nodes
+        type: bool
+        default: True
     nodes:
         required: True
         description:
@@ -302,7 +307,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 )
                 processor = InfrahubNodesProcessor(client=client, display=self.display)
                 self.display.v("Processing Nodes request")
-                host_node_attributes = processor.fetch_and_process(nodes=self.nodes)
+                host_node_attributes = processor.fetch_and_process(
+                    nodes=self.nodes,
+                    prefetch_relationships=self.prefetch_relationships
+                )
             except Exception as exc:
                 raise_from(AnsibleError(str(exc)), exc)
 
@@ -332,6 +340,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         self.api_endpoint = self.api_endpoint.strip("/")
         self.timeout = self.get_option("timeout")
+        self.prefetch_relationships = self.get_option("prefetch_relationships")
         self.validate_certs = self.get_option("validate_certs", True)
         self.branch = self.get_option("branch")
         self.nodes = self.get_option("nodes")
