@@ -15,6 +15,7 @@ Get inventory hosts from Infrahub
 | `api_endpoint` | `` | Yes |  | Endpoint of the Infrahub API |
 | `token` | `` | Yes |  | Infrahub API token to be able to read against Infrahub. |
 | `timeout` | `int` | No | 10 | Timeout for Infrahub requests in seconds |
+| `prefetch_relationships` | `bool` | No | True | Prefetch relationships for Infrahub nodes |
 | `nodes` | `dict` | Yes |  | Configuration for specific node types within Infrahub. Defines the attributes to include or exclude for each node. |
 | `branch` | `str` | No | main | Branch in which the request is made |
 | `compose` | `dict` | No | {} | List of custom Ansible host vars to create from the objects fetched from Infrahub |
