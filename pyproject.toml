@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "infrahub_ansible_modules"
-version = "1.4.2"
+version = "1.4.3"
 description = "Ansible collection to interact with Infrahub's API"
 authors = ["OpsMill <info@opsmill.com>"]
 package-mode = false
@@ -14,6 +14,7 @@ ansible-core = [
 ]
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
 jinja2 = ">=3.1.5"
+tox = "^4.24.2"
 
 [tool.poetry.group.dev.dependencies]
 codecov = "*"
