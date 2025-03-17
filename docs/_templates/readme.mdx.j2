@@ -30,21 +30,21 @@ These are the plugins in the `opsmill.infrahub` collection:
 
 <!-- vale off -->
 {% for plugin in plugins.modules %}
-* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_module){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
+* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_module.mdx){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}
 {%- endfor %}
 
 <!-- vale on -->
 
 #### Inventory
 
-{% for plugin in plugins.inventory %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_inventory){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{% endfor %}
+{% for plugin in plugins.inventory %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_inventory.mdx){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{% endfor %}
 
 #### Lookup
 
-{% for plugin in plugins.lookup %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_lookup){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{% endfor %}
+{% for plugin in plugins.lookup %}* [{{ plugin.name }}](./references/plugins/{{ plugin.name }}_lookup.mdx){% if plugin.documentation.get('short_description') %} – {{ plugin.documentation.get('short_description') }}{% endif %}{% endfor %}
 
 ### Roles
 
 These are the roles in the `opsmill.infrahub` collection:
 
-{% for role in roles %}* [{{ role.name }}](./references/roles/{{ role.name }}){% if role.description %} – {{ role.description }}{% endif %}{% endfor %}
+{% for role in roles %}* [{{ role.name }}](./references/roles/{{ role.name }}.mdx){% if role.description %} – {{ role.description }}{% endif %}{% endfor %}
