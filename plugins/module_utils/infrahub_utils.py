@@ -1109,7 +1109,7 @@ if HAS_INFRAHUBCLIENT:
                                 branch=self.infrahub_node._branch,
                                 schema=rel_schema,
                                 data=rel_data,
-                            )
+                            ),
                         )
                     elif rel_schema.cardinality == RelationshipCardinality.MANY:
                         setattr(
