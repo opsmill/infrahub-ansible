@@ -22,7 +22,6 @@ try:
         InfrahubNodeSync,
         RelatedNodeSync,
         RelationshipManagerSync,
-        generate_relationship_property,
     )
     from infrahub_sdk.schema import (
         GenericSchemaAPI,
@@ -1111,7 +1110,6 @@ if HAS_INFRAHUBCLIENT:
                                 schema=rel_schema,
                                 data=rel_data,
                             )
-                            # generate_relationship_property(name=attr_name, node=tmp_obj),
                         )
                     elif rel_schema.cardinality == RelationshipCardinality.MANY:
                         setattr(
