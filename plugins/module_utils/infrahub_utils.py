@@ -22,7 +22,6 @@ try:
         InfrahubNodeSync,
         RelatedNodeSync,
         RelationshipManagerSync,
-        generate_relationship_property,
     )
     from infrahub_sdk.schema import (
         GenericSchemaAPI,
@@ -1092,19 +1091,25 @@ if HAS_INFRAHUBCLIENT:
             # https://github.com/opsmill/infrahub-sdk-python/issues/272
             for attr_name in data:
                 if attr_name in tmp_obj._schema.attribute_names:
-                    attr_schema = next(attr for attr in tmp_obj._schema.attributes if attr.name == attr_name)
+                    attr_schema = next(attr for attr in self.infrahub_node._schema.attributes if attr.name == attr_name)
                     attr_data = data.get(attr_name)
                     new_attr = Attribute(name=attr_name, schema=attr_schema, data=attr_data)
                     setattr(tmp_obj, attr_name, new_attr)
                 elif attr_name in tmp_obj._schema.relationship_names:
-                    rel_schema = next(rel for rel in self._schema.relationships if rel.name == attr_name)
+                    rel_schema = next(rel for rel in self.infrahub_node._schema.relationships if rel.name == attr_name)
                     rel_data = data.get(attr_name)
                     if rel_schema.cardinality == RelationshipCardinality.ONE:
                         setattr(tmp_obj, f"_{attr_name}", None)
                         setattr(
                             tmp_obj,
                             attr_name,
-                            generate_relationship_property(name=attr_name, node=tmp_obj),
+                            RelatedNodeSync(
+                                name=attr_name,
+                                client=self.infrahub_node._client,
+                                branch=self.infrahub_node._branch,
+                                schema=rel_schema,
+                                data=rel_data,
+                            ),
                         )
                     elif rel_schema.cardinality == RelationshipCardinality.MANY:
                         setattr(
@@ -1112,9 +1117,9 @@ if HAS_INFRAHUBCLIENT:
                             attr_name,
                             RelationshipManagerSync(
                                 name=attr_name,
-                                client=tmp_obj._client,
+                                client=self.infrahub_node._client,
                                 node=tmp_obj,
-                                branch=tmp_obj._branch,
+                                branch=self.infrahub_node._branch,
                                 schema=rel_schema,
                                 data=rel_data,
                             ),
