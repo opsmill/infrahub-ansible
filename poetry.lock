@@ -848,14 +848,14 @@ type = ["pytest-mypy"]
 
 [[package]]
 name = "infrahub-sdk"
-version = "1.9.1"
+version = "1.9.2"
 description = "Python Client to interact with Infrahub"
 optional = false
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
 files = [
-    {file = "infrahub_sdk-1.9.1-py3-none-any.whl", hash = "sha256:bf9655512bb57f63e45d29090e7a48abe05769a4efc03cf32a975c75b834c2b5"},
-    {file = "infrahub_sdk-1.9.1.tar.gz", hash = "sha256:43e3b329909a95e881281abe55b21b4031ec2f7fdce94ca3886a46a6cac30bdd"},
+    {file = "infrahub_sdk-1.9.2-py3-none-any.whl", hash = "sha256:37cf3c92af6901a17d5da7e07f9e6dccd2e40b75d5c923df66c59533ca0fd3be"},
+    {file = "infrahub_sdk-1.9.2.tar.gz", hash = "sha256:39b7ca62fafb796626075e6172f0abd622c040334acd72e86d0ac052d217f1f2"},
 ]
 
 [package.dependencies]
@@ -2008,14 +2008,14 @@ files = [
 
 [[package]]
 name = "tox"
-version = "4.24.2"
+version = "4.25.0"
 description = "tox is a generic virtualenv management and test command line tool"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "tox-4.24.2-py3-none-any.whl", hash = "sha256:92e8290e76ad4e15748860a205865696409a2d014eedeb796a34a0f3b5e7336e"},
-    {file = "tox-4.24.2.tar.gz", hash = "sha256:d5948b350f76fae436d6545a5e87c2b676ab7a0d7d88c1308651245eadbe8aea"},
+    {file = "tox-4.25.0-py3-none-any.whl", hash = "sha256:4dfdc7ba2cc6fdc6688dde1b21e7b46ff6c41795fb54586c91a3533317b5255c"},
+    {file = "tox-4.25.0.tar.gz", hash = "sha256:dd67f030317b80722cf52b246ff42aafd3ed27ddf331c415612d084304cf5e52"},
 ]
 
 [package.dependencies]
@@ -2345,4 +2345,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "fdbd464c85769a3215ea2926d48eb274bb0222a6d4c56ceff7d953bed0fe2a8a"
+content-hash = "f78d25898f29c41c41d624e6e6e630dc4c8d5d10c4606e0df3e0c075f8d951f4"
