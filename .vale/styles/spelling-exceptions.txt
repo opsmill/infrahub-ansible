@@ -4,6 +4,7 @@ Ansible
 APIs
 append_git_suffix
 artifact_definitions
+artifact_fetch
 artifact_name
 async
 Authentik
@@ -95,6 +96,7 @@ order_weight
 Prefetch
 profile_name
 PyPI
+query_graphql
 query_peers
 rebase
 rebased

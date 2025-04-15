@@ -14,12 +14,12 @@ argument_specs:
         type: str
       install_infrahub_url:
         description:
-          - URL from where to fetch the Infrahub docker-compose file.
+          - URL from where to fetch the Infrahub Docker Compose file.
         type: str
         default: https://infrahub.opsmill.io
       install_infrahub_install_directory:
         description:
-          - Install directory for the Infrahub files (docker-compose and configuration file).
+          - Install directory for the Infrahub files (Docker Compose and configuration file).
         type: str
         default: /opt/infrahub
       infrahub_config:
