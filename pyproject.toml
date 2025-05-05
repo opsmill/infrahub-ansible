@@ -19,13 +19,13 @@ tox = "^4.25.0"
 [tool.poetry.group.dev.dependencies]
 codecov = "*"
 invoke = "^2.2.0"
-ruff = "0.11.5"
+ruff = "0.11.8"
 mock = "^5.2.0"
 pytest = "^8.3.5"
 pytest-mock = "*"
 pytest-xdist = "*"
 pytest-pythonpath = "*"
-ansible-lint = "^25.2.1"
+ansible-lint = "^25.4.0"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
