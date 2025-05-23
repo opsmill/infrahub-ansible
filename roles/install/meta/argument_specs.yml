@@ -22,7 +22,7 @@ argument_specs:
           - Install directory for the Infrahub files (docker-compose and configuration file).
         type: str
         default: /opt/infrahub
-      infrahub_config:
+      install_infrahub_config:
         description:
           - Environment variables to pass as configuration for Infrahub.
         type: dict
