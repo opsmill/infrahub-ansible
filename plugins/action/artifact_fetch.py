@@ -73,14 +73,19 @@ class ActionModule(ActionBase):
         target_id = args.get("target_id")
         artifact_id = args.get("artifact_id")
 
+        if not artifact_name and not artifact_id:
+            raise AnsibleError("Missing artifact_name or artifact_id")
+        if artifact_name and not target_id:
+            raise AnsibleError("Missing target_id when using artifact_name")
+        if target_id and not artifact_name:
+            raise AnsibleError("Missing artifact_name when using target_id")
+
         if artifact_name:
             filters = {
                 "name__value": artifact_name,
                 "object__ids": [target_id],
             }
             failure_msg = f"Unable to find '{artifact_name}' for '{target_id}'."
-        elif not artifact_id:
-            raise AnsibleError("Missing artifact_name or artifact_id")
         else:
             filters = {
                 "ids": [artifact_id],

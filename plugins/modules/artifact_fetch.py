@@ -34,7 +34,7 @@ options:
         type: int
         default: 10
     artifact_name:
-        required: True
+        required: False
         description:
             - Name of the artifact
         type: str
@@ -46,7 +46,7 @@ options:
     target_id:
         description:
             - Id of the target for this artifact
-        required: True
+        required: False
         type: str
     branch:
         required: False
@@ -108,7 +108,7 @@ def main():
     # args/params passed to the execution, as well as if the module
     # supports check mode
     required_together = [("artifact_name", "target_id")]
-    mutually_exclusive = [("artifact_name", "artifact_id")]
+    mutually_exclusive = [("artifact_name", "artifact_id"), ("artifact_id", "target_id")]
     required_one_of = [("artifact_name", "artifact_id")]
     AnsibleModule(
         argument_spec=dict(
