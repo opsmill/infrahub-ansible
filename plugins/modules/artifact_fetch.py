@@ -34,14 +34,19 @@ options:
         type: int
         default: 10
     artifact_name:
-        required: True
+        required: False
         description:
             - Name of the artifact
+        type: str
+    artifact_id:
+        required: False
+        description:
+            - UUID of the artifact
         type: str
     target_id:
         description:
             - Id of the target for this artifact
-        required: True
+        required: False
         type: str
     branch:
         required: False
@@ -102,6 +107,9 @@ def main():
     # this includes instantiation, a couple of common attr would be the
     # args/params passed to the execution, as well as if the module
     # supports check mode
+    required_together = [("artifact_name", "target_id")]
+    mutually_exclusive = [("artifact_name", "artifact_id"), ("artifact_id", "target_id")]
+    required_one_of = [("artifact_name", "artifact_id")]
     AnsibleModule(
         argument_spec=dict(
             api_endpoint=dict(required=False, type="str", default=None),
@@ -109,9 +117,14 @@ def main():
             timeout=dict(required=False, type="int", default=10),
             validate_certs=dict(required=False, type="bool", default=True),
             branch=dict(required=False, type="str", default="main"),
-            artifact_name=dict(required=True, type="str"),
-            target_id=dict(required=True, type="str"),
+            # Module related arguments
+            artifact_name=dict(required=False, type="str"),
+            artifact_id=dict(required=False, type="str"),
+            target_id=dict(required=False, type="str"),
         ),
+        required_together=required_together,
+        mutually_exclusive=mutually_exclusive,
+        required_one_of=required_one_of,
         supports_check_mode=False,
     )
 
