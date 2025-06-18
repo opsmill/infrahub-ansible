@@ -17,8 +17,13 @@ try:
     from infrahub_sdk import Config, InfrahubClientSync
     from infrahub_sdk.exceptions import BranchNotFoundError
     from infrahub_sdk.graphql import Query
+    
+    try:
+        from infrahub_sdk.node.attribute import Attribute
+    except ImportError:
+        from infrahub_sdk.node import Attribute
+    
     from infrahub_sdk.node import (
-        Attribute,
         InfrahubNodeSync,
         RelatedNodeSync,
         RelationshipManagerSync,
