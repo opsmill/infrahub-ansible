@@ -1267,3 +1267,16 @@ if not HAS_INFRAHUBCLIENT:
 
     class InfrahubModule:
         pass
+
+
+def verify_infrahub_sdk(exception: type[Exception]) -> None:
+    """Verify that the infrahub_sdk is installed.
+
+    The exception type is expected to be a AnsibleError i.e:
+    `from ansible.errors import AnsibleError``
+
+    But the Ansible linter reports an error even if this import occurs within
+    the TYPE_CHECKING block.
+    """
+    if not HAS_INFRAHUBCLIENT:
+        raise (exception("infrahub_sdk must be installed to use this plugin"))

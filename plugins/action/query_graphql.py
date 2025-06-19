@@ -13,9 +13,9 @@ from ansible.module_utils.six import raise_from
 from ansible.plugins.action import ActionBase
 from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
-    HAS_INFRAHUBCLIENT,
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
+    verify_infrahub_sdk,
 )
 
 
@@ -36,8 +36,7 @@ class ActionModule(ActionBase):
             task_vars ([type], optional): [description]. Defaults to None.
         """
 
-        if not HAS_INFRAHUBCLIENT:
-            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
+        verify_infrahub_sdk(exception=AnsibleError)
 
         self._supports_check_mode = True
         self._supports_async = False

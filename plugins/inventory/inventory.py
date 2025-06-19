@@ -160,9 +160,9 @@ from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.module_utils.six import raise_from
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
-    HAS_INFRAHUBCLIENT,
     InfrahubclientWrapper,
     InfrahubNodesProcessor,
+    verify_infrahub_sdk,
 )
 
 try:
@@ -283,8 +283,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def main(self):
         """Main function"""
-        if not HAS_INFRAHUBCLIENT:
-            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
+        verify_infrahub_sdk(exception=AnsibleError)
 
         try:
             if not self.nodes:

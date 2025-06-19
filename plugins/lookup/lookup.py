@@ -101,9 +101,9 @@ from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
 from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
-    HAS_INFRAHUBCLIENT,
     InfrahubclientWrapper,
     InfrahubQueryProcessor,
+    verify_infrahub_sdk,
 )
 
 
@@ -132,8 +132,7 @@ class LookupModule(LookupBase):
         Returns:
             dict: Data returned from Infrahub endpoint
         """
-        if not HAS_INFRAHUBCLIENT:
-            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
+        verify_infrahub_sdk(exception=AnsibleError)
 
         api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_ADDRESS")
         token = kwargs.get("token") or os.getenv("INFRAHUB_API_TOKEN")
