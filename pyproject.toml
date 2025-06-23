@@ -142,7 +142,7 @@ max-line-length = 150
 
 [tool.ruff.lint.mccabe]
 # Target max-complexity=10
-max-complexity = 33
+max-complexity = 19
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
