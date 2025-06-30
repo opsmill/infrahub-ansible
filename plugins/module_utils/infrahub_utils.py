@@ -1,7 +1,5 @@
 from __future__ import absolute_import, annotations, division, print_function
 
-from infrahub_sdk.exceptions import SchemaNotFoundError
-
 __metaclass__ = type
 
 import traceback
@@ -17,7 +15,7 @@ if TYPE_CHECKING:
 
 try:
     from infrahub_sdk import Config, InfrahubClientSync
-    from infrahub_sdk.exceptions import BranchNotFoundError
+    from infrahub_sdk.exceptions import BranchNotFoundError, SchemaNotFoundError
     from infrahub_sdk.graphql import Query
     from infrahub_sdk.node import (
         InfrahubNodeSync,
