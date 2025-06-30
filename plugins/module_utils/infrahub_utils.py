@@ -15,10 +15,9 @@ if TYPE_CHECKING:
 
 try:
     from infrahub_sdk import Config, InfrahubClientSync
-    from infrahub_sdk.exceptions import BranchNotFoundError
+    from infrahub_sdk.exceptions import BranchNotFoundError, SchemaNotFoundError
     from infrahub_sdk.graphql import Query
     from infrahub_sdk.node import (
-        Attribute,
         InfrahubNodeSync,
         RelatedNodeSync,
         RelationshipManagerSync,
@@ -293,7 +292,10 @@ if HAS_INFRAHUBCLIENT:
             return nodes
 
         def fetch_single_schema(
-            self, kind: str, branch: str | None = None
+            self,
+            kind: str,
+            branch: str | None = None,
+            raise_when_missing: bool | None = True,
         ) -> NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI:
             """
             Retrieves schema attributes for the given kind.
@@ -301,11 +303,17 @@ if HAS_INFRAHUBCLIENT:
             Parameters:
                 kind (str): The kind for which the schema attributes are needed.
                 branch (str, optional): Name of the branch to query from. Defaults to default_branch.
+                raise_when_missing (bool, optional): Whether to raise an exception if the schema is not found. Defaults to True.
 
             Returns:
                 NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI: The schema attributes for the given kind.
             """
-            return self.client.schema.get(kind=kind, branch=branch)
+            if raise_when_missing:
+                return self.client.schema.get(kind=kind, branch=branch)
+            try:
+                return self.client.schema.get(kind=kind, branch=branch)
+            except SchemaNotFoundError:
+                return None
 
         def fetch_schemas(
             self, branch: str | None = None
@@ -697,7 +705,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 InfrahubNodeSync: the node created in Infrahub
             """
-            schema = self.client.fetch_single_schema(kind=kind)
+            schema = self.client.fetch_single_schema(kind=kind, raise_when_missing=False)
             if not schema:
                 raise Exception(f"Non-existing kind '{kind}'")
 
@@ -1004,7 +1012,11 @@ if HAS_INFRAHUBCLIENT:
                 # TODO: Should we build filters from data, example: data["name"] => name__value
                 pass
             try:
-                node = self.client.fetch_single_node(kind=kind, id=node_id, hfid=node_hfid, raise_when_missing=False)
+                # Add the include to be sure we have all the fields we could be updating
+                include = list(data.keys())
+                node = self.client.fetch_single_node(
+                    kind=kind, id=node_id, hfid=node_hfid, include=include, raise_when_missing=False
+                )
             except Exception as exc:
                 self._handle_errors(f"An error occurred while retrieving {kind} {data} due to {exc}")
 
@@ -1091,10 +1103,11 @@ if HAS_INFRAHUBCLIENT:
             # https://github.com/opsmill/infrahub-sdk-python/issues/272
             for attr_name in data:
                 if attr_name in tmp_obj._schema.attribute_names:
-                    attr_schema = next(attr for attr in self.infrahub_node._schema.attributes if attr.name == attr_name)
-                    attr_data = data.get(attr_name)
-                    new_attr = Attribute(name=attr_name, schema=attr_schema, data=attr_data)
-                    setattr(tmp_obj, attr_name, new_attr)
+                    setattr(
+                        tmp_obj,
+                        attr_name,
+                        data.get(attr_name),
+                    )
                 elif attr_name in tmp_obj._schema.relationship_names:
                     rel_schema = next(rel for rel in self.infrahub_node._schema.relationships if rel.name == attr_name)
                     rel_data = data.get(attr_name)
@@ -1103,13 +1116,7 @@ if HAS_INFRAHUBCLIENT:
                         setattr(
                             tmp_obj,
                             attr_name,
-                            RelatedNodeSync(
-                                name=attr_name,
-                                client=self.infrahub_node._client,
-                                branch=self.infrahub_node._branch,
-                                schema=rel_schema,
-                                data=rel_data,
-                            ),
+                            rel_data,
                         )
                     elif rel_schema.cardinality == RelationshipCardinality.MANY:
                         setattr(

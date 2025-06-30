@@ -20,7 +20,7 @@
           description: "Tag without name"
         state: present
       register: result
-      failed_when: "'Validation failed: Required attribute' not in result.msg"
+      failed_when: "'one filter must be provided' not in result.msg"
 
     - name: Should fail to create BuiltinTag due to non-existing field 'fake_field'
       opsmill.infrahub.node:

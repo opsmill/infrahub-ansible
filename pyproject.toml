@@ -14,18 +14,18 @@ ansible-core = [
 ]
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
 jinja2 = ">=3.1.5"
-tox = "^4.26.0"
+tox = "^4.27.0"
 
 [tool.poetry.group.dev.dependencies]
 codecov = "*"
 invoke = "^2.2.0"
-ruff = "0.11.11"
+ruff = "0.12.0"
 mock = "^5.2.0"
-pytest = "^8.3.5"
+pytest = "^8.4.1"
 pytest-mock = "*"
 pytest-xdist = "*"
 pytest-pythonpath = "*"
-ansible-lint = "^25.5.0"
+ansible-lint = "^25.6.1"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -142,7 +142,7 @@ max-line-length = 150
 
 [tool.ruff.lint.mccabe]
 # Target max-complexity=10
-max-complexity = 33
+max-complexity = 19
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
