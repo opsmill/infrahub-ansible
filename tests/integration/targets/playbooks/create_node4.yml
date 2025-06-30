@@ -16,14 +16,14 @@
         kind: "LocationCountry"
         data:
           name: "netherlands"
-          parent: "europe"
+          parent: ["europe"]
 
     - name: Create a LocationSite 'ams'
       opsmill.infrahub.node:
         kind: "LocationSite"
         data:
           name: "ams1"
-          parent: "netherlands"
+          parent: ["netherlands"]
 
     - name: Create a Platform 'Test Plaform'
       opsmill.infrahub.node:
@@ -52,8 +52,8 @@
         kind: "InfraDevice"
         branch: "test"
         data:
-          name: "ams1-sw3"
+          name: "ams1-sw1"
           type: "MX204"
-          site: "ams1"
-          platform: "Test Platform"
+          site: ["ams1"]
+          platform: ["Test Platform"]
         state: present

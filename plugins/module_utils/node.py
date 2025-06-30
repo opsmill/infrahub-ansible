@@ -22,7 +22,7 @@ class NodeModule(InfrahubModule):
 
         self.result = {"changed": False}
 
-        schema = self.client.fetch_single_schema(kind=kind)
+        schema = self.client.fetch_single_schema(kind=kind, raise_when_missing=False)
         if not schema:
             self._handle_errors(msg=f"Non-existing kind '{kind}'")
 
