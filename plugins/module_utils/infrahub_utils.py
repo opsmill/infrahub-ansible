@@ -20,7 +20,6 @@ try:
     from infrahub_sdk.exceptions import BranchNotFoundError
     from infrahub_sdk.graphql import Query
     from infrahub_sdk.node import (
-        Attribute,
         InfrahubNodeSync,
         RelatedNodeSync,
         RelationshipManagerSync,
@@ -295,7 +294,9 @@ if HAS_INFRAHUBCLIENT:
             return nodes
 
         def fetch_single_schema(
-            self, kind: str, branch: str | None = None,
+            self,
+            kind: str,
+            branch: str | None = None,
             raise_when_missing: bool | None = True,
         ) -> NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI:
             """
@@ -1015,7 +1016,9 @@ if HAS_INFRAHUBCLIENT:
             try:
                 # Add the include to be sure we have all the fields we could be updating
                 include = list(data.keys())
-                node = self.client.fetch_single_node(kind=kind, id=node_id, hfid=node_hfid, include=include, raise_when_missing=False)
+                node = self.client.fetch_single_node(
+                    kind=kind, id=node_id, hfid=node_hfid, include=include, raise_when_missing=False
+                )
             except Exception as exc:
                 self._handle_errors(f"An error occurred while retrieving {kind} {data} due to {exc}")
 
