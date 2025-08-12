@@ -10,7 +10,3 @@ class TestDeepUpdate(unittest.TestCase):
         expected = {"a": {"b": {"c": {"d": {"e": {"f": 2, "g": 3}, "h": 4}}, "i": 5}}, "j": 6, "z": 1}
         result = InfrahubBaseProcessor.deep_update(source, overrides)
         self.assertEqual(result, expected)
-
-
-if __name__ == "__main__":
-    unittest.main()
