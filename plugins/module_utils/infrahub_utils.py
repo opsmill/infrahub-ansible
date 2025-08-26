@@ -284,7 +284,7 @@ if HAS_INFRAHUBCLIENT:
                     exclude=exclude,
                     branch=branch,
                     prefetch_relationships=prefetch_relationships,
-                    parallel=True,
+                    parallel=False,
                     property=False,
                     order=order,
                     **filters,
