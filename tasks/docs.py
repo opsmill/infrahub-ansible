@@ -133,7 +133,7 @@ def parse_ansible_doc(plugin_file: Path, debug: bool = False) -> dict[str, Any]:
     Returns:
         dictionary containing parsed documentation, examples, and return values
     """
-    content = plugin_file.read_text()
+    content = plugin_file.read_text(encoding="utf-8")
 
     documentation = extract_docstring(content, "DOCUMENTATION")
     examples = extract_docstring(content, "EXAMPLES")

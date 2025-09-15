@@ -6,9 +6,9 @@ ns = Collection("infrahub_ansible")
 ns.configure(
     {
         "infrahub_ansible": {
-            "infrahub_ver": "0.0.1",
+            "infrahub_ver": "1.5.2",
             "project_name": "infrahub_ansible",
-            "python_ver": "3.10",
+            "python_ver": "3.12",
             "local": False,
         },
     },

@@ -3,7 +3,7 @@
 #
 #  This base stage just installs the dependencies required for production
 #  without any development deps.
-ARG PYTHON_VER=3.9
+ARG PYTHON_VER=3.12
 FROM python:${PYTHON_VER} AS base
 
 # Allow for flexible Python versions, for broader testing
@@ -44,7 +44,7 @@ FROM base AS sanity
 # elsewhere
 ARG ANSIBLE_COLLECTIONS_PATH=/usr/share/ansible/collections
 ENV ANSIBLE_COLLECTIONS_PATH=${ANSIBLE_COLLECTIONS_PATH}
-ARG PYTHON_VER=3.9
+ARG PYTHON_VER=3.12
 ENV PYTHON_VERSION=${PYTHON_VER}
 
 # Allows for custom command line arguments to be passed to ansible-test (like -vvv)
@@ -79,7 +79,7 @@ FROM base AS unittests
 # elsewhere
 ARG ANSIBLE_COLLECTIONS_PATH=/usr/share/ansible/collections
 ENV ANSIBLE_COLLECTIONS_PATH=${ANSIBLE_COLLECTIONS_PATH}
-ARG PYTHON_VER=3.9
+ARG PYTHON_VER=3.12
 ENV PYTHON_VERSION=${PYTHON_VER}
 
 # Allows for custom command line arguments to be passed to ansible-test (like -vvv)
@@ -95,7 +95,7 @@ FROM base AS integration
 
 ARG ANSIBLE_INTEGRATION_ARGS
 ENV ANSIBLE_INTEGRATION_ARGS=${ANSIBLE_INTEGRATION_ARGS}
-ARG PYTHON_VER=3.9
+ARG PYTHON_VER=3.12
 ENV PYTHON_VERSION=${PYTHON_VER}
 
 # Run Integration tests
