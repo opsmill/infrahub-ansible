@@ -19,7 +19,7 @@ on:
         type: string
 
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-ansible
@@ -27,11 +27,11 @@ concurrency:
 
 jobs:
   build-import:
-    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@v1.0.1
   ansible-lint:
-    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@v1.0.1
   sanity:
-    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@v1.0.1
   # unit-galaxy:
   #   uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
   # unit-source:

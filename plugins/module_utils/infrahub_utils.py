@@ -469,6 +469,20 @@ if HAS_INFRAHUBCLIENT:
                 elif level == "INFO":
                     self.display.v(error_msg)
 
+        @staticmethod
+        def deep_update(source: dict[str, Any], overrides: dict[str, Any]) -> dict[str, Any]:
+            """
+            Update a nested dictionary or similar mapping.
+            Modify ``source`` in place.
+            """
+            for key, value in overrides.items():
+                if isinstance(value, dict) and value:
+                    returned = InfrahubBaseProcessor.deep_update(source.get(key, {}), value)
+                    source[key] = returned
+                else:
+                    source[key] = value
+            return source
+
         def resolve_node_mapping(
             self, node: InfrahubNodeSync, attrs: list[str], schemas: dict[str, Any], include_id: bool = True
         ) -> dict[str, Any] | None:
@@ -539,7 +553,7 @@ if HAS_INFRAHUBCLIENT:
                                         node=related_node, attrs=peer_attributes, schemas=schemas, include_id=True
                                     )
                                     if isinstance(attribute_dict[parts[0]], dict):
-                                        attribute_dict[parts[0]].update(nested_result)
+                                        self.deep_update(attribute_dict[parts[0]], nested_result)
                                     else:
                                         attribute_dict[parts[0]] = nested_result
 

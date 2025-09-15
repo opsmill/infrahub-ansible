@@ -15,7 +15,7 @@ jobs:
     outputs:
       skip: ${{ steps.filter.outputs.skip }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 2  # Fetches the commit history for the last 2 commits
       - id: filter
@@ -37,7 +37,7 @@ jobs:
       next_version: ${{ steps.version.outputs.next-version }}
     steps:
       - name: "Set up Python"
-        uses: "actions/setup-python@v5"
+        uses: "actions/setup-python@v6"
         with:
           python-version: "3.11"
 
@@ -49,7 +49,7 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           fetch-depth: 0
