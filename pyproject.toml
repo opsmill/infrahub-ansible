@@ -18,18 +18,18 @@ numpy = [
 ]
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
 jinja2 = ">=3.1.5"
-tox = "^4.30.2"
+tox = "^4.30.3"
 
 [tool.poetry.group.dev.dependencies]
 codecov = "*"
 invoke = "^2.2.0"
-ruff = "0.12.12"
+ruff = "0.13.3"
 mock = "^5.2.0"
 pytest = "^8.4.2"
 pytest-mock = "*"
 pytest-xdist = "*"
 pytest-pythonpath = "*"
-ansible-lint = "^25.8.2"
+ansible-lint = "^25.9.1"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
