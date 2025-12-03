@@ -23,13 +23,13 @@ tox = "^4.32.0"
 [tool.poetry.group.dev.dependencies]
 codecov = "*"
 invoke = "^2.2.1"
-ruff = "0.14.4"
+ruff = "0.14.6"
 mock = "^5.2.0"
-pytest = "^9.0.0"
+pytest = "^9.0.1"
 pytest-mock = "*"
 pytest-xdist = "*"
 pytest-pythonpath = "*"
-ansible-lint = "^25.9.2"
+ansible-lint = "^25.11.0"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
