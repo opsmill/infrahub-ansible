@@ -97,7 +97,6 @@ import os
 from typing import Any
 
 from ansible.errors import AnsibleError, AnsibleLookupError
-from ansible.module_utils.six import raise_from
 from ansible.plugins.lookup import LookupBase
 from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
@@ -179,6 +178,6 @@ class LookupModule(LookupBase):
                     results.extend(response[kind].get("edges", []))
 
         except Exception as exc:
-            raise_from(AnsibleError(str(exc)), exc)
+            raise AnsibleError(str(exc)) from exc
 
         return results

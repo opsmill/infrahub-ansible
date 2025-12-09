@@ -54,7 +54,7 @@ if HAS_INFRAHUBCLIENT:
     def get_node_identifier(node: InfrahubNodeSync) -> str:
         """
         Return an identifier for the node
-        Prefer the ID if available; otherwise, use the HFID
+        Prefer the HFID if available; otherwise, use the ID
 
         Parameters:
             node (InfrahubNodeSync): A node instance
@@ -63,10 +63,10 @@ if HAS_INFRAHUBCLIENT:
             str: identifier for the node as a string
 
         """
-        if node.id:
-            return str(node.id)
         if node.hfid:
             return str(node.get_human_friendly_id())
+        if node.id:
+            return str(node.id)
         return "unknown"
 
     class InfrahubclientWrapper:
@@ -454,7 +454,7 @@ if HAS_INFRAHUBCLIENT:
             self.client = client
             self.display = display
 
-        def _handle_exception(
+        def _handle_display(
             self, message: str, exception: Exception | None = None, level: str | None = "ERROR"
         ) -> None:
             error_msg = f"{message}"
@@ -468,6 +468,8 @@ if HAS_INFRAHUBCLIENT:
                     self.display.warning(error_msg)
                 elif level == "INFO":
                     self.display.v(error_msg)
+                elif level == "DEBUG":
+                    self.display.debug(error_msg)
 
         @staticmethod
         def deep_update(source: dict[str, Any], overrides: dict[str, Any]) -> dict[str, Any]:
@@ -499,44 +501,86 @@ if HAS_INFRAHUBCLIENT:
                 dict[str, Any]: A dictionary mapping attribute/relationship names to their respective values.
                         For relationship with "many" cardinality, it will be a list (of related nodes)
             """
-            attribute_dict = {}
+            attribute_dict: dict[str, Any] = {}
             store = self.client.client.store
 
-            for attr in attrs:
-                parts = attr.split(".")
-                node_attr = getattr(node, parts[0], None)
+            # Cache schema lookups once before the loop (Issue #2 fix)
+            node_schema = node._schema
+            attribute_names = node_schema.attribute_names
+            relationship_names = node_schema.relationship_names
 
-                if parts[0] not in attribute_dict:
-                    attribute_dict[parts[0]] = {} if len(parts) > 1 else None
+            # Pre-process attrs: parse once and group by root attribute
+            # Structure: {root_attr: {"nested": [nested_attrs], "has_simple": bool}}
+            parsed_attrs: dict[str, dict[str, Any]] = {}
+            for attr in attrs:
+                dot_idx = attr.find(".")
+                if dot_idx > 0:
+                    root = attr[:dot_idx]
+                    nested = attr[dot_idx + 1:]
+                    if root not in parsed_attrs:
+                        parsed_attrs[root] = {"nested": [], "has_simple": False}
+                    parsed_attrs[root]["nested"].append(nested)
+                else:
+                    if attr not in parsed_attrs:
+                        parsed_attrs[attr] = {"nested": [], "has_simple": False}
+                    parsed_attrs[attr]["has_simple"] = True
+
+            # Process each unique root attribute once
+            for root_attr, attr_info in parsed_attrs.items():
+                nested_attrs = attr_info["nested"]
+                has_simple = attr_info["has_simple"]
+                has_nested = bool(nested_attrs)
+
+                node_attr = getattr(node, root_attr, None)
+
+                # Initialize default value
+                attribute_dict[root_attr] = {} if has_nested else None
+
+                # Handle special node properties like display_label and hfid
+                # These are direct attributes on the node, not schema attributes
+                if root_attr in ("display_label", "hfid") and has_simple and not has_nested:
+                    attribute_dict[root_attr] = getattr(node, root_attr, None)
+                    continue
 
                 if node_attr is None:
                     continue
 
-                if parts[0] in node._schema.attribute_names and len(parts) == 1:
+                if root_attr in attribute_names and has_simple and not has_nested:
                     if node_attr.value:
-                        attribute_dict[parts[0]] = str(node_attr.value)
+                        attribute_dict[root_attr] = str(node_attr.value)
                     else:
-                        # attribute_dict[parts[0]] = node_attr.value
-                        # FIXME
-                        # If the attribute is inherited, it's not populate properly in store
-                        tmp_node = node._client.get(id=node.id, kind=node._schema.kind)
-                        node_attr = getattr(tmp_node, parts[0], None)
-                        if node_attr.value:
-                            attribute_dict[parts[0]] = str(node_attr.value)
+                        # FIXME: If the attribute is inherited, it's not populated properly in store
+                        tmp_node = node._client.get(id=node.id, kind=node_schema.kind)
+                        tmp_attr = getattr(tmp_node, root_attr, None)
+                        if tmp_attr.value:
+                            attribute_dict[root_attr] = str(tmp_attr.value)
                         else:
-                            attribute_dict[parts[0]] = node_attr.value
+                            attribute_dict[root_attr] = tmp_attr.value
 
-                elif parts[0] in node._schema.relationship_names:
-                    if isinstance(node_attr, RelationshipManagerSync) and len(parts) == 1:
-                        peers: list[dict[str, Any]] = []
+                elif root_attr in relationship_names:
+                    if isinstance(node_attr, RelationshipManagerSync):
+                        peers: list[Any] = []
                         for peer in node_attr.peers:
                             related_node = store.get(key=peer.id, raise_when_missing=False)
                             if not related_node:
                                 peer.fetch()
                                 related_node = peer.peer
                             if related_node and hasattr(related_node._schema, "attribute_names"):
-                                peers.append(related_node.id)
-                        attribute_dict[parts[0]] = peers
+                                if has_nested:
+                                    # Nested attributes requested (e.g., tags.name, tags.display_label)
+                                    # Process ALL nested attrs for this relationship at once
+                                    peer_data: dict[str, Any] = {"id": related_node.id}
+                                    nested_result = self.resolve_node_mapping(
+                                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=False
+                                    )
+                                    if nested_result:
+                                        peer_data.update(nested_result)
+                                    peers.append(peer_data)
+                                else:
+                                    # Only "tags" requested without nested attrs - return just IDs
+                                    peers.append(related_node.id)
+                        if peers:
+                            attribute_dict[root_attr] = peers
 
                     elif isinstance(node_attr, RelatedNodeSync):
                         if node_attr.id and node_attr.schema.peer:
@@ -545,17 +589,13 @@ if HAS_INFRAHUBCLIENT:
                                 node_attr.fetch()
                                 related_node = node_attr.peer
                             if related_node:
-                                if len(parts) == 1:
-                                    attribute_dict[parts[0]] = related_node.id
-                                else:
-                                    peer_attributes = [".".join(parts[1:])]
+                                if has_nested:
                                     nested_result = self.resolve_node_mapping(
-                                        node=related_node, attrs=peer_attributes, schemas=schemas, include_id=True
+                                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
                                     )
-                                    if isinstance(attribute_dict[parts[0]], dict):
-                                        self.deep_update(attribute_dict[parts[0]], nested_result)
-                                    else:
-                                        attribute_dict[parts[0]] = nested_result
+                                    attribute_dict[root_attr] = nested_result
+                                else:
+                                    attribute_dict[root_attr] = related_node.id
 
             if include_id:
                 attribute_dict["id"] = node.id
@@ -665,7 +705,7 @@ if HAS_INFRAHUBCLIENT:
                         order=order,
                     )
                 except Exception as exc:
-                    self._handle_exception(
+                    self._handle_display(
                         exception=exc,
                         message=f"Failed to fetch_nodes for kind '{node_kind}'",
                         level="WARNING",
@@ -685,12 +725,20 @@ if HAS_INFRAHUBCLIENT:
             host_node_attributes = {}
             for node_kind, node_attributes in node_attributes_dict.items():
                 related_kinds = self.get_related_nodes(schema=schema_dict[node_kind], attrs=node_attributes)
+                self._handle_display(
+                    message=f"Prefetching schema for related nodes of kind '{node_kind}'",
+                    level="DEBUG",
+                )
                 for related_kind in related_kinds:
                     schema_dict[related_kind] = self.client.fetch_single_schema(kind=related_kind)
+                    self._handle_display(
+                        message=f"Prefetching related nodes for kind '{related_kind}'",
+                        level="DEBUG",
+                    )
                     try:
                         self.client.fetch_nodes(kind=related_kind, prefetch_relationships=False, order=order)
                     except Exception as exc:
-                        self._handle_exception(
+                        self._handle_display(
                             exception=exc,
                             message=f"Failed to fetch_nodes for kind '{related_kind}'",
                             level="WARNING",
@@ -702,6 +750,10 @@ if HAS_INFRAHUBCLIENT:
                         attrs=node_attributes_dict[host_node._schema.kind],
                         schemas=schema_dict,
                         include_id=include_id,
+                    )
+                    self._handle_display(
+                        message=f"Resolved attributes for node '{get_node_identifier(host_node)}'",
+                        level="DEBUG",
                     )
                     if result:
                         host_node_attributes[str(host_node)] = result
@@ -776,7 +828,7 @@ if HAS_INFRAHUBCLIENT:
                 self.client.delete_node(node=node)
 
             except Exception as exc:
-                self._handle_exception(
+                self._handle_display(
                     exception=exc,
                     message=f"Failed to delete node with {node}",
                     level="ERROR",
