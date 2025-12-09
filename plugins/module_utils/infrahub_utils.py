@@ -485,6 +485,91 @@ if HAS_INFRAHUBCLIENT:
                     source[key] = value
             return source
 
+        @staticmethod
+        def _parse_attrs(attrs: list[str]) -> dict[str, dict[str, Any]]:
+            """
+            Pre-process attrs: parse once and group by root attribute.
+
+            Parameters:
+                attrs: List of attribute names (e.g., ["name", "tags.name", "tags.display_label"])
+
+            Returns:
+                dict: Structure {root_attr: {"nested": [nested_attrs], "has_simple": bool}}
+            """
+            parsed: dict[str, dict[str, Any]] = {}
+            for attr in attrs:
+                dot_idx = attr.find(".")
+                if dot_idx > 0:
+                    root, nested = attr[:dot_idx], attr[dot_idx + 1 :]
+                    if root not in parsed:
+                        parsed[root] = {"nested": [], "has_simple": False}
+                    parsed[root]["nested"].append(nested)
+                else:
+                    if attr not in parsed:
+                        parsed[attr] = {"nested": [], "has_simple": False}
+                    parsed[attr]["has_simple"] = True
+            return parsed
+
+        def _resolve_schema_attribute(self, node: InfrahubNodeSync, root_attr: str, node_attr: Any) -> str | None:
+            """Resolve a schema attribute value, handling inherited attributes."""
+            if node_attr.value:
+                return str(node_attr.value)
+            # FIXME: If the attribute is inherited, it's not populated properly in store
+            tmp_node = node._client.get(id=node.id, kind=node._schema.kind)
+            tmp_attr = getattr(tmp_node, root_attr, None)
+            return str(tmp_attr.value) if tmp_attr.value else tmp_attr.value
+
+        def _resolve_many_relationship(
+            self, node_attr: RelationshipManagerSync, nested_attrs: list[str], has_nested: bool, schemas: dict[str, Any]
+        ) -> list[Any]:
+            """Resolve a many-cardinality relationship (RelationshipManagerSync)."""
+            store = self.client.client.store
+            peers: list[Any] = []
+
+            for peer in node_attr.peers:
+                related_node = store.get(key=peer.id, raise_when_missing=False)
+                if not related_node:
+                    peer.fetch()
+                    related_node = peer.peer
+
+                if not related_node or not hasattr(related_node._schema, "attribute_names"):
+                    continue
+
+                if has_nested:
+                    peer_data: dict[str, Any] = {"id": related_node.id}
+                    nested_result = self.resolve_node_mapping(
+                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=False
+                    )
+                    if nested_result:
+                        peer_data.update(nested_result)
+                    peers.append(peer_data)
+                else:
+                    peers.append(related_node.id)
+
+            return peers
+
+        def _resolve_one_relationship(
+            self, node_attr: RelatedNodeSync, nested_attrs: list[str], has_nested: bool, schemas: dict[str, Any]
+        ) -> dict[str, Any] | str | None:
+            """Resolve a one-cardinality relationship (RelatedNodeSync)."""
+            if not (node_attr.id and node_attr.schema.peer):
+                return None
+
+            store = self.client.client.store
+            related_node = store.get(key=node_attr.id, raise_when_missing=False)
+            if not related_node:
+                node_attr.fetch()
+                related_node = node_attr.peer
+
+            if not related_node:
+                return None
+
+            if has_nested:
+                return self.resolve_node_mapping(
+                    node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
+                )
+            return related_node.id
+
         def resolve_node_mapping(
             self, node: InfrahubNodeSync, attrs: list[str], schemas: dict[str, Any], include_id: bool = True
         ) -> dict[str, Any] | None:
@@ -502,42 +587,19 @@ if HAS_INFRAHUBCLIENT:
                         For relationship with "many" cardinality, it will be a list (of related nodes)
             """
             attribute_dict: dict[str, Any] = {}
-            store = self.client.client.store
-
-            # Cache schema lookups once before the loop (Issue #2 fix)
             node_schema = node._schema
-            attribute_names = node_schema.attribute_names
-            relationship_names = node_schema.relationship_names
+            parsed_attrs = self._parse_attrs(attrs)
 
-            # Pre-process attrs: parse once and group by root attribute
-            # Structure: {root_attr: {"nested": [nested_attrs], "has_simple": bool}}
-            parsed_attrs: dict[str, dict[str, Any]] = {}
-            for attr in attrs:
-                dot_idx = attr.find(".")
-                if dot_idx > 0:
-                    root = attr[:dot_idx]
-                    nested = attr[dot_idx + 1:]
-                    if root not in parsed_attrs:
-                        parsed_attrs[root] = {"nested": [], "has_simple": False}
-                    parsed_attrs[root]["nested"].append(nested)
-                else:
-                    if attr not in parsed_attrs:
-                        parsed_attrs[attr] = {"nested": [], "has_simple": False}
-                    parsed_attrs[attr]["has_simple"] = True
-
-            # Process each unique root attribute once
             for root_attr, attr_info in parsed_attrs.items():
-                nested_attrs = attr_info["nested"]
-                has_simple = attr_info["has_simple"]
-                has_nested = bool(nested_attrs)
-
+                nested_attrs, has_simple, has_nested = (
+                    attr_info["nested"],
+                    attr_info["has_simple"],
+                    bool(attr_info["nested"]),
+                )
                 node_attr = getattr(node, root_attr, None)
-
-                # Initialize default value
                 attribute_dict[root_attr] = {} if has_nested else None
 
-                # Handle special node properties like display_label and hfid
-                # These are direct attributes on the node, not schema attributes
+                # Handle special node properties (display_label, hfid)
                 if root_attr in ("display_label", "hfid") and has_simple and not has_nested:
                     attribute_dict[root_attr] = getattr(node, root_attr, None)
                     continue
@@ -545,57 +607,20 @@ if HAS_INFRAHUBCLIENT:
                 if node_attr is None:
                     continue
 
-                if root_attr in attribute_names and has_simple and not has_nested:
-                    if node_attr.value:
-                        attribute_dict[root_attr] = str(node_attr.value)
-                    else:
-                        # FIXME: If the attribute is inherited, it's not populated properly in store
-                        tmp_node = node._client.get(id=node.id, kind=node_schema.kind)
-                        tmp_attr = getattr(tmp_node, root_attr, None)
-                        if tmp_attr.value:
-                            attribute_dict[root_attr] = str(tmp_attr.value)
-                        else:
-                            attribute_dict[root_attr] = tmp_attr.value
+                # Handle schema attributes
+                if root_attr in node_schema.attribute_names and has_simple and not has_nested:
+                    attribute_dict[root_attr] = self._resolve_schema_attribute(node, root_attr, node_attr)
 
-                elif root_attr in relationship_names:
+                # Handle relationships
+                elif root_attr in node_schema.relationship_names:
                     if isinstance(node_attr, RelationshipManagerSync):
-                        peers: list[Any] = []
-                        for peer in node_attr.peers:
-                            related_node = store.get(key=peer.id, raise_when_missing=False)
-                            if not related_node:
-                                peer.fetch()
-                                related_node = peer.peer
-                            if related_node and hasattr(related_node._schema, "attribute_names"):
-                                if has_nested:
-                                    # Nested attributes requested (e.g., tags.name, tags.display_label)
-                                    # Process ALL nested attrs for this relationship at once
-                                    peer_data: dict[str, Any] = {"id": related_node.id}
-                                    nested_result = self.resolve_node_mapping(
-                                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=False
-                                    )
-                                    if nested_result:
-                                        peer_data.update(nested_result)
-                                    peers.append(peer_data)
-                                else:
-                                    # Only "tags" requested without nested attrs - return just IDs
-                                    peers.append(related_node.id)
+                        peers = self._resolve_many_relationship(node_attr, nested_attrs, has_nested, schemas)
                         if peers:
                             attribute_dict[root_attr] = peers
-
                     elif isinstance(node_attr, RelatedNodeSync):
-                        if node_attr.id and node_attr.schema.peer:
-                            related_node = store.get(key=node_attr.id, raise_when_missing=False)
-                            if not related_node:
-                                node_attr.fetch()
-                                related_node = node_attr.peer
-                            if related_node:
-                                if has_nested:
-                                    nested_result = self.resolve_node_mapping(
-                                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
-                                    )
-                                    attribute_dict[root_attr] = nested_result
-                                else:
-                                    attribute_dict[root_attr] = related_node.id
+                        result = self._resolve_one_relationship(node_attr, nested_attrs, has_nested, schemas)
+                        if result is not None:
+                            attribute_dict[root_attr] = result
 
             if include_id:
                 attribute_dict["id"] = node.id
