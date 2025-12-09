@@ -18,7 +18,6 @@ nodes:
       - site.parent.name
       - site.name
       - display_label
-      - role
       - tags.name
       - tags.display_label
 
