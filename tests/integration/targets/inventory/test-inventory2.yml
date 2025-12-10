@@ -15,6 +15,7 @@ nodes:
   InfraDevice:
     include:
       - site.name
+      - tags
 
 keyed_groups:
   - prefix: site
