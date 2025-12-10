@@ -15,6 +15,7 @@ nodes:
       - name
       - role
       - primary_address.address
+      - platform.ansible_network_os
       - site.parent.name
       - site.name
       - display_label
