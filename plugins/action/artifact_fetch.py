@@ -10,7 +10,6 @@ import os
 from typing import Any
 
 from ansible.errors import AnsibleError
-from ansible.module_utils.six import raise_from
 from ansible.plugins.action import ActionBase
 from ansible.utils.display import Display
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
@@ -113,6 +112,6 @@ class ActionModule(ActionBase):
                 }
 
         except Exception as exp:
-            raise_from(AnsibleError(str(exp)), exp)
+            raise AnsibleError(str(exp)) from exp
 
         return result

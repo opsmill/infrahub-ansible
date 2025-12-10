@@ -157,7 +157,6 @@ from typing import Any
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
-from ansible.module_utils.six import raise_from
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
@@ -311,7 +310,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                     nodes=self.nodes, prefetch_relationships=self.prefetch_relationships
                 )
             except Exception as exc:
-                raise_from(AnsibleError(str(exc)), exc)
+                raise AnsibleError(str(exc)) from exc
 
         if not host_node_attributes:
             self.display.v("No nodes processed.")
