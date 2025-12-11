@@ -1188,35 +1188,38 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
             """
-            tmp_obj = deepcopy(self.infrahub_node)
+            # Capture the "before" state by serializing the original node's data
+            # We avoid using deepcopy on the node because InfrahubNodeSync contains
+            # a reference to InfrahubClientSync which has an SSLContext that cannot be pickled
+            serialized_before = deepcopy(self.infrahub_node._generate_input_data().get("data", {}).get("data", {}))
 
             # TODO: SDK should provide a way to do that
             # https://github.com/opsmill/infrahub-sdk-python/issues/272
             for attr_name in data:
-                if attr_name in tmp_obj._schema.attribute_names:
+                if attr_name in self.infrahub_node._schema.attribute_names:
                     setattr(
-                        tmp_obj,
+                        self.infrahub_node,
                         attr_name,
                         data.get(attr_name),
                     )
-                elif attr_name in tmp_obj._schema.relationship_names:
+                elif attr_name in self.infrahub_node._schema.relationship_names:
                     rel_schema = next(rel for rel in self.infrahub_node._schema.relationships if rel.name == attr_name)
                     rel_data = data.get(attr_name)
                     if rel_schema.cardinality == RelationshipCardinality.ONE:
-                        setattr(tmp_obj, f"_{attr_name}", None)
+                        setattr(self.infrahub_node, f"_{attr_name}", None)
                         setattr(
-                            tmp_obj,
+                            self.infrahub_node,
                             attr_name,
                             rel_data,
                         )
                     elif rel_schema.cardinality == RelationshipCardinality.MANY:
                         setattr(
-                            tmp_obj,
+                            self.infrahub_node,
                             attr_name,
                             RelationshipManagerSync(
                                 name=attr_name,
                                 client=self.infrahub_node._client,
-                                node=tmp_obj,
+                                node=self.infrahub_node,
                                 branch=self.infrahub_node._branch,
                                 schema=rel_schema,
                                 data=rel_data,
@@ -1225,21 +1228,19 @@ if HAS_INFRAHUBCLIENT:
 
             # TODO: SDK should provide a way to do that too ...
             # https://github.com/opsmill/infrahub-sdk-python/issues/271
-            if dict_hash(self.infrahub_node._generate_input_data()) == dict_hash(tmp_obj._generate_input_data()):
+            serialized_after = self.infrahub_node._generate_input_data().get("data", {}).get("data", {})
+            if dict_hash(serialized_before) == dict_hash(serialized_after):
                 return self.infrahub_node, None
 
             data_before, data_after = {}, {}
-            serialized_existing_obj = self.infrahub_node._generate_input_data().get("data").get("data")
-            serialized_tmp_obj = tmp_obj._generate_input_data().get("data").get("data")
             for key in data:
-                key_before = serialized_existing_obj.get(key)
-                key_after = serialized_tmp_obj.get(key)
+                key_before = serialized_before.get(key)
+                key_after = serialized_after.get(key)
                 if key_before != key_after:
                     data_before[key] = key_before
                     data_after[key] = key_after
 
             if not self.check_mode:
-                self.infrahub_node = deepcopy(tmp_obj)
                 self.infrahub_node.update()
 
             diff = self._build_diff(before=data_before, after=data_after)
