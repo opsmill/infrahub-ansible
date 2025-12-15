@@ -30,7 +30,7 @@ try:
         RelationshipKind,
     )
     from infrahub_sdk.types import Order
-    from infrahub_sdk.utils import dict_hash
+    from infrahub_sdk.utils import dict_hash, is_valid_uuid
 
     HAS_INFRAHUBCLIENT = True
     INFRAHUBCLIENT_IMP_ERR = None
@@ -1103,11 +1103,7 @@ if HAS_INFRAHUBCLIENT:
                 # TODO: Should we build filters from data, example: data["name"] => name__value
                 pass
             try:
-                # Add the include to be sure we have all the fields we could be updating
-                include = list(data.keys())
-                node = self.client.fetch_single_node(
-                    kind=kind, id=node_id, hfid=node_hfid, include=include, raise_when_missing=False
-                )
+                node = self.client.fetch_single_node(kind=kind, id=node_id, hfid=node_hfid, raise_when_missing=False)
             except Exception as exc:
                 self._handle_errors(f"An error occurred while retrieving {kind} {data} due to {exc}")
 
@@ -1178,6 +1174,123 @@ if HAS_INFRAHUBCLIENT:
             diff = self._build_diff(before={"state": "absent"}, after={"state": "present"})
             return node, diff
 
+        def _normalize_rel_id_to_hfid(self, rel_name: str, rel_value: Any) -> Any:  # noqa: PLR0911
+            """
+            Normalize relationship IDs to HFIDs by looking up nodes in the store.
+            This ensures consistent comparison when user provides HFID but stored data has UUID.
+
+            Parameters:
+                rel_name (str): The name of the relationship
+                rel_value (Any): The relationship value from serialized data (contains UUIDs)
+
+            Returns:
+                Any: The normalized relationship value with HFIDs instead of UUIDs
+            """
+            if rel_value is None:
+                return None
+
+            rel_schema = next(
+                (rel for rel in self.infrahub_node._schema.relationships if rel.name == rel_name),
+                None,
+            )
+            if not rel_schema:
+                return rel_value
+
+            def get_or_fetch_node(node_id: str) -> InfrahubNodeSync | None:
+                """Get node from store or fetch it (without prefetch to avoid recursion)."""
+                related_node = self.client.client.store.get(key=node_id, raise_when_missing=False)
+                if related_node:
+                    return related_node
+                # Node not in store, fetch it directly
+                try:
+                    related_node = self.client.client.get(
+                        kind=rel_schema.peer,
+                        id=node_id,
+                        populate_store=True,
+                        prefetch_relationships=False,
+                    )
+                    return related_node
+                except Exception:
+                    return None
+
+            def normalize_to_hfid_format(related_node: InfrahubNodeSync) -> dict[str, Any]:
+                """Convert node's HFID to the format used by _generate_input_data().
+
+                Single-element HFID: {"id": "value"} (string)
+                Multi-element HFID: {"hfid": ["value1", "value2"]} (list with hfid key)
+                """
+                hfid = related_node.hfid  # This is a list
+                if hfid and len(hfid) == 1:
+                    return {"id": hfid[0]}
+                return {"hfid": hfid}
+
+            # Handle cardinality ONE relationships
+            if rel_schema.cardinality == RelationshipCardinality.ONE:
+                if isinstance(rel_value, dict) and "id" in rel_value:
+                    node_id = rel_value["id"]
+                    # Only normalize if the ID is a UUID, not if it's already an HFID
+                    if is_valid_uuid(node_id):
+                        related_node = get_or_fetch_node(node_id)
+                        if related_node and related_node.hfid:
+                            return normalize_to_hfid_format(related_node=related_node)
+                return rel_value
+
+            # Handle cardinality MANY relationships
+            if rel_schema.cardinality == RelationshipCardinality.MANY:
+                if isinstance(rel_value, list):
+                    normalized = []
+                    for item in rel_value:
+                        if isinstance(item, dict) and "id" in item:
+                            node_id = item["id"]
+                            # Only normalize if the ID is a UUID, not if it's already an HFID
+                            if is_valid_uuid(node_id):
+                                related_node = get_or_fetch_node(node_id)
+                                if related_node and related_node.hfid:
+                                    normalized.append(normalize_to_hfid_format(related_node=related_node))
+                                else:
+                                    normalized.append(item)
+                            else:
+                                normalized.append(item)
+                        else:
+                            normalized.append(item)
+                    return normalized
+                return rel_value
+
+            return rel_value
+
+        def _normalize_rel_format(self, rel_value: Any) -> Any:
+            """
+            Normalize relationship value format to a canonical form.
+            Converts {"hfid": ["single"]} to {"id": "single"} for consistency.
+
+            Parameters:
+                rel_value (Any): The relationship value from serialized data
+
+            Returns:
+                Any: The normalized relationship value in canonical format
+            """
+            if rel_value is None:
+                return None
+
+            def normalize_single(item: Any) -> Any:
+                """Normalize a single relationship item."""
+                # Convert {"hfid": ["single"]} to {"id": "single"}
+                if (
+                    isinstance(item, dict)
+                    and "hfid" in item
+                    and isinstance(item["hfid"], list)
+                    and len(item["hfid"]) == 1
+                ):
+                    return {"id": item["hfid"][0]}
+                return item
+
+            if isinstance(rel_value, dict):
+                return normalize_single(rel_value)
+            if isinstance(rel_value, list):
+                return [normalize_single(item) for item in rel_value]
+
+            return rel_value
+
         def _update_object(self, data: dict) -> tuple[InfrahubNodeSync, dict]:
             """
             Update an Infrahub Object.
@@ -1192,6 +1305,14 @@ if HAS_INFRAHUBCLIENT:
             # We avoid using deepcopy on the node because InfrahubNodeSync contains
             # a reference to InfrahubClientSync which has an SSLContext that cannot be pickled
             serialized_before = deepcopy(self.infrahub_node._generate_input_data().get("data", {}).get("data", {}))
+
+            # Normalize relationship UUIDs to HFIDs in the "before" state
+            # This ensures consistent comparison when user provides HFID but stored data has UUID
+            for key in list(serialized_before.keys()):
+                if key in self.infrahub_node._schema.relationship_names:
+                    serialized_before[key] = self._normalize_rel_id_to_hfid(key, serialized_before.get(key))
+                    # Also normalize the format (e.g., {"hfid": ["single"]} -> {"id": "single"})
+                    serialized_before[key] = self._normalize_rel_format(serialized_before[key])
 
             # TODO: SDK should provide a way to do that
             # https://github.com/opsmill/infrahub-sdk-python/issues/272
@@ -1229,6 +1350,13 @@ if HAS_INFRAHUBCLIENT:
             # TODO: SDK should provide a way to do that too ...
             # https://github.com/opsmill/infrahub-sdk-python/issues/271
             serialized_after = self.infrahub_node._generate_input_data().get("data", {}).get("data", {})
+
+            # Normalize relationship formats in the "after" state to match "before" canonical format
+            # This handles cases where _generate_input_data() produces {"hfid": ["single"]} but we normalized to {"id": "single"}
+            for key in list(serialized_after.keys()):
+                if key in self.infrahub_node._schema.relationship_names:
+                    serialized_after[key] = self._normalize_rel_format(serialized_after.get(key))
+
             if dict_hash(serialized_before) == dict_hash(serialized_after):
                 return self.infrahub_node, None
 
