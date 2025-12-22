@@ -23,7 +23,7 @@ tox = "^4.32.0"
 [tool.poetry.group.dev.dependencies]
 codecov = "*"
 invoke = "^2.2.1"
-ruff = "0.14.9"
+ruff = "0.14.10"
 mock = "^5.2.0"
 pytest = "^9.0.2"
 pytest-mock = "*"
