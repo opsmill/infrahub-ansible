@@ -1,35 +1,34 @@
-[tool.poetry]
+[project]
 name = "infrahub_ansible_modules"
 version = "1.6.1"
 description = "Ansible collection to interact with Infrahub's API"
-authors = ["OpsMill <info@opsmill.com>"]
-package-mode = false
-license = "GPLv3"
+authors = [{name = "OpsMill", email = "info@opsmill.com"}]
+license = {text = "GPLv3"}
+requires-python = ">=3.10,<3.14"
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.14"
-ansible-core = [
-    { version = ">=2.15.13rc1", python = ">=3.9,<3.10" },
-    { version = ">=2.17.7rc1", python = ">=3.10" },
+dependencies = [
+    "ansible-core>=2.17.7",
+    "infrahub-sdk[all]>=1.5,<2.0",
+    "jinja2>=3.1.6",
+    "tox>=4.32.0",
 ]
+
+[project.optional-dependencies]
 numpy = [
-    { version = "^1.24.2", optional = true, python = ">=3.9,<3.12" },
-    { version = "^1.26.2", optional = true, python = ">=3.12" },
+    "numpy>=2.0.0; python_version >= '3.10'",
 ]
-infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
-jinja2 = ">=3.1.5"
-tox = "^4.32.0"
 
-[tool.poetry.group.dev.dependencies]
-codecov = "*"
-invoke = "^2.2.1"
-ruff = "0.14.9"
-mock = "^5.2.0"
-pytest = "^9.0.2"
-pytest-mock = "*"
-pytest-xdist = "*"
-pytest-pythonpath = "*"
-ansible-lint = "^25.12.1"
+[dependency-groups]
+dev = [
+    "codecov>=2.1.13",
+    "invoke>=2.2.1",
+    "ruff>=0.14.10",
+    "mock>=5.2.0",
+    "pytest>=9.0.2",
+    "pytest-mock>=3.15.1",
+    "pytest-xdist>=3.8.0",
+    "ansible-lint>=25.12.2",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -149,5 +148,8 @@ max-line-length = 150
 max-complexity = 19
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["plugins"]

@@ -54,39 +54,26 @@ jobs:
     if: needs.files-changed.outputs.python == 'true'
     needs: ["files-changed"]
     runs-on: "ubuntu-22.04"
-    strategy:
-      matrix:
-        python-version:
-          - "3.12"
-        poetry-version:
-          - "2.1.3"
     timeout-minutes: 5
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v6"
 
-      - name: "Set up Python ${{ matrix.python-version }}"
+      - name: "Set up Python"
         uses: "actions/setup-python@v6"
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: "Install Poetry ${{ matrix.poetry-version }}"
-        uses: "snok/install-poetry@v1"
-        with:
-          version: ${{ matrix.poetry-version }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-      - name: "Setup Python environment"
-        run: |
-          poetry config virtualenvs.create true --local
-          poetry env use ${{ matrix.python-version }}
+          python-version: "3.12"
+
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v5"
+
       - name: "Install dependencies"
-        run: "poetry install --no-interaction --no-ansi --with dev"
+        run: "uv sync --group dev"
 
       - name: "Linting: ruff check"
-        run: "poetry run ruff check ."
+        run: "uv run ruff check ."
       - name: "Linting: ruff format"
-        run: "poetry run ruff format --check --diff ."
+        run: "uv run ruff format --check --diff ."
 
   documentation-lint:
     defaults:
