@@ -152,5 +152,36 @@ max-complexity = 19
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+include = [
+    "plugins/**/*",
+    "roles/**/*",
+    "meta/**/*",
+    "docs/**/*",
+    "galaxy.yml",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.rst",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "plugins/**/*",
+    "roles/**/*",
+    "meta/**/*",
+    "docs/**/*",
+    "galaxy.yml",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.rst",
+    "pyproject.toml",
+]
+
 [tool.hatch.build.targets.wheel]
-packages = ["plugins"]
+packages = ["plugins", "roles", "meta", "docs"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"galaxy.yml" = "galaxy.yml"
+"README.md" = "README.md"
+"LICENSE" = "LICENSE"
+"CHANGELOG.rst" = "CHANGELOG.rst"
