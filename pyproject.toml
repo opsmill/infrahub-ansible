@@ -7,16 +7,15 @@ license = {text = "GPLv3"}
 requires-python = ">=3.10,<3.14"
 
 dependencies = [
-    "ansible-core>=2.17.7",
+    "ansible-core>=2.17.14",
     "filelock>=3.20.1",  # CVE-2025-68146: transitive dep of tox, pinned for security
     "infrahub-sdk[all]>=1.5,<2.0",
     "jinja2>=3.1.6",
-    "tox>=4.32.0",
 ]
 
 [project.optional-dependencies]
 numpy = [
-    "numpy>=2.0.0; python_version >= '3.10'",
+    "numpy>=2.2.6; python_version >= '3.10'",
 ]
 
 [dependency-groups]
@@ -29,6 +28,8 @@ dev = [
     "pytest-mock>=3.15.1",
     "pytest-xdist>=3.8.0",
     "ansible-lint>=25.12.2",
+    "tox>=4.32.0",
+    "pytest-pythonpath>=0.7.3",
 ]
 
 [tool.pytest.ini_options]
@@ -153,15 +154,15 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
-include = [
-    "plugins/**/*",
-    "roles/**/*",
-    "meta/**/*",
-    "docs/**/*",
-    "galaxy.yml",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.rst",
+# Exclude docs from wheel - it contains node_modules and build artifacts
+# Documentation should be accessed online, not bundled in the package
+exclude = [
+    "docs/",
+    "tests/",
+    ".github/",
+    ".tox/",
+    ".venv/",
+    "*.tar.gz",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -169,7 +170,6 @@ include = [
     "plugins/**/*",
     "roles/**/*",
     "meta/**/*",
-    "docs/**/*",
     "galaxy.yml",
     "README.md",
     "LICENSE",
@@ -178,10 +178,15 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["plugins", "roles", "meta", "docs"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"galaxy.yml" = "galaxy.yml"
-"README.md" = "README.md"
-"LICENSE" = "LICENSE"
-"CHANGELOG.rst" = "CHANGELOG.rst"
+# For Ansible collections distributed as wheels, we need to include the
+# collection structure (plugins, roles, meta) as data files, not Python packages.
+# Using only-include ensures we get exactly what we need without bloat.
+only-include = [
+    "plugins",
+    "roles",
+    "meta",
+    "galaxy.yml",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.rst",
+]

@@ -690,7 +690,6 @@ dependencies = [
     { name = "filelock" },
     { name = "infrahub-sdk", extra = ["all"] },
     { name = "jinja2" },
-    { name = "tox" },
 ]
 
 [package.optional-dependencies]
@@ -707,18 +706,19 @@ dev = [
     { name = "mock" },
     { name = "pytest" },
     { name = "pytest-mock" },
+    { name = "pytest-pythonpath" },
     { name = "pytest-xdist" },
     { name = "ruff" },
+    { name = "tox" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "ansible-core", specifier = ">=2.17.7" },
+    { name = "ansible-core", specifier = ">=2.17.14" },
     { name = "filelock", specifier = ">=3.20.1" },
     { name = "infrahub-sdk", extras = ["all"], specifier = ">=1.5,<2.0" },
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "numpy", marker = "python_full_version >= '3.10' and extra == 'numpy'", specifier = ">=2.0.0" },
-    { name = "tox", specifier = ">=4.32.0" },
+    { name = "numpy", marker = "python_full_version >= '3.10' and extra == 'numpy'", specifier = ">=2.2.6" },
 ]
 provides-extras = ["numpy"]
 
@@ -730,8 +730,10 @@ dev = [
     { name = "mock", specifier = ">=5.2.0" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-mock", specifier = ">=3.15.1" },
+    { name = "pytest-pythonpath", specifier = ">=0.7.3" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "ruff", specifier = ">=0.14.10" },
+    { name = "tox", specifier = ">=4.32.0" },
 ]
 
 [[package]]
@@ -1339,6 +1341,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/68/14/eb014d26be205d38a
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5a/cc/06253936f4a7fa2e0f48dfe6d851d9c56df896a9ab09ac019d70b760619c/pytest_mock-3.15.1-py3-none-any.whl", hash = "sha256:0a25e2eb88fe5168d535041d09a4529a188176ae608a6d249ee65abc0949630d", size = 10095, upload-time = "2025-09-16T16:37:25.734Z" },
 ]
+
+[[package]]
+name = "pytest-pythonpath"
+version = "0.7.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/46/c1/4b784495bb316962962df191b3c1b2302c60236301406283a9de1470786f/pytest-pythonpath-0.7.3.tar.gz", hash = "sha256:63fc546ace7d2c845c1ee289e8f7a6362c2b6bae497d10c716e58e253e801d62", size = 4498, upload-time = "2018-08-22T18:50:23.847Z" }
 
 [[package]]
 name = "pytest-xdist"
