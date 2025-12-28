@@ -7,6 +7,9 @@ on:
     branches:
       - stable
 
+permissions:
+  contents: read
+
 jobs:
   linter:
     uses: ./.github/workflows/workflow-linter.yml

@@ -14,6 +14,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-linter
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   VALE_VERSION: "3.13.0"
 

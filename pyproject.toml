@@ -22,10 +22,11 @@ numpy = [
 dev = [
     "ansible-lint>=25.12.2",
     "codecov>=2.1.13",
-    "invoke>=2.2.1",
+    "invoke>=2.2.1,<3.0.0",
     "mock>=5.2.0",
     "mypy>=1.19.1",
     "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
     "pytest-mock>=3.15.1",
     "pytest-pythonpath>=0.7.3",
     "pytest-xdist>=3.8.0",
@@ -46,8 +47,8 @@ pythonpath = ["."]
 pretty = true
 ignore_missing_imports = true
 disallow_untyped_defs = true
-warn_return_any = false
-warn_unused_ignores = false
+warn_return_any = true
+warn_unused_ignores = true
 # Exclude problematic module that has complex try/except patterns
 exclude = [
     "plugins/module_utils/infrahub_utils\\.py$",
@@ -203,7 +204,7 @@ include = [
     "meta/**/*",
     "galaxy.yml",
     "README.md",
-    "LICENSE",
+    "LICENSE.txt",
     "CHANGELOG.rst",
     "pyproject.toml",
 ]
@@ -218,6 +219,6 @@ only-include = [
     "meta",
     "galaxy.yml",
     "README.md",
-    "LICENSE",
+    "LICENSE.txt",
     "CHANGELOG.rst",
 ]
