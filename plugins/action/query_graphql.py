@@ -41,7 +41,7 @@ class ActionModule(ActionBase):
         self._supports_check_mode = True
         self._supports_async = False
 
-        result = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
+        result: dict[str, Any] = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
         del tmp
 
         if result.get("skipped"):

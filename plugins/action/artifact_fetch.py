@@ -41,7 +41,7 @@ class ActionModule(ActionBase):
         self._supports_check_mode = True
         self._supports_async = True
 
-        result = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
+        result: dict[str, Any] = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
         del tmp
 
         if result.get("skipped"):
@@ -102,10 +102,10 @@ class ActionModule(ActionBase):
                 display=Display(),
             )
             Display().v("Fetch Artifacts")
-            result = client.fetch_single_artifact(filters=filters)
+            artifact_result: dict[str, Any] = client.fetch_single_artifact(filters=filters)
 
             # Better error handling
-            if not result:
+            if not artifact_result:
                 return {
                     "failed": True,
                     "msg": failure_msg,
@@ -114,4 +114,4 @@ class ActionModule(ActionBase):
         except Exception as exp:
             raise AnsibleError(str(exp)) from exp
 
-        return result
+        return artifact_result
