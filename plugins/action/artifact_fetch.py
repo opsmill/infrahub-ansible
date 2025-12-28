@@ -26,7 +26,7 @@ class ActionModule(ActionBase):
         ActionBase (ActionBase): Ansible Action Plugin
     """
 
-    def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict:
+    def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict[str, Any]:
         """
         Run of action plugin to fetch the content of an artifact.
 
@@ -45,7 +45,7 @@ class ActionModule(ActionBase):
         del tmp
 
         if result.get("skipped"):
-            return None
+            return result
 
         if result.get("invocation", {}).get("module_args"):
             del result["invocation"]["module_args"]

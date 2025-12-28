@@ -119,9 +119,9 @@ class LookupModule(LookupBase):
         terms: str,  # noqa: ARG002
         variables: Any | None = None,  # noqa: ARG002
         query: str | None = None,
-        graph_variables: dict | None = None,
-        **kwargs: dict[str, Any],
-    ):
+        graph_variables: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> list[Any]:
         """Runs Ansible Lookup Plugin for using Infrahub GraphQL endpoint
 
         Raises:
@@ -129,13 +129,13 @@ class LookupModule(LookupBase):
             AnsibleError: Generic Ansible Error
 
         Returns:
-            dict: Data returned from Infrahub endpoint
+            list: Data returned from Infrahub endpoint
         """
         if not HAS_INFRAHUBCLIENT:
             raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
 
-        api_endpoint = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_ADDRESS")
-        token = kwargs.get("token") or os.getenv("INFRAHUB_API_TOKEN")
+        api_endpoint: str | None = kwargs.get("api_endpoint") or os.getenv("INFRAHUB_ADDRESS")
+        token: str | None = kwargs.get("token") or os.getenv("INFRAHUB_API_TOKEN")
         if api_endpoint is None:
             raise AnsibleLookupError("Missing Infrahub API Endpoint ")
         if token is None:

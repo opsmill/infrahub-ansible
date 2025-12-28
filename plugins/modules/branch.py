@@ -101,7 +101,7 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.branch import Bra
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import INFRAHUB_ARG_SPEC
 
 
-def main():
+def main() -> None:
     """
     Main entry point for module execution to create/update/delete InfrahubBranch.
     """

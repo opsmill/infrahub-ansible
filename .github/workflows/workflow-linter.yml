@@ -79,6 +79,8 @@ jobs:
         run: "uv run ruff check ."
       - name: "Linting: ruff format"
         run: "uv run ruff format --check --diff ."
+      - name: "Linting: mypy"
+        run: "uv run mypy ."
 
   documentation-lint:
     defaults:

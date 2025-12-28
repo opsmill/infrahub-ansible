@@ -76,7 +76,7 @@ if HAS_INFRAHUBCLIENT:
             token: str,
             branch: str | None = None,
             timeout: int | None = 10,
-            validate_certs: str | None = True,
+            validate_certs: bool | None = True,
             display: Display | None = None,
         ):
             """
@@ -156,22 +156,21 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 list[dict]: list of Artifact Content
             """
-            result = {
-                "json": None,
-                "text": None,
-            }
             order = Order(disable=True)
-            results = list[result]
+            results: list[dict[str, Any]] = []
             nodes = self.fetch_nodes(
                 kind="CoreArtifact",
                 filters=filters,
                 branch=branch,
-                orde=order,
+                order=order,
             )
             for node in nodes:
                 resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")
-
-                if node.value == "application/json":
+                result: dict[str, Any] = {
+                    "json": None,
+                    "text": None,
+                }
+                if node.content_type.value == "application/json":
                     result["json"] = resp.json()
                 else:
                     result["text"] = resp.text
@@ -262,7 +261,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 list[InfrahubNodeSync]: list of Nodes
             """
-            nodes = list[InfrahubNodeSync]
+            nodes: list[InfrahubNodeSync] = []
 
             if not filters:
                 nodes = self.client.all(
@@ -327,7 +326,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict[str, NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI]:: A dict of node kind, Schema.
             """
-            branch = branch or self.default_branch
+            branch = branch or self.client.config.default_branch
             return self.client.schema.all(branch=branch)
 
         def fetch_branchs(self) -> dict[str, BranchData]:

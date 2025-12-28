@@ -103,7 +103,7 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
 from ansible_collections.opsmill.infrahub.plugins.module_utils.node import NodeModule
 
 
-def main():
+def main() -> None:
     """
     Main entry point for module execution to create/update/delete Node.
     """

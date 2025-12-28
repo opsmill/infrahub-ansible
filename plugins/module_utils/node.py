@@ -13,7 +13,7 @@ class NodeModule(InfrahubModule):
     This module can be use to create/update/delete any users defined Node
     """
 
-    def run(self):
+    def run(self) -> None:
         data = self.data
 
         kind = data.get("kind")
