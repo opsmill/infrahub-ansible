@@ -141,6 +141,58 @@ if HAS_INFRAHUBCLIENT:
 
             return result
 
+        def generate_artifacts(
+            self,
+            filters: dict[str, str],
+            target_ids: list[str],
+            branch: str | None = None,
+        ) -> dict[str, Any]:
+            """
+            Trigger regeneration of artifacts for the given target nodes.
+
+            Parameters:
+                filters (dict[str, str]): Filters to locate the artifact
+                    - For artifact_name: {"name__value": name}
+                    - For artifact_id: {"ids": [artifact_id]}
+                target_ids (list[str]): List of target node UUIDs to regenerate artifacts for
+                branch (str, optional): Name of the branch. Defaults to default_branch.
+
+            Returns:
+                dict: Results including regeneration status
+            """
+            # Step 1: Fetch an artifact node to get the definition_id
+            # Use only the first target_id to find the artifact, since each artifact
+            # is associated with a single target object
+            lookup_filters = filters.copy()
+            lookup_filters["object__ids"] = [target_ids[0]]
+            node = self.fetch_single_node(
+                kind="CoreArtifact",
+                filters=lookup_filters,
+                branch=branch,
+            )
+
+            if not node:
+                return None
+
+            # Step 2: Get the artifact definition ID
+            definition_id = node.definition.id
+
+            # Step 3: Trigger regeneration for the target nodes
+            url = f"{self.client.address}/api/artifact/generate/{definition_id}"
+            payload = {"nodes": target_ids}
+            resp = self.client._post(url=url, payload=payload)
+            resp.raise_for_status()
+
+            # Step 4: Return results
+            return {
+                "artifact_name": node.name.value,
+                "definition_id": definition_id,
+                "target_ids": target_ids,
+                "count": len(target_ids),
+                "changed": True,
+                "msg": f"Successfully triggered regeneration for {len(target_ids)} target(s)",
+            }
+
         def fetch_artifacts(
             self,
             filters: dict[str, str] | None = None,
