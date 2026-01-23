@@ -141,6 +141,71 @@ if HAS_INFRAHUBCLIENT:
 
             return result
 
+        def generate_artifact(
+            self,
+            filters: dict[str, str],
+            target_id: str,
+            branch: str = "main",
+        ) -> dict[str, Any]:
+            """
+            Trigger regeneration of an artifact for the given target node.
+
+            Parameters:
+                filters (dict[str, str]): Filters to locate the artifact
+                    - For artifact_name: {"name__value": name}
+                    - For artifact_id: {"ids": [artifact_id]}
+                target_id (str): Target node UUID to regenerate the artifact for
+                branch (str, optional): Name of the branch. Defaults to default_branch.
+
+            Returns:
+                dict: Results including regeneration status
+            """
+            result: dict[str, Any] = {
+                "artifact_name": filters.get("name__value"),
+                "artifact_id": None,
+                "definition_id": None,
+                "target_id": target_id,
+                "changed": False,
+                "failed": False,
+                "msg": "",
+            }
+
+            # Step 1: Fetch the artifact node for the target_id
+            lookup_filters = filters.copy()
+            lookup_filters["object__ids"] = [target_id]
+            node = self.fetch_single_node(
+                kind="CoreArtifact",
+                filters=lookup_filters,
+                branch=branch,
+            )
+
+            if not node:
+                result["failed"] = True
+                result["msg"] = f"No artifact found for target '{target_id}' with filters: {filters}"
+                return result
+
+            result["artifact_id"] = node.id
+            result["artifact_name"] = node.name.value
+            result["definition_id"] = node.definition.id
+
+            # Step 2: Trigger regeneration using the artifact ID
+            url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}?branch={branch}"
+            payload = {"nodes": [node.id]}
+            try:
+                resp = self.client._post(url=url, payload=payload)
+                resp.raise_for_status()
+            except Exception as exc:
+                result["failed"] = True
+                result["msg"] = (
+                    f"Failed to trigger artifact regeneration for definition '{result['definition_id']}': {exc}"
+                )
+                return result
+
+            # Step 3: Return success
+            result["changed"] = True
+            result["msg"] = f"Successfully triggered regeneration for artifact '{result['artifact_name']}'"
+            return result
+
         def fetch_artifacts(
             self,
             filters: dict[str, str] | None = None,
