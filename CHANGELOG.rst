@@ -4,6 +4,14 @@ Opmisll.Infrahub Release Notes
 
 .. contents:: Topics
 
+v1.7.0
+======
+
+New Modules
+-----------
+
+- ``artifact_generate`` - Trigger artifact regeneration in Infrahub for a specified target node.
+
 v1.3.1
 ======
 
