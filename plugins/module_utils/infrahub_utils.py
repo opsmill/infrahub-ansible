@@ -160,6 +160,16 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict: Results including regeneration status
             """
+            result: dict[str, Any] = {
+                "artifact_name": None,
+                "definition_id": None,
+                "target_ids": target_ids,
+                "count": len(target_ids),
+                "changed": False,
+                "failed": False,
+                "msg": "",
+            }
+
             # Step 1: Fetch an artifact node to get the definition_id
             # Use only the first target_id to find the artifact, since each artifact
             # is associated with a single target object
@@ -172,26 +182,28 @@ if HAS_INFRAHUBCLIENT:
             )
 
             if not node:
-                return None
+                result["failed"] = True
+                result["msg"] = f"No artifact found matching filters: {lookup_filters}"
+                return result
 
-            # Step 2: Get the artifact definition ID
-            definition_id = node.definition.id
+            result["artifact_name"] = node.name.value
+            result["definition_id"] = node.definition.id
 
-            # Step 3: Trigger regeneration for the target nodes
-            url = f"{self.client.address}/api/artifact/generate/{definition_id}"
+            # Step 2: Trigger regeneration for the target nodes
+            url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}"
             payload = {"nodes": target_ids}
-            resp = self.client._post(url=url, payload=payload)
-            resp.raise_for_status()
+            try:
+                resp = self.client._post(url=url, payload=payload)
+                resp.raise_for_status()
+            except Exception as exc:
+                result["failed"] = True
+                result["msg"] = f"Failed to trigger artifact regeneration for definition '{result['definition_id']}': {exc}"
+                return result
 
-            # Step 4: Return results
-            return {
-                "artifact_name": node.name.value,
-                "definition_id": definition_id,
-                "target_ids": target_ids,
-                "count": len(target_ids),
-                "changed": True,
-                "msg": f"Successfully triggered regeneration for {len(target_ids)} target(s)",
-            }
+            # Step 3: Return success
+            result["changed"] = True
+            result["msg"] = f"Successfully triggered regeneration for {len(target_ids)} target(s)"
+            return result
 
         def fetch_artifacts(
             self,

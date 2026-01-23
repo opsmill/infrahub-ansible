@@ -78,16 +78,7 @@ class ActionModule(ActionBase):
             raise AnsibleError("Missing target_ids")
 
         # Build filters - object__ids is added by generate_artifacts using first target_id
-        if artifact_name:
-            filters = {
-                "name__value": artifact_name,
-            }
-            failure_msg = f"Unable to find artifact '{artifact_name}' for target '{target_ids[0]}'."
-        else:
-            filters = {
-                "ids": [artifact_id],
-            }
-            failure_msg = f"Unable to find artifact with id '{artifact_id}'."
+        filters = {"name__value": artifact_name} if artifact_name else {"ids": [artifact_id]}
 
         try:
             Display().v("Initializing Infrahub Client")
@@ -101,13 +92,6 @@ class ActionModule(ActionBase):
             )
             Display().v("Triggering Artifact Regeneration")
             result = client.generate_artifacts(filters=filters, target_ids=target_ids, branch=branch)
-
-            if not result:
-                return {
-                    "failed": True,
-                    "msg": failure_msg,
-                }
-
         except Exception as exp:
             raise AnsibleError(str(exp)) from exp
 
