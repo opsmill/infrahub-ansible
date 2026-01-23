@@ -70,14 +70,14 @@ class ActionModule(ActionBase):
 
         artifact_name = args.get("artifact_name")
         artifact_id = args.get("artifact_id")
-        target_ids = args.get("target_ids")
+        target_id = args.get("target_id")
 
         if not artifact_name and not artifact_id:
             raise AnsibleError("Missing artifact_name or artifact_id")
-        if not target_ids:
-            raise AnsibleError("Missing target_ids")
+        if not target_id:
+            raise AnsibleError("Missing target_id")
 
-        # Build filters - object__ids is added by generate_artifacts using first target_id
+        # Build filters for artifact lookup
         filters = {"name__value": artifact_name} if artifact_name else {"ids": [artifact_id]}
 
         try:
@@ -91,7 +91,7 @@ class ActionModule(ActionBase):
                 display=Display(),
             )
             Display().v("Triggering Artifact Regeneration")
-            result = client.generate_artifacts(filters=filters, target_ids=target_ids, branch=branch)
+            result = client.generate_artifact(filters=filters, target_id=target_id, branch=branch)
         except Exception as exp:
             raise AnsibleError(str(exp)) from exp
 

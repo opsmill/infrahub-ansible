@@ -141,40 +141,38 @@ if HAS_INFRAHUBCLIENT:
 
             return result
 
-        def generate_artifacts(
+        def generate_artifact(
             self,
             filters: dict[str, str],
-            target_ids: list[str],
-            branch: str | None = None,
+            target_id: str,
+            branch: str = "main",
         ) -> dict[str, Any]:
             """
-            Trigger regeneration of artifacts for the given target nodes.
+            Trigger regeneration of an artifact for the given target node.
 
             Parameters:
                 filters (dict[str, str]): Filters to locate the artifact
                     - For artifact_name: {"name__value": name}
                     - For artifact_id: {"ids": [artifact_id]}
-                target_ids (list[str]): List of target node UUIDs to regenerate artifacts for
+                target_id (str): Target node UUID to regenerate the artifact for
                 branch (str, optional): Name of the branch. Defaults to default_branch.
 
             Returns:
                 dict: Results including regeneration status
             """
             result: dict[str, Any] = {
-                "artifact_name": None,
+                "artifact_name": filters.get("name__value"),
+                "artifact_id": None,
                 "definition_id": None,
-                "target_ids": target_ids,
-                "count": len(target_ids),
+                "target_id": target_id,
                 "changed": False,
                 "failed": False,
                 "msg": "",
             }
 
-            # Step 1: Fetch an artifact node to get the definition_id
-            # Use only the first target_id to find the artifact, since each artifact
-            # is associated with a single target object
+            # Step 1: Fetch the artifact node for the target_id
             lookup_filters = filters.copy()
-            lookup_filters["object__ids"] = [target_ids[0]]
+            lookup_filters["object__ids"] = [target_id]
             node = self.fetch_single_node(
                 kind="CoreArtifact",
                 filters=lookup_filters,
@@ -183,15 +181,16 @@ if HAS_INFRAHUBCLIENT:
 
             if not node:
                 result["failed"] = True
-                result["msg"] = f"No artifact found matching filters: {lookup_filters}"
+                result["msg"] = f"No artifact found for target '{target_id}' with filters: {filters}"
                 return result
 
+            result["artifact_id"] = node.id
             result["artifact_name"] = node.name.value
             result["definition_id"] = node.definition.id
 
-            # Step 2: Trigger regeneration for the target nodes
-            url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}"
-            payload = {"nodes": target_ids}
+            # Step 2: Trigger regeneration using the artifact ID
+            url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}?branch={branch}"
+            payload = {"nodes": [node.id]}
             try:
                 resp = self.client._post(url=url, payload=payload)
                 resp.raise_for_status()
@@ -204,7 +203,7 @@ if HAS_INFRAHUBCLIENT:
 
             # Step 3: Return success
             result["changed"] = True
-            result["msg"] = f"Successfully triggered regeneration for {len(target_ids)} target(s)"
+            result["msg"] = f"Successfully triggered regeneration for artifact '{result['artifact_name']}'"
             return result
 
         def fetch_artifacts(

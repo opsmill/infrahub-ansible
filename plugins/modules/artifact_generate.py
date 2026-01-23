@@ -14,7 +14,8 @@ author:
 version_added: "1.7.0"
 short_description: Trigger artifact regeneration in Infrahub
 description:
-    - Triggers the regeneration of artifacts for specified target nodes in Infrahub through Infrahub SDK
+    - Triggers the regeneration of an artifact for a specified target node in Infrahub.
+    - The module looks up the artifact associated with the target node and triggers regeneration.
 requirements:
     - infrahub-sdk
 options:
@@ -43,12 +44,11 @@ options:
         description:
             - UUID of the artifact (mutually exclusive with artifact_name)
         type: str
-    target_ids:
+    target_id:
         description:
-            - List of target node UUIDs to regenerate artifacts for
+            - UUID of the target node (e.g., device ID) that the artifact is associated with
         required: True
-        type: list
-        elements: str
+        type: str
     branch:
         required: False
         description:
@@ -65,9 +65,38 @@ options:
 
 EXAMPLES = """
 ---
-# Example 1: Using with Infrahub inventory plugin
+# Example 1: Regenerate artifact by name for a device
+- name: Regenerate artifact by name
+  gather_facts: false
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Regenerate Startup Config for a device
+      opsmill.infrahub.artifact_generate:
+        artifact_name: "Startup Config"
+        target_id: "{{ device_id }}"
+      register: result
+
+    - name: Display regeneration result
+      ansible.builtin.debug:
+        var: result
+
+---
+# Example 2: Regenerate artifact by UUID
+- name: Regenerate artifact by ID
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Regenerate specific artifact by ID
+      opsmill.infrahub.artifact_generate:
+        artifact_id: "12345678-1234-1234-1234-123456789abc"
+        target_id: "{{ device_id }}"
+
+---
+# Example 3: Using with Infrahub inventory plugin
 # Run with: ansible-playbook playbook.yml -i inventory.infrahub.yml -l "*edge*"
-# The inventory plugin provides the 'id' variable for each host
 - name: Regenerate artifacts using inventory host IDs
   gather_facts: false
   hosts: all
@@ -76,60 +105,17 @@ EXAMPLES = """
   tasks:
     - name: Regenerate Startup Config for each device
       opsmill.infrahub.artifact_generate:
-        artifact_name: "Startup Config for Edge devices"
-        target_ids:
-          - "{{ id }}"
+        artifact_name: "Startup Config"
+        target_id: "{{ id }}"
       register: result
-
-    - name: Display regeneration result
-      ansible.builtin.debug:
-        var: result
-
----
-# Example 2: Regenerate artifacts for multiple devices from localhost
-- name: Batch regenerate artifacts
-  gather_facts: false
-  hosts: localhost
-
-  tasks:
-    - name: Regenerate Startup Config for multiple devices
-      opsmill.infrahub.artifact_generate:
-        artifact_name: "Startup Config for Edge devices"
-        target_ids:
-          - "{{ device1_id }}"
-          - "{{ device2_id }}"
-          - "{{ device3_id }}"
-      register: result
-
----
-# Example 3: Using artifact_id instead of artifact_name
-- name: Regenerate artifact by UUID
-  gather_facts: false
-  hosts: localhost
-
-  tasks:
-    - name: Regenerate specific artifact by ID
-      opsmill.infrahub.artifact_generate:
-        artifact_id: "12345678-1234-1234-1234-123456789abc"
-        target_ids:
-          - "{{ device_id }}"
-
----
-# Example 4: Collecting IDs from inventory groups and regenerating in batch
-- name: Batch regenerate from inventory group
-  gather_facts: false
-  hosts: localhost
-
-  tasks:
-    - name: Regenerate artifacts for all edge devices
-      opsmill.infrahub.artifact_generate:
-        artifact_name: "Startup Config for Edge devices"
-        target_ids: "{{ groups['site_atl1'] | map('extract', hostvars, 'id') | list }}"
-      register: result
-      when: groups['site_atl1'] is defined
 """
 
 RETURN = """
+artifact_id:
+  description:
+    - UUID of the artifact that was regenerated
+  type: str
+  returned: success
 artifact_name:
   description:
     - Name of the artifact that was regenerated
@@ -140,16 +126,10 @@ definition_id:
     - UUID of the artifact definition
   type: str
   returned: success
-target_ids:
+target_id:
   description:
-    - List of target node UUIDs that artifacts were regenerated for
-  type: list
-  elements: str
-  returned: success
-count:
-  description:
-    - Number of targets for which artifacts were regenerated
-  type: int
+    - UUID of the target node that the artifact is associated with
+  type: str
   returned: success
 changed:
   description:
@@ -180,7 +160,7 @@ def main():
             # Module related arguments
             artifact_name=dict(required=False, type="str"),
             artifact_id=dict(required=False, type="str"),
-            target_ids=dict(required=True, type="list", elements="str"),
+            target_id=dict(required=True, type="str"),
         ),
         mutually_exclusive=mutually_exclusive,
         required_one_of=required_one_of,
