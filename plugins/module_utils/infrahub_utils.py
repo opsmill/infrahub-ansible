@@ -197,7 +197,9 @@ if HAS_INFRAHUBCLIENT:
                 resp.raise_for_status()
             except Exception as exc:
                 result["failed"] = True
-                result["msg"] = f"Failed to trigger artifact regeneration for definition '{result['definition_id']}': {exc}"
+                result["msg"] = (
+                    f"Failed to trigger artifact regeneration for definition '{result['definition_id']}': {exc}"
+                )
                 return result
 
             # Step 3: Return success
