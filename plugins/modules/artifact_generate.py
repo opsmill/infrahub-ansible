@@ -10,7 +10,7 @@ DOCUMENTATION = """
 ---
 module: artifact_generate
 author:
-    - Opsmill
+    - Opsmill (@opsmill)
 version_added: "1.7.0"
 short_description: Trigger artifact regeneration in Infrahub
 description:
@@ -65,7 +65,29 @@ options:
 
 EXAMPLES = """
 ---
-- name: Infrahub action plugin artifact_generate
+# Example 1: Using with Infrahub inventory plugin
+# Run with: ansible-playbook playbook.yml -i inventory.infrahub.yml -l "*edge*"
+# The inventory plugin provides the 'id' variable for each host
+- name: Regenerate artifacts using inventory host IDs
+  gather_facts: false
+  hosts: all
+  connection: local
+
+  tasks:
+    - name: Regenerate Startup Config for each device
+      opsmill.infrahub.artifact_generate:
+        artifact_name: "Startup Config for Edge devices"
+        target_ids:
+          - "{{ id }}"
+      register: result
+
+    - name: Display regeneration result
+      ansible.builtin.debug:
+        var: result
+
+---
+# Example 2: Regenerate artifacts for multiple devices from localhost
+- name: Batch regenerate artifacts
   gather_facts: false
   hosts: localhost
 
@@ -79,17 +101,32 @@ EXAMPLES = """
           - "{{ device3_id }}"
       register: result
 
-    - name: Regenerate artifact for a single device
-      opsmill.infrahub.artifact_generate:
-        artifact_name: "Startup Config for Edge devices"
-        target_ids:
-          - "{{ device_id }}"
+---
+# Example 3: Using artifact_id instead of artifact_name
+- name: Regenerate artifact by UUID
+  gather_facts: false
+  hosts: localhost
 
-    - name: Regenerate artifact by ID
+  tasks:
+    - name: Regenerate specific artifact by ID
       opsmill.infrahub.artifact_generate:
         artifact_id: "12345678-1234-1234-1234-123456789abc"
         target_ids:
           - "{{ device_id }}"
+
+---
+# Example 4: Collecting IDs from inventory groups and regenerating in batch
+- name: Batch regenerate from inventory group
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Regenerate artifacts for all edge devices
+      opsmill.infrahub.artifact_generate:
+        artifact_name: "Startup Config for Edge devices"
+        target_ids: "{{ groups['site_atl1'] | map('extract', hostvars, 'id') | list }}"
+      register: result
+      when: groups['site_atl1'] is defined
 """
 
 RETURN = """
@@ -113,6 +150,11 @@ count:
   description:
     - Number of targets for which artifacts were regenerated
   type: int
+  returned: success
+changed:
+  description:
+    - Whether the artifact regeneration was triggered
+  type: bool
   returned: success
 msg:
   description:

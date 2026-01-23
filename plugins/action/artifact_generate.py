@@ -45,7 +45,7 @@ class ActionModule(ActionBase):
         del tmp
 
         if result.get("skipped"):
-            return None
+            return result
 
         if result.get("invocation", {}).get("module_args"):
             del result["invocation"]["module_args"]
@@ -100,7 +100,7 @@ class ActionModule(ActionBase):
                 display=Display(),
             )
             Display().v("Triggering Artifact Regeneration")
-            result = client.generate_artifacts(filters=filters, target_ids=target_ids)
+            result = client.generate_artifacts(filters=filters, target_ids=target_ids, branch=branch)
 
             if not result:
                 return {
