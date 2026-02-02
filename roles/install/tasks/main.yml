@@ -1,3 +1,4 @@
+# yamllint disable rule:line-length
 ---
 - name: Check if there is an existing installation
   ansible.builtin.stat:
@@ -29,12 +30,21 @@
     mode: "644"
   become: true
 
+- name: Deploy cluster docker-compose override
+  ansible.builtin.template:
+    src: docker-compose.cluster.yml.j2
+    dest: "{{ install_infrahub_install_directory }}/docker-compose.cluster.yml"
+    mode: "0644"
+  become: true
+  when: install_infrahub_mode == 'cluster'
+
 - name: Pull docker images
-  ansible.builtin.command: |
+  ansible.builtin.command: >
     docker compose
-     -p {{ install_infrahub_docker_project }}
-     -f "{{ install_infrahub_install_directory }}/docker-compose.yml"
-     pull
+    -p {{ install_infrahub_docker_project }}
+    -f "{{ install_infrahub_install_directory }}/docker-compose.yml"
+    {% if install_infrahub_mode == 'cluster' %}-f "{{ install_infrahub_install_directory }}/docker-compose.cluster.yml"{% endif %}
+    pull
   become: true
   changed_when: true
   when: install_infrahub_docker_pull_images|bool

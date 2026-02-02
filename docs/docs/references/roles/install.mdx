@@ -36,6 +36,16 @@ This role requires:
 | `install_infrahub_setup_systemd` | `bool` | `true` | Whether to install the `systemd` service for Infrahub. |
 | `install_infrahub_systemd_directory` | `str` | `/etc/systemd/system/` | Where to install the `systemd` service unit file. |
 | `install_infrahub_systemd_service_state` | `str` | `restarted` | Target state of the `systemd` service. Can be used to avoid starting Infrahub during the role's execution. |
+| `install_infrahub_mode` | `str` | `standalone` | Installation mode: `standalone` for single-node or `cluster` for multi-node deployment. |
+| `install_infrahub_cluster_primary` | `str` | `groups['infrahub_primary'][0]` | Hostname of the primary cluster node. |
+| `install_infrahub_cluster_secondary` | `list` | `groups['infrahub_secondary']` | List of secondary cluster node hostnames. |
+| `install_infrahub_cluster_members` | `list` | `groups['infrahub']` | List of all cluster member hostnames. |
+| `install_infrahub_web_concurrency` | `int` | `2` | WEB_CONCURRENCY value for cluster mode. |
+| `install_infrahub_cluster_db_address` | `str` | `neo4j-cluster-alias.infrahub.app` | Neo4j cluster DNS alias for database connections. |
+| `install_infrahub_enable_cache` | `bool` | `true` | Enable cache services (Redis, Sentinel) in cluster mode. |
+| `install_infrahub_enable_message_queue` | `bool` | `true` | Enable message queue service (RabbitMQ) in cluster mode. |
+| `install_infrahub_enable_database` | `bool` | `true` | Enable database service (Neo4j) in cluster mode. |
+| `install_infrahub_enable_taskmgr_database` | `bool` | `true` | Enable task manager database service (PostgreSQL) in cluster mode. |
 
 # Installation example
 
@@ -82,6 +92,48 @@ For a production environment with custom configuration:
           INFRAHUB_ADMIN_PASSWORD: "secure_password"
           INFRAHUB_DATABASE_URL: "postgresql://user:pass@db:5432/infrahub"
 ```
+
+</TabItem>
+<TabItem value="cluster-setup" label="Cluster setup">
+
+## Cluster setup
+
+For a multi-node cluster deployment, first create an inventory with subgroups:
+
+```ini title="inventory.ini"
+[infrahub:children]
+infrahub_primary
+infrahub_secondary
+
+[infrahub_primary]
+node1.example.com
+
+[infrahub_secondary]
+node2.example.com
+node3.example.com
+```
+
+Then configure your playbook with cluster mode:
+
+```yaml title="install_infrahub_cluster.yml"
+- name: Install Infrahub Cluster
+  hosts: infrahub
+  become: true
+
+  roles:
+    - role: opsmill.infrahub.install
+      vars:
+        install_infrahub_version: "2.0.0"
+        install_infrahub_mode: cluster
+        install_infrahub_cluster_db_address: neo4j-cluster-alias.internal.corp
+
+        # Optional: disable local services if using external infrastructure
+        # install_infrahub_enable_cache: false        # Use external Redis
+        # install_infrahub_enable_message_queue: false # Use external RabbitMQ
+        # install_infrahub_enable_database: false      # Use external Neo4j
+```
+
+The primary node (first host in `infrahub_primary` group) will be the cluster leader. Secondary nodes will automatically join the cluster.
 
 </TabItem>
 </Tabs>

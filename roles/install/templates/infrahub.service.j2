@@ -6,8 +6,8 @@ After=docker.service cloud-final.service
 Type=oneshot
 RemainAfterExit=true
 WorkingDirectory={{ install_infrahub_install_directory }}
-ExecStart=/usr/bin/docker compose -p {{ install_infrahub_docker_project }} up -d --remove-orphans
-ExecStop=/usr/bin/docker compose -p {{ install_infrahub_docker_project }} down
+ExecStart=/usr/bin/docker compose -p {{ install_infrahub_docker_project }}{% if install_infrahub_mode == 'cluster' %} -f docker-compose.yml -f docker-compose.cluster.yml{% endif %} up -d --remove-orphans
+ExecStop=/usr/bin/docker compose -p {{ install_infrahub_docker_project }}{% if install_infrahub_mode == 'cluster' %} -f docker-compose.yml -f docker-compose.cluster.yml{% endif %} down
 
 [Install]
 WantedBy=cloud-init.target

@@ -52,3 +52,65 @@ argument_specs:
           - Can be used to avoid starting Infrahub during the role's execution.
         type: str
         default: restarted
+      install_infrahub_mode:
+        description:
+          - Installation mode for Infrahub.
+          - Use "standalone" for single-node deployment or "cluster" for multi-node cluster deployment.
+        type: str
+        default: standalone
+        choices:
+          - standalone
+          - cluster
+      install_infrahub_cluster_primary:
+        description:
+          - Hostname of the primary cluster node.
+          - Defaults to the first host in the infrahub_primary inventory group.
+        type: str
+      install_infrahub_cluster_secondary:
+        description:
+          - List of secondary cluster node hostnames.
+          - Defaults to hosts in the infrahub_secondary inventory group.
+        type: list
+        elements: str
+      install_infrahub_cluster_members:
+        description:
+          - List of all cluster member hostnames.
+          - Defaults to hosts in the infrahub inventory group.
+        type: list
+        elements: str
+      install_infrahub_web_concurrency:
+        description:
+          - WEB_CONCURRENCY value for cluster mode.
+          - Sets the number of worker processes for the web server.
+        type: int
+        default: 2
+      install_infrahub_cluster_db_address:
+        description:
+          - Neo4j cluster DNS alias for database connections.
+          - Used by Infrahub services to connect to the Neo4j cluster.
+        type: str
+        default: neo4j-cluster-alias.infrahub.app
+      install_infrahub_enable_cache:
+        description:
+          - Whether to enable cache services (Redis, Sentinel) in cluster mode.
+          - Set to false when using external Redis infrastructure.
+        type: bool
+        default: true
+      install_infrahub_enable_message_queue:
+        description:
+          - Whether to enable message queue service (RabbitMQ) in cluster mode.
+          - Set to false when using external RabbitMQ infrastructure.
+        type: bool
+        default: true
+      install_infrahub_enable_database:
+        description:
+          - Whether to enable database service (Neo4j) in cluster mode.
+          - Set to false when using external Neo4j infrastructure.
+        type: bool
+        default: true
+      install_infrahub_enable_taskmgr_database:
+        description:
+          - Whether to enable task manager database service (PostgreSQL) in cluster mode.
+          - Set to false when using external PostgreSQL infrastructure.
+        type: bool
+        default: true

@@ -8,3 +8,17 @@ install_infrahub_docker_project: infrahub
 install_infrahub_config: {}
 install_infrahub_docker_pull_images: true
 # install_infrahub_version: stable
+
+# Cluster mode configuration
+install_infrahub_mode: standalone  # "standalone" or "cluster"
+install_infrahub_cluster_primary: "{{ groups['infrahub_primary'][0] }}"
+install_infrahub_cluster_secondary: "{{ groups['infrahub_secondary'] | default([]) }}"
+install_infrahub_cluster_members: "{{ groups['infrahub'] }}"
+install_infrahub_web_concurrency: 2
+install_infrahub_cluster_db_address: neo4j-cluster-alias.infrahub.app
+
+# Service toggles (only applicable in cluster mode)
+install_infrahub_enable_cache: true
+install_infrahub_enable_message_queue: true
+install_infrahub_enable_database: true
+install_infrahub_enable_taskmgr_database: true

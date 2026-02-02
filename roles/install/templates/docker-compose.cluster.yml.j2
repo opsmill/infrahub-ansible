@@ -1,0 +1,147 @@
+---
+services:
+{% if install_infrahub_enable_message_queue | bool %}
+  message-queue:
+    network_mode: "host"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "infrahub-cluster-cookie"
+      RABBITMQ_NODENAME: "rabbit@{{ inventory_hostname }}"
+      RABBITMQ_USE_LONGNAME: "false"
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit cluster_formation [{peer_discovery_backend,rabbit_peer_discovery_classic_config}] -rabbit cluster_nodes {[{{ install_infrahub_cluster_members | map('regex_replace', '^', '\'rabbit@') | map('regex_replace', '$', '\'') | join(',') }}],disc}"
+{% else %}
+  message-queue:
+    deploy:
+      replicas: 0
+{% endif %}
+
+  ##### HA Redis
+{% if install_infrahub_enable_cache | bool %}
+
+  cache:
+    network_mode: "host"
+{% if inventory_hostname in install_infrahub_cluster_secondary %}
+    command: ["redis-server", "--replicaof", "{{ install_infrahub_cluster_primary }}", "6379"]
+{% endif %}
+
+  cache-sentinel:
+    restart: unless-stopped
+    network_mode: "host"
+    image: ${CACHE_DOCKER_IMAGE:-redis:8.4.0}
+    depends_on:
+      - cache
+    command: >
+      sh -c 'echo "sentinel resolve-hostnames yes" > /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster {{ install_infrahub_cluster_primary }} 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel down-after-milliseconds mymaster 1000" >> /etc/sentinel.conf &&
+            echo "sentinel failover-timeout mymaster 5000" >> /etc/sentinel.conf &&
+            echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+            redis-server /etc/sentinel.conf --sentinel'
+
+  cache-sentinel-proxy:
+    restart: unless-stopped
+    network_mode: "host"
+    image: patrickdk/redis-sentinel-proxy:v1.2
+    environment:
+      LISTEN: 0.0.0.0:6380
+      SENTINEL: localhost:26379
+      MASTER: mymaster
+      PASSWORD:
+{% else %}
+  cache:
+    deploy:
+      replicas: 0
+  cache-sentinel:
+    deploy:
+      replicas: 0
+  cache-sentinel-proxy:
+    deploy:
+      replicas: 0
+{% endif %}
+
+  #####
+{% if install_infrahub_enable_database | bool %}
+
+  database:
+    network_mode: "host"
+    environment:
+      NEO4J_server_cluster_system__database__mode: PRIMARY
+      NEO4J_initial_server_mode__constraint: PRIMARY
+      NEO4J_dbms_cluster_endpoints: {{ install_infrahub_cluster_members | map('regex_replace', '$', ':6000') | join(',') }}
+      NEO4J_initial_dbms_default__primaries__count: {{ install_infrahub_cluster_members | length }}
+
+      NEO4J_server_cluster_advertised__address: {{ inventory_hostname }}:6000
+      NEO4J_server_cluster_raft_advertised__address: {{ inventory_hostname }}:7000
+      NEO4J_server_bolt_advertised__address: {{ inventory_hostname }}:7687
+      NEO4J_server_http_advertised__address: {{ inventory_hostname }}:7474
+      NEO4J_server_https_advertised__address: {{ inventory_hostname }}:7473
+{% else %}
+  database:
+    deploy:
+      replicas: 0
+{% endif %}
+
+  ##### PostgreSQL HA
+{% if install_infrahub_enable_taskmgr_database | bool %}
+
+  task-manager-db:
+    image: bitnamilegacy/postgresql-repmgr:17
+    network_mode: "host"
+    command: !reset
+    environment:
+      REPMGR_PASSWORD: repmgrpassword
+      REPMGR_PRIMARY_HOST: {{ install_infrahub_cluster_primary }}
+      REPMGR_PRIMARY_PORT: 5432
+      REPMGR_PARTNER_NODES: {{ install_infrahub_cluster_members | map('regex_replace', '$', ':5432') | join(',') }}
+      REPMGR_NODE_NAME: {{ inventory_hostname }}
+      REPMGR_NODE_NETWORK_NAME: {{ inventory_hostname }}
+      REPMGR_PORT_NUMBER: 5432
+    volumes: !override
+      - workflow_db:/bitnami/postgresql
+{% else %}
+  task-manager-db:
+    deploy:
+      replicas: 0
+{% endif %}
+
+  ##### Infrahub Services
+
+  task-manager:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://${INFRAHUB_TASKMANAGER_DB_USER:-postgres}:${INFRAHUB_TASKMANAGER_DB_PASSWORD:-postgres}@/${INFRAHUB_TASKMANAGER_DB_DATABASE:-prefect}?host={{ install_infrahub_cluster_members | map('regex_replace', '$', ':5432') | join('&host=') }}&target_session_attrs=primary
+      INFRAHUB_CACHE_ADDRESS: host.docker.internal
+      INFRAHUB_CACHE_PORT: 6380
+      PREFECT_REDIS_MESSAGING_HOST: host.docker.internal
+      PREFECT_REDIS_MESSAGING_PORT: 6380
+      WEB_CONCURRENCY: 1
+
+  task-manager-background-svc:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://${INFRAHUB_TASKMANAGER_DB_USER:-postgres}:${INFRAHUB_TASKMANAGER_DB_PASSWORD:-postgres}@/${INFRAHUB_TASKMANAGER_DB_DATABASE:-prefect}?host={{ install_infrahub_cluster_members | map('regex_replace', '$', ':5432') | join('&host=') }}&target_session_attrs=primary
+      INFRAHUB_CACHE_ADDRESS: host.docker.internal
+      INFRAHUB_CACHE_PORT: 6380
+      PREFECT_REDIS_MESSAGING_HOST: host.docker.internal
+      PREFECT_REDIS_MESSAGING_PORT: 6380
+
+  infrahub-server:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      INFRAHUB_DB_ADDRESS: {{ install_infrahub_cluster_db_address }}
+      INFRAHUB_DB_PROTOCOL: neo4j
+      INFRAHUB_CACHE_ADDRESS: host.docker.internal
+      INFRAHUB_CACHE_PORT: 6380
+      INFRAHUB_BROKER_ADDRESS: host.docker.internal
+
+  task-worker:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      INFRAHUB_DB_ADDRESS: {{ install_infrahub_cluster_db_address }}
+      INFRAHUB_DB_PROTOCOL: neo4j
+      INFRAHUB_CACHE_ADDRESS: host.docker.internal
+      INFRAHUB_CACHE_PORT: 6380
+      INFRAHUB_BROKER_ADDRESS: host.docker.internal
