@@ -6,6 +6,7 @@ exclude_paths:
   - .venv/
   - .github/
   - tests/
+  - .claude/
   - docs/node_modules/
 
 skip_list:
