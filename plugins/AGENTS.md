@@ -88,21 +88,21 @@ Always run these after changing any file under `plugins/`:
 
 ```bash
 # 1. Format and lint
-invokeformat          # Auto-fix formatting
-invokelint            # Verify lint passes
+invoke format          # Auto-fix formatting
+invoke lint            # Verify lint passes
 
 # 2. Sanity tests — catches missing boilerplate, bad imports, doc format issues
-invoketests-sanity
+invoke tests-sanity
 
 # 3. Unit tests — catches regressions in logic
-invoketests-unit
+invoke tests-unit
 ```
 
 If you changed `DOCUMENTATION`, `EXAMPLES`, or `RETURN` docstrings in any module file:
 
 ```bash
 # 4. Regenerate reference docs from docstrings
-invokegenerate-doc
+invoke generate-doc
 ```
 
 ## Detailed References

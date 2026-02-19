@@ -45,8 +45,8 @@ Based on the chosen pattern, create:
 
 ### 4. Verify
 
-- Run `invoketests-sanity` to check Ansible compliance
-- Run `invokegenerate-doc` to regenerate documentation
+- Run `invoke tests-sanity` to check Ansible compliance
+- Run `invoke generate-doc` to regenerate documentation
 - Ensure the module appears in `ansible-doc opsmill.infrahub.<name>`
 
 ### 5. Conventions Checklist

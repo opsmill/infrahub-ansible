@@ -20,10 +20,10 @@ plugins/modules/*.py (DOCUMENTATION/EXAMPLES/RETURN docstrings)
 
 ```bash
 # Regenerate plugin reference docs from docstrings
-invokegenerate-doc
+invoke generate-doc
 
 # Build the Docusaurus site
-invokedocusaurus
+invoke docusaurus
 
 # Or directly:
 cd docs && npm run build
@@ -56,7 +56,7 @@ docs/
 
 ## Generated Files — Never Edit
 
-These files are overwritten by `invokegenerate-doc`:
+These files are overwritten by `invoke generate-doc`:
 
 - `docs/docs/references/plugins/*.mdx`
 - `docs/docs/readme.mdx`
@@ -92,7 +92,7 @@ npm run start  # local dev server
 
 ## When to Regenerate
 
-Run `invokegenerate-doc` after any of these changes:
+Run `invoke generate-doc` after any of these changes:
 
 - Editing `DOCUMENTATION`, `EXAMPLES`, or `RETURN` in any `plugins/modules/*.py` file
 - Adding or removing a module

@@ -62,17 +62,17 @@ Understand the data flow (see `dev/knowledge/architecture.md`) and identify wher
 
 ```bash
 # Run unit tests
-invoketests-unit
+invoke tests-unit
 
 # Run sanity tests (ensure no regressions)
-invoketests-sanity
+invoke tests-sanity
 ```
 
 ### 6. Verify
 
-- Run `invokelint` to check code style
-- Run `invokeformat` to fix any formatting issues
-- If documentation was affected, run `invokegenerate-doc`
+- Run `invoke lint` to check code style
+- Run `invoke format` to fix any formatting issues
+- If documentation was affected, run `invoke generate-doc`
 - Confirm the fix addresses the original bug description
 
 ### 7. Summary

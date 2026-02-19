@@ -4,12 +4,12 @@
 
 ```bash
 # All tests (sanity + unit + integration)
-invoketests-all
+invoke tests-all
 
 # Individual test types
-invoketests-sanity
-invoketests-unit
-invoketests-integration
+invoke tests-sanity
+invoke tests-unit
+invoke tests-integration
 ```
 
 ## Prerequisites
@@ -23,7 +23,7 @@ invoketests-integration
 All tests run inside Docker containers. The `invoke` tasks wrap `docker compose` commands:
 
 ```
-invoketests-sanity
+invoke tests-sanity
   → docker compose up --build --force-recreate --quiet-pull --exit-code-from sanity sanity
     → Dockerfile (base stage → sanity stage)
       → ansible-galaxy collection build + install
@@ -43,7 +43,7 @@ invoketests-sanity
 Sanity tests validate that modules conform to Ansible standards:
 
 ```bash
-invoketests-sanity
+invoke tests-sanity
 ```
 
 What `ansible-test sanity` checks:
@@ -66,7 +66,7 @@ Common issues:
 ## Unit Tests
 
 ```bash
-invoketests-unit
+invoke tests-unit
 ```
 
 Unit tests live in `tests/unit/` and use `pytest` with mocking.
@@ -103,7 +103,7 @@ pythonpath = ["."]
 ## Integration Tests
 
 ```bash
-invoketests-integration
+invoke tests-integration
 ```
 
 Integration tests require a running Infrahub instance. The `integration` Docker service uses the `integration_network` to reach Infrahub.
@@ -114,10 +114,10 @@ Integration tests use Ansible playbooks in `tests/integration/targets/`.
 
 ```bash
 # Run all linters (ruff + yamllint)
-invokelint
+invoke lint
 
 # Auto-fix formatting
-invokeformat
+invoke format
 ```
 
 ## Changing Python Version

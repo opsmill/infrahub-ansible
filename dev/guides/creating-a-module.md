@@ -273,18 +273,18 @@ class TestMyModule:
 ### Run Tests
 
 ```bash
-invoketests-sanity
-invoketests-unit
+invoke tests-sanity
+invoke tests-unit
 ```
 
 ## Step 4: Generate Documentation
 
 ```bash
 # Regenerate reference docs from docstrings
-invokegenerate-doc
+invoke generate-doc
 
 # Verify the docs build
-invokedocusaurus
+invoke docusaurus
 ```
 
 ## Step 5: Update Changelog
