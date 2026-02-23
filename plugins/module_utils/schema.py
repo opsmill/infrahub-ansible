@@ -102,7 +102,9 @@ if HAS_INFRAHUBCLIENT:
                 list[dict]: Flat list of schema definitions extracted from files.
             """
             if not HAS_YAML:
-                self.module.fail_json(msg="PyYAML is required to load schema files. Install it with: pip install pyyaml")
+                self.module.fail_json(
+                    msg="PyYAML is required to load schema files. Install it with: pip install pyyaml"
+                )
 
             schemas = []
             for file_path in file_paths:
@@ -167,9 +169,7 @@ if HAS_INFRAHUBCLIENT:
                 "hash": response.hash,
                 "previous_hash": response.previous_hash,
                 "warnings": response.warnings or [],
-                "msg": "Schema loaded successfully"
-                if response.schema_updated
-                else "Schema already up to date",
+                "msg": "Schema loaded successfully" if response.schema_updated else "Schema already up to date",
             }
 
             self.module.exit_json(**result)
@@ -249,7 +249,7 @@ if HAS_INFRAHUBCLIENT:
 if not HAS_INFRAHUBCLIENT:
 
     class SchemaModule:  # type: ignore[no-redef]
-        def __init__(self, module, client=None):
+        def __init__(self, module, _client=None):
             module.fail_json(
                 msg="infrahub-sdk is required. Install it with: pip install infrahub-sdk",
                 exception=INFRAHUBCLIENT_IMP_ERR,
