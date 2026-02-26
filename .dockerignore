@@ -6,6 +6,7 @@ docker-compose.yml
 .vscode/
 .github/
 .claude/
+.specify/
 dev/
 **/.ruff_cache
 **/.DS_Store
