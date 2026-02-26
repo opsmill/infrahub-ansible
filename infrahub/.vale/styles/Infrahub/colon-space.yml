@@ -1,8 +1,0 @@
----
-extends: substitution
-message: "Use a space after a colon, but not before"
-level: warning
-ignorecase: true
-nonword: true
-swap:
-  "(?<=\\s):(?=\\s+)": ": "

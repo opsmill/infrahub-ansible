@@ -1,9 +1,0 @@
-Dockerfile
-docker-compose.yml
-*.md
-.env
-.venv
-.vscode/
-.github/
-**/.ruff_cache
-**/.DS_Store
