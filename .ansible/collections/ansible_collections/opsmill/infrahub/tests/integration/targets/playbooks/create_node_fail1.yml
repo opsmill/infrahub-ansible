@@ -1,0 +1,33 @@
+---
+- name: Testing creation errors
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Should fail to create FakeKind as Schema doesn't exist
+      opsmill.infrahub.node:
+        kind: "FakeKind"
+        data:
+          name: "fake1"
+        state: present
+      register: result
+      failed_when: "'Non-existing kind' not in result.msg"
+
+    - name: Should fail to create BuiltinTag due to missing mandatory field 'name'
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          description: "Tag without name"
+        state: present
+      register: result
+      failed_when: "'one filter must be provided' not in result.msg"
+
+    - name: Should fail to create BuiltinTag due to non-existing field 'fake_field'
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          name: "failed_tag"
+          fake_field: "Should not exist"
+        state: present
+      register: result
+      failed_when: "'is not defined for kind' not in result.msg"

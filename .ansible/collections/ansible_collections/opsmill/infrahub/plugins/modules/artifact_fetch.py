@@ -1,0 +1,133 @@
+# Copyright (c) 2023 Opsmill
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+"""Ansible plugin definition for artifact_fetch action plugin."""
+
+from __future__ import absolute_import, annotations, division, print_function
+
+__metaclass__ = type
+
+DOCUMENTATION = """
+---
+module: artifact_fetch
+author:
+    - Damien Garros (@dgarros)
+version_added: "0.0.3"
+short_description: Fetch the content of an artifact from Infrahub
+description:
+    - Fetch the content of an artifact from Infrahub through Infrahub SDK
+requirements:
+    - infrahub-sdk
+options:
+    api_endpoint:
+        required: False
+        description:
+          - Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS
+        type: str
+    token:
+        required: False
+        description:
+            - The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
+        type: str
+    timeout:
+        required: False
+        description: Timeout for Infrahub requests in seconds
+        type: int
+        default: 10
+    artifact_name:
+        required: False
+        description:
+            - Name of the artifact
+        type: str
+    artifact_id:
+        required: False
+        description:
+            - UUID of the artifact
+        type: str
+    target_id:
+        description:
+            - Id of the target for this artifact
+        required: False
+        type: str
+    branch:
+        required: False
+        description:
+            - Branch in which the request is made
+        type: str
+        default: main
+    validate_certs:
+        description:
+            - Whether or not to validate SSL of the Infrahub instance
+        required: False
+        type: bool
+        default: True
+"""
+
+EXAMPLES = """
+---
+- name: Infrahub action plugin artifact_fetch
+  gather_facts: false
+  hosts: platform_eos
+  vars:
+    ansible_become: true
+
+  tasks:
+    - name: Query Startup Config for Edge Devices
+      opsmill.infrahub.artifact_fetch:
+        artifact_name: "Startup Config for Edge devices"
+        target_id: "{{ id }}"
+      register: startup_artifact
+
+    - name: Save configs to localhost
+      ansible.builtin.copy:
+        content: "{{ startup_artifact.text }}"
+        dest: "/tmp/{{ inventory_hostname }}-startup.conf"
+        mode: '644'
+      delegate_to: localhost
+"""
+
+RETURN = """
+json:
+  description:
+    - Content of the artifact in JSON format.
+  type: dict
+  returned: success
+text:
+  description:
+    - Content of the artifact in TEXT format.
+  type: str
+  returned: success
+"""
+
+from ansible.module_utils.basic import AnsibleModule
+
+
+def main():
+    """Main definition of Action Plugin for artifact_fetch."""
+    # the AnsibleModule object will be our abstraction working with Ansible
+    # this includes instantiation, a couple of common attr would be the
+    # args/params passed to the execution, as well as if the module
+    # supports check mode
+    required_together = [("artifact_name", "target_id")]
+    mutually_exclusive = [("artifact_name", "artifact_id"), ("artifact_id", "target_id")]
+    required_one_of = [("artifact_name", "artifact_id")]
+    AnsibleModule(
+        argument_spec=dict(
+            api_endpoint=dict(required=False, type="str", default=None),
+            token=dict(required=False, type="str", no_log=True, default=None),
+            timeout=dict(required=False, type="int", default=10),
+            validate_certs=dict(required=False, type="bool", default=True),
+            branch=dict(required=False, type="str", default="main"),
+            # Module related arguments
+            artifact_name=dict(required=False, type="str"),
+            artifact_id=dict(required=False, type="str"),
+            target_id=dict(required=False, type="str"),
+        ),
+        required_together=required_together,
+        mutually_exclusive=mutually_exclusive,
+        required_one_of=required_one_of,
+        supports_check_mode=False,
+    )
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

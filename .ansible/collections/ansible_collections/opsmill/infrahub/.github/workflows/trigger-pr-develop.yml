@@ -1,0 +1,18 @@
+---
+# yamllint disable rule:truthy
+name: "Pull Request on develop"
+
+on:
+  push:
+    branches:
+      - "renovate/**"
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  linter:
+    uses: ./.github/workflows/workflow-linter.yml
+
+  ansible_linter_and_tests:
+    uses: ./.github/workflows/workflow-ansible-linter-and-tests.yml

@@ -1,0 +1,15 @@
+*.tar.gz
+**/__pycache__
+*.pyc
+tests/output/*
+venv/
+.venv/
+.vscode/
+.idea/
+docs/_build/*
+**/.ruff_cache
+**/.DS_Store
+.python-version
+
+# https://github.com/ansible/ansible/issues/68499
+# ansible_collections/

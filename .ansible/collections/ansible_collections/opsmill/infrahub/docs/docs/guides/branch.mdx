@@ -1,0 +1,80 @@
+---
+title: Managing Branches in Infrahub
+---
+
+# Manage branches in Infrahub
+
+Infrahub lets you manage branches directly via the `opsmill.infrahub.branch` module. With this module you can create, confirm, and delete branches—using the `state` parameter to control the desired operation.
+
+The `opsmill.infrahub.branch` module uses the Infrahub SDK to perform branch operations through GraphQL. You can specify the branch name, description, and whether the branch should be synchronized with Git.
+
+* Use `state: present` to create or confirm that a branch exists.
+* Use `state: absent` to delete a branch.
+
+The `opsmill.infrahub.branch` module does not support Ansible check option.
+
+## Usage
+
+### Creating a branch or confirming its existence
+
+The following playbook creates a branch named `test` with a description. If the branch already exists, the module will report that it already exists without making any changes.
+
+```yaml title="create_branch.yml"
+---
+- name: Manage Branch in Infrahub
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Create a Branch 'test'
+      opsmill.infrahub.branch:
+        name: "test"
+        sync_with_git: false
+        description: "This is a test branch"
+        state: present
+
+    - name: Confirm 'test' exists
+      opsmill.infrahub.branch:
+        name: "test"
+        state: present
+```
+
+<details>
+<summary><b>Example Output from create_branch.yml</b></summary>
+
+```bash
+TASK [Create a Branch 'test'] *************************************************************************
+changed: [localhost] => {"branch": "id='1823716d-eb2a-c26f-35ef-c5155b8f34e4' name='test' description='This is a test branch' sync_with_git=False is_default=False has_schema_changes=False origin_branch='main' branched_from='2025-02-12T11:09:58.005622Z'", "changed": true, "msg": "InfrahubBranch test created"}
+
+TASK [Confirm 'test' exists] *************************************************************************
+ok: [localhost] => {"branch": "id='1823716d-eb2a-c26f-35ef-c5155b8f34e4' name='test' description='This is a test branch' sync_with_git=False is_default=False has_schema_changes=False origin_branch='main' branched_from='2025-02-12T11:09:58.005622Z'", "changed": false, "msg": "InfrahubBranch test already exists."}
+```
+
+</details>
+
+### Deleting a branch
+
+To delete a branch, set the `state` parameter to absent. The module will remove the branch from Infrahub.
+
+```yaml title="delete_branch.yml"
+---
+- name: Delete Branch 'test'
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Delete a Branch 'test'
+      opsmill.infrahub.branch:
+        name: "test"
+        state: absent
+```
+
+<details>
+<summary><b>Example Output from delete_branch.yml</b></summary>
+
+```bash
+TASK [Delete a Branch 'test'] *************************************************************************
+changed: [localhost] => {"branch": "id='1823716d-eb2a-c26f-35ef-c5155b8f34e4' name='test' description='This is a test branch' sync_with_git=False is_default=False has_schema_changes=False origin_branch='main' branched_from='2025-02-12T11:09:58.005622Z'", "changed": true, "msg": "InfrahubBranch test deleted"}
+```
+
+</details>

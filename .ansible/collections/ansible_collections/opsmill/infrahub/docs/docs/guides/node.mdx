@@ -1,0 +1,165 @@
+---
+title: Creating Nodes in Infrahub with Query and Create Node Plugins
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Create nodes in Infrahub
+
+## Overview
+
+Infrahub provides two methods for creating nodes using GraphQL:
+
+- [**Query Plugin**](../references/plugins/query_graphql_module): Use the `opsmill.infrahub.query_graphql` module with a mutation to create nodes.
+- [**Node Module**](../references/plugins/node_module): Use the dedicated `opsmill.infrahub.node` module to create, update and delete nodes directly.
+
+`opsmill.infrahub.node` allowed a better control in your playbook as the module support both Ansible diff and check options.
+
+## Usage
+
+### Creating a node
+
+<Tabs>
+<TabItem value="create-node-plugin" label="Node Plugin" default>
+
+The Create Node Plugin simplifies node creation and supports the `allow_upsert` parameter.
+When `allow_upsert` is set to true (default mode), the module will update an existing node if it already exists, preventing duplicate entries or errors.
+
+This example demonstrates how to create various nodes (an InfraDevice, a VLAN, and an InterfaceL2) using the dedicated Create Node Plugin:
+
+```yaml title="node.yml"
+---
+- name: Create InfraDevice examples
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Create a InfraDevice 'atl1-sw1'
+      opsmill.infrahub.node:
+        kind: "InfraDevice"
+        data:
+          name: "atl1-sw1"
+          type: "MX204"
+          site: "atl1"
+          platform: "Juniper JunOS"
+
+    - name: Create a VLAN 'atl1-vlan1'
+      opsmill.infrahub.node:
+        kind: "InfraVLAN"
+        data:
+          name: "atl1-vlan1"
+          vlan_id: 10
+          status: "active"
+          role: "server"
+
+    - name: Create a InterfaceL2 'xe-0/0/1' on 'atl1-sw1' and add VLAN 'atl1-vlan1'
+      opsmill.infrahub.node:
+        kind: "InfraInterfaceL2"
+        data:
+          name: "xe-0/0/1"
+          device: "atl1-sw1"
+          speed: 10
+          l2_mode: "Access"
+          tagged_vlan:
+            - ["atl1-vlan10", "10"]
+```
+
+<details>
+<summary><b>Example Output from node.yml</b></summary>
+
+```bash
+PLAY [Create InfraDevice examples] ********************************************************************
+
+TASK [Create a InfraDevice 'atl1-sw1'] ****************************************************************
+changed: [localhost] => {"InfraDevice": {"name": "atl1-sw1", "platform": "Juniper JunOS", "site": "atl1", "type": "MX204"}, "changed": true, "msg": "InfraDevice 18237235-3a70-85f6-2db7-c5139cfb8e9a created"}
+
+TASK [Create a VLAN 'atl1-vlan1'] ********************************************************************
+changed: [localhost] => {"InfraVLAN": {"name": "atl1-vlan1", "role": "server", "status": "active", "vlan_id": 10}, "changed": true, "msg": "InfraVLAN 18237235-95f7-64ce-2dbc-c51f7c63c1d5 created"}
+
+TASK [Create a InterfaceL2 'xe-0/0/1' on 'atl1-sw1' and add VLAN 'atl1-vlan1'] ***********************
+changed: [localhost] => {"InfraInterfaceL2": {"device": "atl1-sw1", "l2_mode": "Access", "name": "xe-0/0/1", "speed": 10, "tagged_vlan": [["atl1-vlan10", "10"]]}, "changed": true, "msg": "InfraInterfaceL2 18237235-dd9a-4034-2dbb-c51a0c3505ce created"}
+
+PLAY RECAP ********************************************************************************************
+localhost                  : ok=3    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+</details>
+</TabItem>
+
+<TabItem value="query-plugin" label="Creating nodes with the query plugin">
+
+In this example, we create BuiltinTags using a GraphQL mutation via the Query Plugin:
+
+ ```yaml title="node.yml"
+---
+- name: Create BuiltinTag using Query module
+  gather_facts: false
+  hosts: localhost
+  vars:
+    infrahub_tags:
+      - name: my-tag10
+        description: "This is tag 10 description"
+      - name: my-tag11
+        description: "This is tag 11 description"
+
+  tasks:
+    - name: Create tags
+      opsmill.infrahub.query_graphql:
+        query: |
+          mutation CreateTag($name: String!, $description: String!) {
+            BuiltinTagCreate(
+              data: {
+                name: {value: $name},
+                description: {value: $description}
+              }
+            ) {
+              ok
+              object {
+                id
+              }
+            }
+          }
+        graph_variables:
+          name: "{{ item.name }}"
+          description: "{{ item.description }}"
+      loop: "{{ infrahub_tags }}"
+      register: created_tags
+```
+
+</TabItem>
+</Tabs>
+
+### Deleting a node
+
+<Tabs>
+<TabItem value="delete-node-plugin" label="Node Plugin" default>
+
+To delete a node, set the `state` parameter to absent. The module will remove the node from Infrahub.
+
+```yaml title="delete_tag.yml"
+---
+- name: Delete tag 'tag1'
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Delete tag1
+      opsmill.infrahub.node:
+        kind: "BuiltinTag"
+        data:
+          name: "tag1"
+        state: absent
+```
+
+<details>
+<summary><b>Example Output from delete_tag.yml</b></summary>
+
+```bash
+TASK [Delete tag1] *********************************************************************
+changed: [localhost] => {"BuiltinTag": {"__typename": "BuiltinTag", "description": {"value": null}, "display_label": "tag1", "hfid": ["tag1"], "id": "182371ab-d055-096d-2dbd-c51e34a81383", "name": {"value": "tag1"}}, "changed": true, "msg": "BuiltinTag 182371ab-d055-096d-2dbd-c51e34a81383 deleted"}
+```
+
+</details>
+</TabItem>
+</Tabs>

@@ -1,0 +1,58 @@
+---
+title: lookup
+description: Queries and returns elements from Infrahub (using GraphQL)
+---
+
+# Lookup lookup
+
+Get inventory hosts from Infrahub
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `api_endpoint` | `` | Yes |  | Endpoint of the Infrahub API |
+| `token` | `` | Yes |  | Infrahub API token to be able to read against Infrahub. |
+| `timeout` | `int` | No | 10 | Timeout for Infrahub requests in seconds |
+| `query` | `str` | Yes |  | GraphQL query to send to Infrahub to obtain desired data |
+| `graph_variables` | `dict` | No | {} | dictionary of keys/values to pass into the GraphQL query |
+| `branch` | `str` | No | main | Branch in which the request is made |
+| `validate_certs` | `` | No | True | Whether or not to validate SSL of the Infrahub instance |
+
+## Examples
+
+```yaml
+- name: Infrahub lookup
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACT OF STRING
+      ansible.builtin.set_fact:
+        query_string: |
+          query {
+            BuiltinLocation {
+              edges {
+                node {
+                  name {
+                    value
+                  }
+                }
+              }
+            }
+          }
+
+    - name: Obtain list of sites from Infrahub
+      ansible.builtin.set_fact:
+        query_response: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"
+
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "{{ query_response }}"
+```
+
+## Return values
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `data` | `dict` | Data result from the Infrahub GraphQL endpoint |

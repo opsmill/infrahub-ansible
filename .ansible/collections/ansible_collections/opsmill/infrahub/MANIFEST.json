@@ -1,0 +1,32 @@
+{
+ "collection_info": {
+  "namespace": "opsmill",
+  "name": "infrahub",
+  "version": "1.7.0",
+  "authors": [
+   "OpsMill <info@opsmill.com>"
+  ],
+  "readme": "README.md",
+  "tags": [
+   "dcim",
+   "ipam",
+   "networking"
+  ],
+  "description": "This is a collection of Infrahub Ansible modules",
+  "license": [],
+  "license_file": "LICENSE",
+  "dependencies": {},
+  "repository": "https://github.com/opsmill/infrahub-ansible",
+  "documentation": "https://docs.infrahub.app/ansible/",
+  "homepage": "https://www.opsmill.com/",
+  "issues": "https://github.com/opsmill/infrahub-ansible/issues"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "17c449627b2395b0e3e1a4c3fcb1740a080e33f5730db0b0454a2c9511615799",
+  "format": 1
+ },
+ "format": 1
+}

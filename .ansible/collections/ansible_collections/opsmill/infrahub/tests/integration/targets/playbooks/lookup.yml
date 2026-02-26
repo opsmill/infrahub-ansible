@@ -1,0 +1,24 @@
+---
+- name: Infrahub lookup
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: SET FACT OF STRING
+      ansible.builtin.set_fact:
+        query_string: |
+          query {
+            LocationSite {
+              edges {
+                node {
+                  name {
+                    value
+                  }
+                }
+              }
+            }
+          }
+
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "{{ query('opsmill.infrahub.lookup', query=query_string) }}"
