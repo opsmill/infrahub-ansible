@@ -1,6 +1,6 @@
 ---
 ci_config:
-  - ".github/workflow/*.yml"
+  - ".github/workflows/*.yml"
   - ".github/file-filters.yml"
 
 ansible_plugins: &ansible_plugins

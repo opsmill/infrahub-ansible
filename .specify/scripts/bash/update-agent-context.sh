@@ -291,21 +291,27 @@ create_new_agent_file() {
         return 1
     fi
     
+    # Escape special characters for sed replacement strings (backslash, ampersand, delimiter)
+    escape_sed_replacement() {
+        printf '%s\n' "$1" | sed -e 's/[\\&|]/\\&/g'
+    }
+
     # Replace template placeholders
     local project_structure
-    project_structure=$(get_project_structure "$NEW_PROJECT_TYPE")
-    
+    project_structure=$(escape_sed_replacement "$(get_project_structure "$NEW_PROJECT_TYPE")")
+
     local commands
-    commands=$(get_commands_for_language "$NEW_LANG")
-    
+    commands=$(escape_sed_replacement "$(get_commands_for_language "$NEW_LANG")")
+
     local language_conventions
-    language_conventions=$(get_language_conventions "$NEW_LANG")
-    
-    # Perform substitutions with error checking using safer approach
-    # Escape special characters for sed by using a different delimiter or escaping
-    local escaped_lang=$(printf '%s\n' "$NEW_LANG" | sed 's/[\[\.*^$()+{}|]/\\&/g')
-    local escaped_framework=$(printf '%s\n' "$NEW_FRAMEWORK" | sed 's/[\[\.*^$()+{}|]/\\&/g')
-    local escaped_branch=$(printf '%s\n' "$CURRENT_BRANCH" | sed 's/[\[\.*^$()+{}|]/\\&/g')
+    language_conventions=$(escape_sed_replacement "$(get_language_conventions "$NEW_LANG")")
+
+    local escaped_lang
+    escaped_lang=$(escape_sed_replacement "$NEW_LANG")
+    local escaped_framework
+    escaped_framework=$(escape_sed_replacement "$NEW_FRAMEWORK")
+    local escaped_branch
+    escaped_branch=$(escape_sed_replacement "$CURRENT_BRANCH")
     
     # Build technology stack and recent change strings conditionally
     local tech_stack
@@ -458,7 +464,7 @@ update_existing_agent_file() {
             # Keep only first 2 existing changes
             if [[ $existing_changes_count -lt 2 ]]; then
                 echo "$line" >> "$temp_file"
-                ((existing_changes_count++))
+                existing_changes_count=$((existing_changes_count + 1))
             fi
             continue
         fi
