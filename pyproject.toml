@@ -14,7 +14,8 @@ ansible-core = [
 ]
 numpy = [
     { version = "^1.24.2", optional = true, python = ">=3.9,<3.12" },
-    { version = "^1.26.2", optional = true, python = "=3.12" },
+    { version = "^1.26.2", optional = true, python = ">=3.12,<3.13" },
+    { version = "^2.1.0", optional = true, python = ">=3.13" },
 ]
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
 jinja2 = ">=3.1.5"
