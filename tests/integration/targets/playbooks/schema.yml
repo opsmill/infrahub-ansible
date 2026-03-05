@@ -1,0 +1,86 @@
+---
+- name: Schema check, load and export
+  gather_facts: false
+  hosts: localhost
+
+  vars:
+    test_schema:
+      - version: "1.0"
+        nodes:
+          - namespace: "Testing"
+            name: "Sandwich"
+            label: "Sandwich"
+            attributes:
+              - name: "name"
+                kind: "Text"
+                unique: true
+              - name: "description"
+                kind: "Text"
+                optional: true
+
+  tasks:
+    # -----------------------------------------------------------
+    # 1. Check – validate an inline schema without applying it
+    # -----------------------------------------------------------
+    - name: Check schema from inline definition
+      opsmill.infrahub.schema:
+        action: check
+        schemas: "{{ test_schema }}"
+      register: check_result
+
+    - name: Assert schema check is valid
+      ansible.builtin.assert:
+        that:
+          - check_result.valid is true
+          - check_result.changed is false
+        fail_msg: "Schema check failed: {{ check_result }}"
+
+    # -----------------------------------------------------------
+    # 2. Load – apply the schema to Infrahub
+    # -----------------------------------------------------------
+    - name: Load schema from inline definition
+      opsmill.infrahub.schema:
+        action: load
+        schemas: "{{ test_schema }}"
+      register: load_result
+
+    - name: Assert schema was loaded
+      ansible.builtin.assert:
+        that:
+          - load_result.msg is defined
+          - load_result.hash is defined
+        fail_msg: "Schema load failed: {{ load_result }}"
+
+    # -----------------------------------------------------------
+    # 3. Export – retrieve schemas and verify the loaded one
+    # -----------------------------------------------------------
+    - name: Export all schemas
+      opsmill.infrahub.schema:
+        action: export
+      register: export_result
+
+    - name: Assert export contains schemas
+      ansible.builtin.assert:
+        that:
+          - export_result.changed is false
+          - export_result.schemas is defined
+          - export_result.schemas | length > 0
+        fail_msg: "Schema export failed: {{ export_result }}"
+
+    - name: Export schemas filtered by namespace
+      opsmill.infrahub.schema:
+        action: export
+        namespaces:
+          - Testing
+      register: export_filtered
+
+    - name: Assert filtered export contains Testing namespace
+      ansible.builtin.assert:
+        that:
+          - export_filtered.schemas is defined
+          - "'Testing' in export_filtered.schemas"
+        fail_msg: "Filtered export missing Testing namespace: {{ export_filtered }}"
+
+    - name: Print exported schemas
+      ansible.builtin.debug:
+        msg: "{{ export_filtered.schemas }}"

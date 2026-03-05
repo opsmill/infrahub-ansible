@@ -14,7 +14,8 @@ ansible-core = [
 ]
 numpy = [
     { version = "^1.24.2", optional = true, python = ">=3.9,<3.12" },
-    { version = "^1.26.2", optional = true, python = ">=3.12" },
+    { version = "^1.26.2", optional = true, python = ">=3.12,<3.13" },
+    { version = "^2.1.0", optional = true, python = ">=3.13" },
 ]
 infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
 jinja2 = ">=3.1.5"
@@ -118,6 +119,7 @@ ignore = [
     ##################################################################################################
     # Review and change the below later                                                              #
     ##################################################################################################
+    "ANN001", # Missing type annotation for function argument
     "ANN201", # ANN201 Missing return type annotation for public function
     "ANN202", # Missing return type annotation for private function
     "ANN204", # Missing return type annotation for special method
@@ -128,6 +130,11 @@ ignore = [
 ]
 
 "tasks/*.py" = [
+    "T201",   # use of `print`
+]
+
+"tasks/__init__.py" = [
+    "RUF067", # __init__ module re-exports (invoke task runner pattern)
     "T201",   # use of `print`
 ]
 
