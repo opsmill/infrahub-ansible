@@ -674,7 +674,7 @@ wheels = [
 
 [[package]]
 name = "infrahub-ansible-modules"
-version = "1.6.1"
+version = "1.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "ansible-core", version = "2.17.14", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
