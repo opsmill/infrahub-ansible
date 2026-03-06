@@ -1,0 +1,30 @@
+---
+### infrahub_inventory.yml file in YAML format
+### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
+
+# This inventory uses the hostnames option to set clean inventory hostnames
+# based on the node's "name" attribute instead of the default display_label.
+# The fallback path "display_label" ensures hosts always get a key even if "name" is missing.
+
+plugin: opsmill.infrahub.inventory
+api_endpoint: "http://localhost:8000"
+
+strict: true
+
+hostnames:
+  - name
+  - display_label
+
+nodes:
+  InfraDevice:
+    include:
+      - name
+      - primary_address.address
+      - site.name
+
+compose:
+  ansible_host: primary_address.address | ansible.utils.ipaddr('address')
+
+keyed_groups:
+  - prefix: site
+    key: site.name

@@ -98,6 +98,17 @@ options:
           - Create groups based on jinja filter.
         type: dict
         default: {}
+    hostnames:
+        required: False
+        description:
+          - A list of attribute paths used to determine the inventory hostname.
+          - Each entry is a dotted path resolved against node attributes (e.g., "name", "primary_address.address").
+          - The special value "display_label" resolves to the node's display label.
+          - First non-empty string value wins. Falls back to display_label if none resolve.
+          - Referenced attributes must be present in the node's include list.
+        type: list
+        elements: str
+        default: []
     validate_certs:
         description:
           - Whether or not to validate SSL of the Infrahub instance
@@ -143,6 +154,20 @@ compose:
 keyed_groups:
   - prefix: site
     key: site.name
+
+# Using hostnames to set clean inventory hostnames
+plugin: opsmill.infrahub.inventory
+api_endpoint: http://localhost:8000
+
+hostnames:
+  - name
+  - display_label
+
+nodes:
+  InfraDevice:
+    include:
+      - name
+      - primary_address.address
 """
 
 RETURN = """
@@ -291,20 +316,21 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         except ValueError as exc:
             raise (AnsibleError(str(exc)))
 
+        self.display.v("Initializing Infrahub Client")
+        client = InfrahubclientWrapper(
+            api_endpoint=self.api_endpoint,
+            branch=self.branch,
+            token=self.token,
+            timeout=self.timeout,
+            validate_certs=self.validate_certs,
+            display=self.display,
+        )
+        processor = InfrahubNodesProcessor(client=client, display=self.display)
+
         host_node_attributes, need_to_load_from_api = self._fetch_from_cache()
 
         if need_to_load_from_api:
             try:
-                self.display.v("Initializing Infrahub Client")
-                client = InfrahubclientWrapper(
-                    api_endpoint=self.api_endpoint,
-                    branch=self.branch,
-                    token=self.token,
-                    timeout=self.timeout,
-                    validate_certs=self.validate_certs,
-                    display=self.display,
-                )
-                processor = InfrahubNodesProcessor(client=client, display=self.display)
                 self.display.v("Processing Nodes request")
                 host_node_attributes = processor.fetch_and_process(
                     nodes=self.nodes, prefetch_relationships=self.prefetch_relationships
@@ -315,6 +341,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not host_node_attributes:
             self.display.v("No nodes processed.")
         else:
+            host_node_attributes = processor.resolve_hostnames(host_node_attributes, self.hostnames)
             self.set_hosts_and_groups(host_node_attributes=host_node_attributes)
             self._store_in_cache(host_node_attributes=host_node_attributes)
 
@@ -347,6 +374,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.compose = self.get_option("compose")
         self.keyed_groups = self.get_option("keyed_groups")
         self.groups = self.get_option("groups")
+        self.hostnames = self.get_option("hostnames") or []
 
         self._set_authorization()
         if self.token is None:
