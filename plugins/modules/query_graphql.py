@@ -110,7 +110,7 @@ data:
 from ansible.module_utils.basic import AnsibleModule
 
 
-def main():
+def main() -> None:
     """Main definition of Action Plugin for query_graphql."""
     # the AnsibleModule object will be our abstraction working with Ansible
     # this includes instantiation, a couple of common attr would be the

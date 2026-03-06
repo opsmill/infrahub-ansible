@@ -26,7 +26,7 @@ class ActionModule(ActionBase):
         ActionBase (ActionBase): Ansible Action Plugin
     """
 
-    def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict:
+    def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict[str, Any]:
         """
         Run of action plugin for interacting with Infrahub GraphQL API.
 
@@ -41,11 +41,11 @@ class ActionModule(ActionBase):
         self._supports_check_mode = True
         self._supports_async = False
 
-        result = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
+        result: dict[str, Any] = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
         del tmp
 
         if result.get("skipped"):
-            return None
+            return result
 
         if result.get("invocation", {}).get("module_args"):
             del result["invocation"]["module_args"]

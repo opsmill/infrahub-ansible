@@ -5,7 +5,7 @@ description: {{ documentation.get('short_description', '') }}
 
 # {{ plugin_type.title() }} {{ plugin_type.lower() }}
 
-{% for description in documentation.get('description', '') %}{{ description }}{% endfor %}
+{% for description in documentation.get('description', '') %}{{ description }} {% endfor %}
 
 {% if documentation.get('options') -%}
 ## Parameters

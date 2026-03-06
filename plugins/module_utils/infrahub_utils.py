@@ -41,8 +41,8 @@ else:
     HAS_INFRAHUBCLIENT = True
 
 INFRAHUB_ARG_SPEC = dict(
-    api_endpoint=dict(type="str", required=True, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
-    token=dict(type="str", required=True, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
+    api_endpoint=dict(type="str", required=False, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
+    token=dict(type="str", required=False, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
     state=dict(required=False, default="present", choices=["present", "absent"]),
     validate_certs=dict(type="bool", default=True),
     timeout=dict(required=False, type="int", default=10),
@@ -76,7 +76,7 @@ if HAS_INFRAHUBCLIENT:
             token: str,
             branch: str | None = None,
             timeout: int | None = 10,
-            validate_certs: str | None = True,
+            validate_certs: bool | None = True,
             display: Display | None = None,
         ):
             """
@@ -90,6 +90,9 @@ if HAS_INFRAHUBCLIENT:
                 validate_certs (bool, optional): Whether or not to validate SSL of the Infrahub instance. Defaults to True
                 display (Display, optional): Ansible Display to use during during execution. Defaults to None.
             """
+            if not isinstance(validate_certs, bool):
+                raise ValueError(f"validate_certs must be a bool, got {type(validate_certs).__name__}")
+
             if branch:
                 self.client = InfrahubClientSync(
                     address=api_endpoint,
@@ -141,6 +144,71 @@ if HAS_INFRAHUBCLIENT:
 
             return result
 
+        def generate_artifact(
+            self,
+            filters: dict[str, str],
+            target_id: str,
+            branch: str = "main",
+        ) -> dict[str, Any]:
+            """
+            Trigger regeneration of an artifact for the given target node.
+
+            Parameters:
+                filters (dict[str, str]): Filters to locate the artifact
+                    - For artifact_name: {"name__value": name}
+                    - For artifact_id: {"ids": [artifact_id]}
+                target_id (str): Target node UUID to regenerate the artifact for
+                branch (str, optional): Name of the branch. Defaults to default_branch.
+
+            Returns:
+                dict: Results including regeneration status
+            """
+            result: dict[str, Any] = {
+                "artifact_name": filters.get("name__value"),
+                "artifact_id": None,
+                "definition_id": None,
+                "target_id": target_id,
+                "changed": False,
+                "failed": False,
+                "msg": "",
+            }
+
+            # Step 1: Fetch the artifact node for the target_id
+            lookup_filters = filters.copy()
+            lookup_filters["object__ids"] = [target_id]
+            node = self.fetch_single_node(
+                kind="CoreArtifact",
+                filters=lookup_filters,
+                branch=branch,
+            )
+
+            if not node:
+                result["failed"] = True
+                result["msg"] = f"No artifact found for target '{target_id}' with filters: {filters}"
+                return result
+
+            result["artifact_id"] = node.id
+            result["artifact_name"] = node.name.value
+            result["definition_id"] = node.definition.id
+
+            # Step 2: Trigger regeneration using the artifact ID
+            url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}?branch={branch}"
+            payload = {"nodes": [target_id]}
+            try:
+                resp = self.client._post(url=url, payload=payload)
+                resp.raise_for_status()
+            except Exception as exc:
+                result["failed"] = True
+                result["msg"] = (
+                    f"Failed to trigger artifact regeneration for definition '{result['definition_id']}': {exc}"
+                )
+                return result
+
+            # Step 3: Return success
+            result["changed"] = True
+            result["msg"] = f"Successfully triggered regeneration for artifact '{result['artifact_name']}'"
+            return result
+
         def fetch_artifacts(
             self,
             filters: dict[str, str] | None = None,
@@ -156,22 +224,21 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 list[dict]: list of Artifact Content
             """
-            result = {
-                "json": None,
-                "text": None,
-            }
             order = Order(disable=True)
-            results = list[result]
+            results: list[dict[str, Any]] = []
             nodes = self.fetch_nodes(
                 kind="CoreArtifact",
                 filters=filters,
                 branch=branch,
-                orde=order,
+                order=order,
             )
             for node in nodes:
                 resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")
-
-                if node.value == "application/json":
+                result: dict[str, Any] = {
+                    "json": None,
+                    "text": None,
+                }
+                if node.content_type.value == "application/json":
                     result["json"] = resp.json()
                 else:
                     result["text"] = resp.text
@@ -262,7 +329,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 list[InfrahubNodeSync]: list of Nodes
             """
-            nodes = list[InfrahubNodeSync]
+            nodes: list[InfrahubNodeSync] = []
 
             if not filters:
                 nodes = self.client.all(
@@ -327,7 +394,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict[str, NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI]:: A dict of node kind, Schema.
             """
-            branch = branch or self.default_branch
+            branch = branch or self.client.config.default_branch
             return self.client.schema.all(branch=branch)
 
         def fetch_branchs(self) -> dict[str, BranchData]:

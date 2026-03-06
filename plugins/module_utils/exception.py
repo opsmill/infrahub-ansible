@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
     from ansible.module_utils.basic import Display
 
+INFRAHUBCLIENT_IMPORT_ERROR: ImportError | None = None
+
 try:
     from infrahub_sdk.exceptions import (
         BranchNotFoundError,
@@ -22,8 +24,6 @@ try:
     )
 except ImportError as imp_exc:
     INFRAHUBCLIENT_IMPORT_ERROR = imp_exc
-else:
-    INFRAHUBCLIENT_IMPORT_ERROR = None
 
 
 def _handle_exc(

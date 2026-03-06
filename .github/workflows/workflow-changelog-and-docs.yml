@@ -10,12 +10,6 @@ jobs:
   generate_docs:
     runs-on: "ubuntu-22.04"
     name: "Create Docs"
-    strategy:
-      matrix:
-        python-version:
-          - "3.12"
-        poetry-version:
-          - "2.1.3"
     steps:
       - uses: actions/checkout@v6
         with:
@@ -25,21 +19,18 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v6"
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
 
-      - name: "Install Poetry"
-        uses: "snok/install-poetry@v1"
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v7"
         with:
-          version: ${{ matrix.poetry-version }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          version: "0.9.18"
 
       - name: Install dependencies
-        run: "poetry install --no-interaction --no-ansi --no-root --with dev"
+        run: "uv sync --group dev"
 
       - name: "Generate Docs"
-        run: "poetry run invoke generate-doc"
+        run: "uv run invoke generate-doc"
 
       - name: commit docs
         uses: github-actions-x/commit@v2.9
