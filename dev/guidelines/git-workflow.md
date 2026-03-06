@@ -66,4 +66,4 @@ The `galaxy.yml` `build_ignore` list excludes from the published collection:
 - `venv`, `ansible_collections`
 - `tests/output`
 - `.pytest_cache`, `.vscode`
-- `*.tar.gz`, `poetry.lock`, `pyproject.toml`
+- `*.tar.gz`, `uv.lock`, `pyproject.toml`

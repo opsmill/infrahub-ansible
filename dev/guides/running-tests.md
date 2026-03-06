@@ -15,8 +15,8 @@ invoke tests-integration
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Poetry environment set up (`poetry install`)
-- Invoke available (`pip install invoke` or via Poetry)
+- uv environment set up (`uv sync`)
+- Invoke available (`pip install invoke` or via uv)
 
 ## How It Works
 
@@ -73,20 +73,20 @@ Unit tests live in `tests/unit/` and use `pytest` with mocking.
 
 ### Running Specific Tests Locally
 
-For faster iteration, you can run pytest directly (requires the Poetry environment):
+For faster iteration, you can run pytest directly (requires the uv environment):
 
 ```bash
 # All unit tests
-poetry run pytest tests/unit/
+uv run pytest tests/unit/
 
 # Specific test file
-poetry run pytest tests/unit/plugins/modules/test_node.py
+uv run pytest tests/unit/plugins/modules/test_node.py
 
 # Specific test with verbose output
-poetry run pytest tests/unit/plugins/modules/test_node.py::test_create -v
+uv run pytest tests/unit/plugins/modules/test_node.py::test_create -v
 
 # With parallel execution
-poetry run pytest tests/unit/ -n auto
+uv run pytest tests/unit/ -n auto
 ```
 
 ### Pytest Configuration
@@ -133,8 +133,8 @@ PYTHON_VER=3.11 docker compose up --build --exit-code-from sanity sanity
 ### Docker Build Failures
 
 If the Docker build fails on dependency installation:
-1. Check that `poetry.lock` is up to date: `poetry lock`
-2. Check for network issues (Poetry needs to download packages)
+1. Check that `uv.lock` is up to date: `uv lock`
+2. Check for network issues (uv needs to download packages)
 
 ### Sanity Test Import Errors
 

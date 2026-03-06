@@ -5,7 +5,7 @@ description: Trigger artifact regeneration in Infrahub
 
 # Modules modules
 
-Triggers the regeneration of an artifact for a specified target node in Infrahub.The module looks up the artifact associated with the target node and triggers regeneration.
+Triggers the regeneration of an artifact for a specified target node in Infrahub. The module looks up the artifact associated with the target node and triggers regeneration. 
 
 ## Parameters
 
@@ -18,7 +18,7 @@ Triggers the regeneration of an artifact for a specified target node in Infrahub
 | `artifact_id` | `str` | No |  | UUID of the artifact (mutually exclusive with artifact_name) |
 | `target_id` | `str` | Yes |  | UUID of the target node (e.g., device ID) that the artifact is associated with |
 | `branch` | `str` | No | main | Branch in which the request is made |
-| `validate_certs` | `bool` | No | True | Whether or not to validate SSL of the Infrahub instance |
+| `validate_certs` | `bool` | No | True | Whether to validate SSL of the Infrahub instance |
 
 ## Examples
 

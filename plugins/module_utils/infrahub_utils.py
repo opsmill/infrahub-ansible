@@ -90,6 +90,9 @@ if HAS_INFRAHUBCLIENT:
                 validate_certs (bool, optional): Whether or not to validate SSL of the Infrahub instance. Defaults to True
                 display (Display, optional): Ansible Display to use during during execution. Defaults to None.
             """
+            if not isinstance(validate_certs, bool):
+                raise ValueError(f"validate_certs must be a bool, got {type(validate_certs).__name__}")
+
             if branch:
                 self.client = InfrahubClientSync(
                     address=api_endpoint,
@@ -190,7 +193,7 @@ if HAS_INFRAHUBCLIENT:
 
             # Step 2: Trigger regeneration using the artifact ID
             url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}?branch={branch}"
-            payload = {"nodes": [node.id]}
+            payload = {"nodes": [target_id]}
             try:
                 resp = self.client._post(url=url, payload=payload)
                 resp.raise_for_status()

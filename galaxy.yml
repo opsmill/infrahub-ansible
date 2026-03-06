@@ -68,7 +68,7 @@ build_ignore:
   - ".pytest_cache"
   - ".vscode"
   - "*.tar.gz"
-  - "poetry.lock"
+  - "uv.lock"
   - "pyproject.toml"
   - ".claude"
   - "dev"

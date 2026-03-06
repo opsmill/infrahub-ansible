@@ -97,15 +97,21 @@ module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
 `INFRAHUB_ARG_SPEC` provides: `api_endpoint`, `token`, `state`, `validate_certs`, `timeout`.
 
-**Inline argument spec (artifact modules):**
+**Artifact modules (with mutual exclusion):**
 
 ```python
+from copy import deepcopy
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import INFRAHUB_ARG_SPEC
+
+argument_spec = deepcopy(INFRAHUB_ARG_SPEC)
+argument_spec.update(
+    artifact_name=dict(required=False, type="str"),
+    artifact_id=dict(required=False, type="str"),
+    target_id=dict(required=True, type="str"),
+    branch=dict(required=False, type="str", default="main"),
+)
 AnsibleModule(
-    argument_spec=dict(
-        api_endpoint=dict(required=False, type="str", default=None),
-        token=dict(required=False, type="str", no_log=True, default=None),
-        # ... more args ...
-    ),
+    argument_spec=argument_spec,
     mutually_exclusive=[("artifact_name", "artifact_id")],
     required_one_of=[("artifact_name", "artifact_id")],
     supports_check_mode=False,

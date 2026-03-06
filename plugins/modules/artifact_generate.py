@@ -57,7 +57,7 @@ options:
         default: main
     validate_certs:
         description:
-            - Whether or not to validate SSL of the Infrahub instance
+            - Whether to validate SSL of the Infrahub instance
         required: False
         type: bool
         default: True
@@ -143,27 +143,25 @@ msg:
   returned: always
 """
 
+from copy import deepcopy
+
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import INFRAHUB_ARG_SPEC
 
 
 def main():
     """Main definition of Action Plugin for artifact_generate."""
-    mutually_exclusive = [("artifact_name", "artifact_id")]
-    required_one_of = [("artifact_name", "artifact_id")]
+    argument_spec = deepcopy(INFRAHUB_ARG_SPEC)
+    argument_spec.update(
+        artifact_name=dict(required=False, type="str"),
+        artifact_id=dict(required=False, type="str"),
+        target_id=dict(required=True, type="str"),
+        branch=dict(required=False, type="str", default="main"),
+    )
     AnsibleModule(
-        argument_spec=dict(
-            api_endpoint=dict(required=False, type="str", default=None),
-            token=dict(required=False, type="str", no_log=True, default=None),
-            timeout=dict(required=False, type="int", default=10),
-            validate_certs=dict(required=False, type="bool", default=True),
-            branch=dict(required=False, type="str", default="main"),
-            # Module related arguments
-            artifact_name=dict(required=False, type="str"),
-            artifact_id=dict(required=False, type="str"),
-            target_id=dict(required=True, type="str"),
-        ),
-        mutually_exclusive=mutually_exclusive,
-        required_one_of=required_one_of,
+        argument_spec=argument_spec,
+        mutually_exclusive=[("artifact_name", "artifact_id")],
+        required_one_of=[("artifact_name", "artifact_id")],
         supports_check_mode=False,
     )
 

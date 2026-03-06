@@ -73,12 +73,13 @@ class ActionModule(ActionBase):
         """
         schemas: list[dict] = []
         for file_path in file_paths:
-            # Resolve path relative to the playbook/role
-            resolved_path = self._find_needle("files", file_path)
-
             try:
+                # Resolve path relative to the playbook/role
+                resolved_path = self._find_needle("files", file_path)
                 with Path(resolved_path).open(encoding="utf-8") as fh:
                     data = yaml.safe_load(fh)
+            except AnsibleError:
+                raise
             except FileNotFoundError:
                 raise AnsibleError(f"Schema file not found: {resolved_path}")
             except yaml.YAMLError as exc:

@@ -29,9 +29,6 @@ if HAS_INFRAHUBCLIENT:
             self.module = module
             self.check_mode = self.module.check_mode
 
-            if not HAS_INFRAHUBCLIENT:
-                self.module.fail_json(msg="infrahub-sdk is required. Install it with: pip install infrahub-sdk")
-
             api_endpoint = self.module.params.get("api_endpoint")
             token = self.module.params.get("token")
             if api_endpoint is None:

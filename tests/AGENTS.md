@@ -68,9 +68,9 @@ pythonpath = ["."]
 ### Running Locally (Fast Iteration)
 
 ```bash
-poetry run pytest tests/unit/ -v
-poetry run pytest tests/unit/plugins/modules/test_node.py -v
-poetry run pytest tests/unit/ -n auto  # parallel with pytest-xdist
+uv run pytest tests/unit/ -v
+uv run pytest tests/unit/plugins/modules/test_node.py -v
+uv run pytest tests/unit/ -n auto  # parallel with pytest-xdist
 ```
 
 ## Integration Tests

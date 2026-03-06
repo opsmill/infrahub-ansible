@@ -36,7 +36,7 @@ class ActionModule(ActionBase):
         """
 
         if not HAS_INFRAHUBCLIENT:
-            raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
+            raise AnsibleError("infrahub_sdk must be installed to use this plugin")
 
         self._supports_check_mode = False
         self._supports_async = True
