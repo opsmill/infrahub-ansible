@@ -41,8 +41,8 @@ else:
     HAS_INFRAHUBCLIENT = True
 
 INFRAHUB_ARG_SPEC = dict(
-    api_endpoint=dict(type="str", required=True, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
-    token=dict(type="str", required=True, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
+    api_endpoint=dict(type="str", required=False, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
+    token=dict(type="str", required=False, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
     state=dict(required=False, default="present", choices=["present", "absent"]),
     validate_certs=dict(type="bool", default=True),
     timeout=dict(required=False, type="int", default=10),

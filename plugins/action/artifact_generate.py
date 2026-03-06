@@ -26,7 +26,7 @@ class ActionModule(ActionBase):
         ActionBase (ActionBase): Ansible Action Plugin
     """
 
-    def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict:
+    def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict[str, Any]:
         """
         Run of action plugin to trigger artifact regeneration.
 
@@ -41,7 +41,7 @@ class ActionModule(ActionBase):
         self._supports_check_mode = False
         self._supports_async = True
 
-        result = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
+        result: dict[str, Any] = super(ActionModule, self).run(tmp, task_vars)  # noqa: UP008
         del tmp
 
         if result.get("skipped"):

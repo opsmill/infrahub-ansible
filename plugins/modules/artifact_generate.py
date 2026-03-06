@@ -61,6 +61,12 @@ options:
         required: False
         type: bool
         default: True
+    state:
+        description:
+            - "Use C(present) or C(absent) for adding or removing."
+        choices: [ absent, present ]
+        default: present
+        type: str
 """
 
 EXAMPLES = """
@@ -149,7 +155,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import INFRAHUB_ARG_SPEC
 
 
-def main():
+def main() -> None:
     """Main definition of Action Plugin for artifact_generate."""
     argument_spec = deepcopy(INFRAHUB_ARG_SPEC)
     argument_spec.update(
