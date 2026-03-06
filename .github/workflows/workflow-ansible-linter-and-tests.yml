@@ -30,11 +30,11 @@ permissions:
 
 jobs:
   build-import:
-    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@v1.0.1
+    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@v1.1.0
   ansible-lint:
-    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@v1.0.1
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@v1.1.0
   sanity:
-    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@v1.0.1
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@v1.1.0
   # unit-galaxy:
   #   uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
   # unit-source:
