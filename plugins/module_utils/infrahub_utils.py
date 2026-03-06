@@ -41,8 +41,8 @@ else:
     HAS_INFRAHUBCLIENT = True
 
 INFRAHUB_ARG_SPEC = dict(
-    api_endpoint=dict(type="str", required=True, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
-    token=dict(type="str", required=True, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
+    api_endpoint=dict(type="str", required=False, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
+    token=dict(type="str", required=False, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
     state=dict(required=False, default="present", choices=["present", "absent"]),
     validate_certs=dict(type="bool", default=True),
     timeout=dict(required=False, type="int", default=10),
@@ -76,7 +76,7 @@ if HAS_INFRAHUBCLIENT:
             token: str,
             branch: str | None = None,
             timeout: int | None = 10,
-            validate_certs: str | None = True,
+            validate_certs: bool | None = True,
             display: Display | None = None,
         ):
             """
@@ -90,6 +90,9 @@ if HAS_INFRAHUBCLIENT:
                 validate_certs (bool, optional): Whether or not to validate SSL of the Infrahub instance. Defaults to True
                 display (Display, optional): Ansible Display to use during during execution. Defaults to None.
             """
+            if not isinstance(validate_certs, bool):
+                raise ValueError(f"validate_certs must be a bool, got {type(validate_certs).__name__}")
+
             if branch:
                 self.client = InfrahubClientSync(
                     address=api_endpoint,
@@ -190,7 +193,7 @@ if HAS_INFRAHUBCLIENT:
 
             # Step 2: Trigger regeneration using the artifact ID
             url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}?branch={branch}"
-            payload = {"nodes": [node.id]}
+            payload = {"nodes": [target_id]}
             try:
                 resp = self.client._post(url=url, payload=payload)
                 resp.raise_for_status()
@@ -221,22 +224,21 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 list[dict]: list of Artifact Content
             """
-            result = {
-                "json": None,
-                "text": None,
-            }
             order = Order(disable=True)
-            results = list[result]
+            results: list[dict[str, Any]] = []
             nodes = self.fetch_nodes(
                 kind="CoreArtifact",
                 filters=filters,
                 branch=branch,
-                orde=order,
+                order=order,
             )
             for node in nodes:
                 resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")
-
-                if node.value == "application/json":
+                result: dict[str, Any] = {
+                    "json": None,
+                    "text": None,
+                }
+                if node.content_type.value == "application/json":
                     result["json"] = resp.json()
                 else:
                     result["text"] = resp.text
@@ -327,7 +329,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 list[InfrahubNodeSync]: list of Nodes
             """
-            nodes = list[InfrahubNodeSync]
+            nodes: list[InfrahubNodeSync] = []
 
             if not filters:
                 nodes = self.client.all(
@@ -392,7 +394,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict[str, NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI]:: A dict of node kind, Schema.
             """
-            branch = branch or self.default_branch
+            branch = branch or self.client.config.default_branch
             return self.client.schema.all(branch=branch)
 
         def fetch_branchs(self) -> dict[str, BranchData]:
@@ -851,7 +853,7 @@ if HAS_INFRAHUBCLIENT:
             return host_node_attributes
 
         @staticmethod
-        def resolve_dotted_path(attributes: dict, path: str):
+        def resolve_dotted_path(attributes: dict, path: str) -> str | None:
             """Resolve a dotted attribute path (e.g. 'primary_address.address') through a nested dict."""
             current = attributes
             for part in path.split("."):
@@ -879,7 +881,7 @@ if HAS_INFRAHUBCLIENT:
                 for path in hostnames:
                     if path == "display_label":
                         resolved = self.resolve_dotted_path(attributes, path)
-                        new_key = resolved if resolved else original_key
+                        new_key = resolved or original_key
                         break
                     resolved = self.resolve_dotted_path(attributes, path)
                     if resolved:

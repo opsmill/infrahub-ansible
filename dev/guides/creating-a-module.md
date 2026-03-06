@@ -41,12 +41,12 @@ requirements:
     - infrahub-sdk
 options:
     api_endpoint:
-        required: False
+        required: True
         description:
           - Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS
         type: str
     token:
-        required: False
+        required: True
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
         type: str
@@ -103,7 +103,13 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 def main():
-    """Main entry point for module execution."""
+    """Main entry point for module execution.
+
+    Note: For action-plugin-based modules, the action plugin handles execution.
+    The module stub validates args and the action plugin calls exit_json/fail_json.
+    """
+    # The AnsibleModule constructor validates args and handles --check/--diff.
+    # The action plugin (plugins/action/<name>.py) performs the actual work.
     AnsibleModule(
         argument_spec=dict(
             api_endpoint=dict(required=False, type="str", default=None),

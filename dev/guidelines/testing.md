@@ -50,7 +50,7 @@ docker compose up --build --force-recreate --quiet-pull --exit-code-from integra
 
 The `Dockerfile` uses multi-stage builds:
 
-1. **`base`** — Installs Python, Poetry, and all dependencies
+1. **`base`** — Installs Python, uv, and all dependencies
 2. **`sanity`** — Builds the collection, installs it, runs `ansible-test sanity`
 3. **`unittests`** — Runs unit tests
 4. **`integration`** — Runs integration tests (with network access for Infrahub)

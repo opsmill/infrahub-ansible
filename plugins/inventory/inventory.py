@@ -189,12 +189,12 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     InfrahubNodesProcessor,
 )
 
+PACKAGING_IMPORT_ERROR: ImportError | None = None
+
 try:
     from packaging import version
 except ImportError as imp_exc:
     PACKAGING_IMPORT_ERROR = imp_exc
-else:
-    PACKAGING_IMPORT_ERROR = None
 
 
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
@@ -217,7 +217,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         # Base class verifies that file exists and is readable by current user
         return bool(super(InventoryModule, self).verify_file(path) and path.endswith((".yml", ".yaml")))  # noqa: UP008
 
-    def _set_authorization(self):
+    def _set_authorization(self) -> None:
         """
         Handle Infrahub API authentication
         """
@@ -253,7 +253,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         return None, True
 
-    def _store_in_cache(self, host_node_attributes: dict[str, Any]):
+    def _store_in_cache(self, host_node_attributes: dict[str, Any]) -> None:
         """
         Store the host node attributes in the cache if the user cache setting is enabled.
 
@@ -265,7 +265,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             cache_key: str = self.get_cache_key(self.api_endpoint)
             self._cache[cache_key] = json.dumps(host_node_attributes)
 
-    def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]):
+    def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
         Set host variables and add host to keyed groups based on the provided attributes.
 
@@ -291,7 +291,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 strict=self.strict,
             )
 
-    def set_host_variables(self, host_node: str, attributes: dict):
+    def set_host_variables(self, host_node: str, attributes: dict[str, Any]) -> None:
         """
         Set the variables for a particular host node.
 
@@ -305,7 +305,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=self.strict)
 
-    def main(self):
+    def main(self) -> None:
         """Main function"""
         if not HAS_INFRAHUBCLIENT:
             raise (AnsibleError("infrahub_sdk must be installed to use this plugin"))
@@ -345,7 +345,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.set_hosts_and_groups(host_node_attributes=host_node_attributes)
             self._store_in_cache(host_node_attributes=host_node_attributes)
 
-    def parse(self, inventory: Any, loader: Any, path: Any, cache: bool = True):
+    def parse(self, inventory: Any, loader: Any, path: Any, cache: bool = True) -> None:
         """
         Parse the inventory
         """

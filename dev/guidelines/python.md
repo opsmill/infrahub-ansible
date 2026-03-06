@@ -127,11 +127,11 @@ Use modern type hints (`str | None` not `Optional[str]`). The `from __future__ i
 
 ## Dependencies
 
-Managed via Poetry:
+Managed via uv:
 
 ```bash
-poetry install                    # Install all deps
-poetry install --with dev         # Include dev deps
-poetry add <package>              # Add a dependency
-poetry add --group dev <package>  # Add a dev dependency
+uv sync                           # Install all deps
+uv sync --group dev               # Include dev deps
+uv add <package>                  # Add a dependency
+uv add --group dev <package>      # Add a dev dependency
 ```

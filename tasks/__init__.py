@@ -14,10 +14,10 @@ ns.configure(
     },
 )
 
-ns.add_collection(linter)
-ns.add_collection(docs)
-ns.add_collection(galaxy)
-ns.add_collection(tests)
+ns.add_collection(linter)  # type: ignore[arg-type]
+ns.add_collection(docs)  # type: ignore[arg-type]
+ns.add_collection(galaxy)  # type: ignore[arg-type]
+ns.add_collection(tests)  # type: ignore[arg-type]
 
 
 @task(name="lint")

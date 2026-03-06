@@ -5,6 +5,8 @@ from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type
 
+from typing import TYPE_CHECKING, Any
+
 try:
     import yaml
 
@@ -20,17 +22,17 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     InfrahubclientWrapper,
 )
 
+if TYPE_CHECKING:
+    from ansible.module_utils.basic import AnsibleModule
+
 if HAS_INFRAHUBCLIENT:
 
     class SchemaModule:
         """Module to load, check, or export Infrahub schemas."""
 
-        def __init__(self, module, client=None):
+        def __init__(self, module: AnsibleModule, client: InfrahubclientWrapper | None = None) -> None:
             self.module = module
             self.check_mode = self.module.check_mode
-
-            if not HAS_INFRAHUBCLIENT:
-                self.module.fail_json(msg="infrahub-sdk is required. Install it with: pip install infrahub-sdk")
 
             api_endpoint = self.module.params.get("api_endpoint")
             token = self.module.params.get("token")
@@ -61,7 +63,7 @@ if HAS_INFRAHUBCLIENT:
             except Exception as exc:
                 self.module.fail_json(msg=str(exc), changed=False)
 
-        def run(self):
+        def run(self) -> None:
             """Dispatch to the appropriate action handler."""
             action = self.module.params["action"]
 
@@ -72,7 +74,7 @@ if HAS_INFRAHUBCLIENT:
             elif action == "export":
                 self._export()
 
-        def _gather_schemas(self):
+        def _gather_schemas(self) -> list[dict[str, Any]]:
             """Merge inline schemas and file-based schemas into a single list.
 
             Returns:
@@ -92,7 +94,7 @@ if HAS_INFRAHUBCLIENT:
 
             return schemas
 
-        def _load_schema_files(self, file_paths):
+        def _load_schema_files(self, file_paths: list[str]) -> list[dict[str, Any]]:
             """Read and parse YAML schema files, extracting schema lists.
 
             Parameters:
@@ -106,7 +108,7 @@ if HAS_INFRAHUBCLIENT:
                     msg="PyYAML is required to load schema files. Install it with: pip install pyyaml"
                 )
 
-            schemas = []
+            schemas: list[dict[str, Any]] = []
             for file_path in file_paths:
                 try:
                     with Path(file_path).open(encoding="utf-8") as fh:
@@ -134,7 +136,7 @@ if HAS_INFRAHUBCLIENT:
 
             return schemas
 
-        def _load(self):
+        def _load(self) -> None:
             """Load schemas into Infrahub."""
             schemas = self._gather_schemas()
             branch = self.module.params.get("branch") or "main"
@@ -174,7 +176,7 @@ if HAS_INFRAHUBCLIENT:
 
             self.module.exit_json(**result)
 
-        def _check_for_check_mode(self, schemas, branch):
+        def _check_for_check_mode(self, schemas: list[dict[str, Any]], branch: str) -> None:
             """Run schema check as a substitute for load in check mode."""
             try:
                 valid, response = self.client.client.schema.check(
@@ -198,7 +200,7 @@ if HAS_INFRAHUBCLIENT:
                 msg="Schema check passed (check mode — no changes applied)",
             )
 
-        def _check(self):
+        def _check(self) -> None:
             """Validate schemas without applying them."""
             schemas = self._gather_schemas()
             branch = self.module.params.get("branch") or "main"
@@ -225,7 +227,7 @@ if HAS_INFRAHUBCLIENT:
                 msg="Schema validation passed",
             )
 
-        def _export(self):
+        def _export(self) -> None:
             """Export schemas from Infrahub."""
             branch = self.module.params.get("branch") or "main"
             namespaces = self.module.params.get("namespaces")
@@ -249,11 +251,11 @@ if HAS_INFRAHUBCLIENT:
 if not HAS_INFRAHUBCLIENT:
 
     class SchemaModule:  # type: ignore[no-redef]
-        def __init__(self, module, _client=None):
+        def __init__(self, module: AnsibleModule, _client: Any = None) -> None:
             module.fail_json(
                 msg="infrahub-sdk is required. Install it with: pip install infrahub-sdk",
                 exception=INFRAHUBCLIENT_IMP_ERR,
             )
 
-        def run(self):
+        def run(self) -> None:
             pass

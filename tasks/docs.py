@@ -173,7 +173,8 @@ def get_collection_version() -> str:
     try:
         with open("galaxy.yml", encoding="utf-8") as f:  # noqa: PTH123
             galaxy_info = yaml.safe_load(f)
-            return galaxy_info.get("version", "unknown")
+            version: str = galaxy_info.get("version", "unknown") if galaxy_info else "unknown"
+            return version
     except (FileNotFoundError, yaml.YAMLError):
         return "unknown"
 
@@ -204,7 +205,8 @@ def get_ansible_core_requirement() -> str:
     try:
         with open("meta/runtime.yml", encoding="utf-8") as f:  # noqa: PTH123
             runtime_info = yaml.safe_load(f)
-            return runtime_info.get("requires_ansible", "unknown")
+            requirement: str = runtime_info.get("requires_ansible", "unknown") if runtime_info else "unknown"
+            return requirement
     except (FileNotFoundError, yaml.YAMLError):
         return "unknown"
 
@@ -292,5 +294,5 @@ def docusaurus(context: Context) -> None:
     with context.cd(DOCUMENTATION_DIRECTORY):
         output = context.run(exec_cmd)
 
-    if output.exited != 0:
+    if output is not None and output.exited != 0:
         sys.exit(-1)

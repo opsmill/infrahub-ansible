@@ -19,12 +19,12 @@ requirements:
     - infrahub-sdk
 options:
     api_endpoint:
-        required: True
+        required: False
         description:
           - Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS
         type: str
     token:
-        required: True
+        required: False
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
         type: str
@@ -103,7 +103,7 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
 from ansible_collections.opsmill.infrahub.plugins.module_utils.node import NodeModule
 
 
-def main():
+def main() -> None:
     """
     Main entry point for module execution to create/update/delete Node.
     """

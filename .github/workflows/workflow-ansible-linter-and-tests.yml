@@ -25,6 +25,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-ansible
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build-import:
     uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@v1.1.0

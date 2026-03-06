@@ -20,7 +20,7 @@ This is the **opsmill.infrahub** Ansible collection — modules, plugins, and in
 | Linter/Formatter | Ruff (pinned in pyproject.toml) |
 | Tests | pytest, ansible-test sanity (Docker-based) |
 | Docs | Docusaurus + Jinja2 generation |
-| Deps | Poetry |
+| Deps | uv |
 | Tasks | Invoke |
 
 ## Quick Reference Commands
