@@ -39,15 +39,12 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v6"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
-      - name: "Install Poetry"
-        uses: "snok/install-poetry@v1"
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v7"
         with:
-          version: 1.8.5
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          version: "0.9.18"
 
       - uses: actions/checkout@v6
         with:
@@ -70,11 +67,11 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.next-version }}
           echo "Updating to version $VERSION"
-          poetry version $VERSION  # directly use the VERSION
+          uv version $VERSION
           sed -i "s/^version:.*/version: $VERSION/" galaxy.yml
 
       - name: Update lock file
-        run: poetry lock --no-update
+        run: uv lock
 
       - name: commit pyproject.toml and galaxy.yml
         uses: github-actions-x/commit@v2.9
@@ -82,7 +79,7 @@ jobs:
           github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           push-branch: "stable"
           commit-message: "chore: update pyproject.toml & galaxy.yml"
-          files: pyproject.toml galaxy.yml
+          files: pyproject.toml galaxy.yml uv.lock
           name: opsmill-bot
           email: github-bot@opsmill.com
           rebase: true

@@ -1,35 +1,40 @@
-[tool.poetry]
+[project]
 name = "infrahub_ansible_modules"
-version = "1.6.1"
+version = "1.8.0"
 description = "Ansible collection to interact with Infrahub's API"
-authors = ["OpsMill <info@opsmill.com>"]
-package-mode = false
-license = "GPLv3"
+authors = [{name = "OpsMill", email = "info@opsmill.com"}]
+license = {text = "GPLv3"}
+requires-python = ">=3.10,<3.14"
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.14"
-ansible-core = [
-    { version = ">=2.15.13rc1", python = ">=3.9,<3.10" },
-    { version = ">=2.17.7rc1", python = ">=3.10" },
+dependencies = [
+    "ansible-core>=2.17.14",
+    "filelock>=3.20.1",  # CVE-2025-68146: transitive dep of tox, pinned for security
+    "infrahub-sdk[all]>=1.5,<2.0",
+    "jinja2>=3.1.6",
 ]
+
+[project.optional-dependencies]
 numpy = [
-    { version = "^1.24.2", optional = true, python = ">=3.9,<3.12" },
-    { version = "^1.26.2", optional = true, python = ">=3.12" },
+    "numpy>=1.24.2,<2; python_version>='3.9' and python_version<'3.12'",
+    "numpy>=1.26.2,<2; python_version>='3.12' and python_version<'3.13'",
+    "numpy>=2.1.0,<3; python_version>='3.13'",
 ]
-infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
-jinja2 = ">=3.1.5"
-tox = "^4.44.0"
 
-[tool.poetry.group.dev.dependencies]
-codecov = "*"
-invoke = "^2.2.1"
-ruff = "0.15.2"
-mock = "^5.2.0"
-pytest = "^9.0.2"
-pytest-mock = "*"
-pytest-xdist = "*"
-pytest-pythonpath = "*"
-ansible-lint = "^26.1.1"
+[dependency-groups]
+dev = [
+    "codecov",
+    "invoke>=2.2.1,<3",
+    "mypy>=1.15.0,<2",
+    "types-PyYAML>=6.0.12",
+    "ruff==0.15.5",
+    "mock>=5.2.0,<6",
+    "pytest>=9.0.2,<10",
+    "pytest-mock",
+    "pytest-xdist",
+    "pytest-pythonpath",
+    "ansible-lint>=26.2.0,<27",
+    "tox>=4.47.0,<5",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -37,6 +42,34 @@ testpaths = [
     "tests"
 ]
 pythonpath = ["."]
+
+[tool.mypy]
+pretty = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+# Exclude problematic module that has complex try/except patterns
+exclude = [
+    "plugins/module_utils/infrahub_utils\\.py$",
+]
+
+[[tool.mypy.overrides]]
+module = "tasks.*"
+# Invoke Collection typing is overly strict about module types
+disallow_untyped_defs = false
+
+[tool.pyright]
+# Disable pyright - we use mypy for type checking
+# Many errors are due to Ansible/infrahub_sdk being runtime dependencies
+reportMissingImports = false
+reportPossiblyUnboundVariable = false
+reportRedeclaration = false
+reportAttributeAccessIssue = false
+reportCallIssue = false
+reportReturnType = false
+reportOptionalMemberAccess = false
+reportArgumentType = false
 
 [tool.ruff]
 line-length = 120
@@ -118,6 +151,7 @@ ignore = [
     ##################################################################################################
     # Review and change the below later                                                              #
     ##################################################################################################
+    "ANN001", # Missing type annotation for function argument
     "ANN201", # ANN201 Missing return type annotation for public function
     "ANN202", # Missing return type annotation for private function
     "ANN204", # Missing return type annotation for special method
@@ -128,6 +162,11 @@ ignore = [
 ]
 
 "tasks/*.py" = [
+    "T201",   # use of `print`
+]
+
+"tasks/__init__.py" = [
+    "RUF067", # __init__ module re-exports (invoke task runner pattern)
     "T201",   # use of `print`
 ]
 
@@ -149,5 +188,43 @@ max-line-length = 150
 max-complexity = 19
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+# Exclude docs from wheel - it contains node_modules and build artifacts
+# Documentation should be accessed online, not bundled in the package
+exclude = [
+    "docs/",
+    "tests/",
+    ".github/",
+    ".tox/",
+    ".venv/",
+    "*.tar.gz",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "plugins/**/*",
+    "roles/**/*",
+    "meta/**/*",
+    "galaxy.yml",
+    "README.md",
+    "LICENSE.txt",
+    "CHANGELOG.rst",
+    "pyproject.toml",
+]
+
+[tool.hatch.build.targets.wheel]
+# For Ansible collections distributed as wheels, we need to include the
+# collection structure (plugins, roles, meta) as data files, not Python packages.
+# Using only-include ensures we get exactly what we need without bloat.
+only-include = [
+    "plugins",
+    "roles",
+    "meta",
+    "galaxy.yml",
+    "README.md",
+    "LICENSE.txt",
+    "CHANGELOG.rst",
+]

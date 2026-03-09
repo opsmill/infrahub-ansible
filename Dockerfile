@@ -19,18 +19,14 @@ RUN apt-get update && \
 
 WORKDIR /usr/src/app
 
-# Update pip to latest
-RUN python -m pip install -U pip
+# Install uv for dependency management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install poetry for dep management
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="$PATH:/root/.local/bin"
-RUN poetry config virtualenvs.create false
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Bring in Poetry related files needed for other stages
-COPY pyproject.toml poetry.lock ./
-
-RUN poetry install --no-interaction --no-ansi --no-root
+# Install dependencies (system-wide, no virtualenv)
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy in the application source and everything not explicitly banned by .dockerignore
 COPY . .

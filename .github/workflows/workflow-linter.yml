@@ -14,9 +14,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-linter
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
-  VALE_VERSION: "3.7.1"
-  YAMLLINT_VERSION: "1.35.1"
+  VALE_VERSION: "3.13.0"
 
 jobs:
   files-changed:
@@ -31,7 +33,7 @@ jobs:
       - name: "Check out repository code"
         uses: "actions/checkout@v6"
       - name: Check for file changes
-        uses: dorny/paths-filter@v3
+        uses: opsmill/paths-filter@v3.0.2
         id: changes
         with:
           token: ${{ github.token }}
@@ -45,48 +47,43 @@ jobs:
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v6"
-      - name: "Setup environment"
-        run: "pip install yamllint==${{ env.YAMLLINT_VERSION }}"
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v7"
+        with:
+          version: "0.9.18"
+      - name: "Install dependencies"
+        run: "uv sync --group dev"
       - name: "Linting: yamllint"
-        run: "yamllint ."
+        run: "uv run yamllint -s ."
 
   python-lint:
     if: needs.files-changed.outputs.python == 'true'
     needs: ["files-changed"]
     runs-on: "ubuntu-22.04"
-    strategy:
-      matrix:
-        python-version:
-          - "3.12"
-        poetry-version:
-          - "2.1.3"
     timeout-minutes: 5
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v6"
 
-      - name: "Set up Python ${{ matrix.python-version }}"
+      - name: "Set up Python"
         uses: "actions/setup-python@v6"
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: "Install Poetry ${{ matrix.poetry-version }}"
-        uses: "snok/install-poetry@v1"
+          python-version: "3.12"
+
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v7"
         with:
-          version: ${{ matrix.poetry-version }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-      - name: "Setup Python environment"
-        run: |
-          poetry config virtualenvs.create true --local
-          poetry env use ${{ matrix.python-version }}
+          version: "0.9.18"
+
       - name: "Install dependencies"
-        run: "poetry install --no-interaction --no-ansi --with dev"
+        run: "uv sync --group dev"
 
       - name: "Linting: ruff check"
-        run: "poetry run ruff check ."
+        run: "uv run ruff check ."
       - name: "Linting: ruff format"
-        run: "poetry run ruff format --check --diff ."
+        run: "uv run ruff format --check --diff ."
+      - name: "Linting: mypy"
+        run: "uv run mypy ."
 
   documentation-lint:
     defaults:
