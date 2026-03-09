@@ -145,7 +145,7 @@ if $JSON_MODE; then
     if [[ ${#docs[@]} -eq 0 ]]; then
         json_docs="[]"
     else
-        local escaped_docs=()
+        escaped_docs=()
         for doc in "${docs[@]}"; do
             escaped_docs+=("\"$(json_escape "$doc")\"")
         done

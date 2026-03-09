@@ -26,7 +26,7 @@
 - [ ] **Gate 1 — Ansible Collection Standards (Principle I)**: Does the feature include required boilerplate, docstrings, and doc fragments?
 - [ ] **Gate 2 — Plugin Pattern (Principle II)**: Does the feature follow one of the two established plugin patterns (module_utils or action plugin)?
 - [ ] **Gate 3 — Idempotency (Principle III)**: Is idempotency addressed? (state management, check_mode, diff support)
-- [ ] **Gate 4 — SDK Abstraction (Principle IV)**: Do all API calls go through InfrahubclientWrapper with conditional imports and exception handling?
+- [ ] **Gate 4 — SDK Abstraction (Principle IV)**: Do all API calls go through InfrahubClientWrapper with conditional imports and exception handling?
 - [ ] **Gate 5 — Test Coverage (Principle V)**: Are all three test tiers planned (sanity, unit, integration)?
 
 ## Project Structure

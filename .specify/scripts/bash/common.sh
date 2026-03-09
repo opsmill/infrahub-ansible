@@ -136,6 +136,11 @@ get_feature_paths() {
     # Use prefix-based lookup to support multiple branches per spec
     local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_branch")
 
+    # Escape single quotes for safe eval
+    repo_root="${repo_root//\'/\'\\\'\'}"
+    current_branch="${current_branch//\'/\'\\\'\'}"
+    feature_dir="${feature_dir//\'/\'\\\'\'}"
+
     cat <<EOF
 REPO_ROOT='$repo_root'
 CURRENT_BRANCH='$current_branch'
