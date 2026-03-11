@@ -67,10 +67,10 @@ description: "Task list template for Ansible collection plugin development"
 
 ### If action plugin pattern (controller-side):
 
-- [ ] T014 Create action plugin at `plugins/action/<name>.py` inheriting from `ActionBase`
-- [ ] T015 Implement `run()` method with credential extraction, validation, and API calls
-- [ ] T016 Implement conditional `HAS_INFRAHUBCLIENT` import and runtime check
-- [ ] T017 Implement error handling with `handle_infrahub_exceptions_decorator` or try/except
+- [ ] T020 Create action plugin at `plugins/action/<name>.py` inheriting from `ActionBase`
+- [ ] T021 Implement `run()` method with credential extraction, validation, and API calls
+- [ ] T022 Implement conditional `HAS_INFRAHUBCLIENT` import and runtime check
+- [ ] T023 Implement error handling with `handle_infrahub_exceptions_decorator` or try/except
 
 ### Common:
 
@@ -92,17 +92,17 @@ description: "Task list template for Ansible collection plugin development"
 ### Unit Tests
 
 - [ ] T013 [P] Create unit test file at `tests/unit/plugins/modules/test_<name>.py` (or `test_<name>.py` for module_utils)
-- [ ] T014 [P] [US1] Unit test: basic creation (`state: present`, object does not exist → `changed: true`)
-- [ ] T015 [P] [US1] Unit test: idempotent no-change (`state: present`, object already matches → `changed: false`)
-- [ ] T016 [P] [US1] Unit test: update (`state: present`, object exists but differs → `changed: true`)
-- [ ] T017 [P] [US1] Unit test: deletion (`state: absent`, object exists → `changed: true`)
-- [ ] T018 [P] [US1] Unit test: absent no-op (`state: absent`, object does not exist → `changed: false`)
-- [ ] T019 [P] Unit test: error handling (SDK exceptions mapped to Ansible errors)
-- [ ] T020 [P] Unit test: `check_mode` (no API calls made, correct `changed` prediction)
+- [ ] T024 [P] [US1] Unit test: basic creation (`state: present`, object does not exist → `changed: true`)
+- [ ] T025 [P] [US1] Unit test: idempotent no-change (`state: present`, object already matches → `changed: false`)
+- [ ] T026 [P] [US1] Unit test: update (`state: present`, object exists but differs → `changed: true`)
+- [ ] T027 [P] [US1] Unit test: deletion (`state: absent`, object exists → `changed: true`)
+- [ ] T028 [P] [US1] Unit test: absent no-op (`state: absent`, object does not exist → `changed: false`)
+- [ ] T029 [P] Unit test: error handling (SDK exceptions mapped to Ansible errors)
+- [ ] T030 [P] Unit test: `check_mode` (no API calls made, correct `changed` prediction)
 
 ### Integration Tests
 
-- [ ] T021 Create integration test playbook at `tests/integration/targets/<name>/tasks/main.yml`
+- [ ] T031 Create integration test playbook at `tests/integration/targets/<name>/tasks/main.yml`
 
 **Checkpoint**: All tests pass — `invoke tests-all`
 
@@ -112,10 +112,10 @@ description: "Task list template for Ansible collection plugin development"
 
 **Purpose**: Generate docs, update changelog, final validation
 
-- [ ] T022 Run `invoke generate-doc` to create MDX reference page
-- [ ] T023 Verify generated docs render correctly with `invoke docusaurus`
-- [ ] T024 Add changelog entry to `CHANGELOG.rst` noting the new plugin and version
-- [ ] T025 Run full test suite: `invoke tests-all`
+- [ ] T032 Run `invoke generate-doc` to create MDX reference page
+- [ ] T033 Verify generated docs render correctly with `invoke docusaurus`
+- [ ] T034 Add changelog entry to `CHANGELOG.rst` noting the new plugin and version
+- [ ] T035 Run full test suite: `invoke tests-all`
 
 **Checkpoint**: Plugin is complete and ready for PR
 
