@@ -36,14 +36,14 @@
       opsmill.infrahub.query_graphql:
         query:
           BuiltinTag:
-            '@filters': {name__values: "{{ infrahub_tags | map(attribute='name') | list }}"}
+            "@filters": { name__values: "{{ infrahub_tags | map(attribute='name') | list }}" }
             edges:
               node:
-                id: null
+                id:
                 name:
-                  value: null
+                  value:
                 description:
-                  value: null
+                  value:
       register: queried_tags
 
     - name: Show queried tags

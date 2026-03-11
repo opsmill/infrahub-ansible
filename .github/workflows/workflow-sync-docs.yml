@@ -4,7 +4,6 @@ name: Sync Docs Folders
 on:
   workflow_call:
   workflow_dispatch:
-
 jobs:
   sync:
     runs-on: ubuntu-latest

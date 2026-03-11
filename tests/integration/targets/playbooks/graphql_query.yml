@@ -12,32 +12,32 @@
 
         query_dict:
           InfraInterface:
-            '@filters': {enabled__value: '$enabled', device__name__value: '$device_name'}
+            "@filters": { enabled__value: "$enabled", device__name__value: "$device_name" }
             edges:
               node:
-                id: null
+                id:
                 name:
-                  value: null
-                ... on InfraInterfaceL3:
+                  value:
+                "... on InfraInterfaceL3":
                   ip_addresses:
                     edges:
                       node:
                         address:
-                          value: null
-                ... on InfraInterfaceL2:
+                          value:
+                "... on InfraInterfaceL2":
                   tagged_vlan:
                     edges:
                       node:
                         vlan_id:
-                          value: null
+                          value:
                         name:
-                          value: null
+                          value:
                   untagged_vlan:
                     node:
                       vlan_id:
-                        value: null
+                        value:
                       name:
-                        value: null
+                        value:
 
     - name: Action Plugin to retrieve Interfaces of '{{ variables.device_name }}'
       opsmill.infrahub.query_graphql:

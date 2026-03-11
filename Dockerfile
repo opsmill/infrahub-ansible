@@ -22,10 +22,13 @@ WORKDIR /usr/src/app
 # Install uv for dependency management
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+# Put the virtualenv on PATH so ansible-galaxy, ansible-test, etc. are available
+ENV PATH="/usr/src/app/.venv/bin:$PATH"
+
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies (system-wide, no virtualenv)
+# Install dependencies
 RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy in the application source and everything not explicitly banned by .dockerignore

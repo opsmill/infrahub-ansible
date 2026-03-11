@@ -8,6 +8,7 @@ exclude_paths:
   - tests/
   - .claude/
   - docs/node_modules/
+  - "**/node_modules/"
 
 skip_list:
   - args[module]

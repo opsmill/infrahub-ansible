@@ -21,7 +21,7 @@
       ansible.builtin.copy:
         content: "{{ startup_artifact.text }}"
         dest: "/tmp/{{ inventory_hostname }}-startup.conf"
-        mode: '644'
+        mode: "644"
       when: startup_artifact
 
     - name: Query Openconfig Interface for Arista devices
@@ -30,9 +30,9 @@
         target_id: "{{ id }}"
       register: openconfig_artifact
 
-    - name: Save configs to localhost
+    - name: Save openconfig to localhost
       ansible.builtin.copy:
         content: "{{ openconfig_artifact.json }}"
         dest: "/tmp/{{ inventory_hostname }}-openconfig.json"
-        mode: '644'
+        mode: "644"
       when: openconfig_artifact

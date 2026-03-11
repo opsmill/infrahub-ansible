@@ -14,7 +14,7 @@ on:
         type: string
         required: false
         description: The string to extract semver labels from.
-        default: ''
+        default: ""
 
 jobs:
   publish_github:

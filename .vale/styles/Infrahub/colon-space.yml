@@ -5,4 +5,4 @@ level: warning
 ignorecase: true
 nonword: true
 swap:
-  '(?<=\s):(?=\s+)': ': '
+  "(?<=\\s):(?=\\s+)": ": "

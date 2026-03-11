@@ -341,9 +341,11 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not host_node_attributes:
             self.display.v("No nodes processed.")
         else:
+            # Store raw (pre-resolution) data in cache so hostname config
+            # changes are always applied on next load.
+            self._store_in_cache(host_node_attributes=host_node_attributes)
             host_node_attributes = processor.resolve_hostnames(host_node_attributes, self.hostnames)
             self.set_hosts_and_groups(host_node_attributes=host_node_attributes)
-            self._store_in_cache(host_node_attributes=host_node_attributes)
 
     def parse(self, inventory: Any, loader: Any, path: Any, cache: bool = True) -> None:
         """

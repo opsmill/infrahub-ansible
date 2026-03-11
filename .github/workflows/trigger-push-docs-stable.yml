@@ -7,8 +7,8 @@ on:
     branches:
       - stable
     paths:
-      - 'docs/docs/**'
-      - 'docs/sidebars.ts'
+      - "docs/docs/**"
+      - "docs/sidebars.ts"
 
 jobs:
   sync_docs:

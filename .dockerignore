@@ -5,5 +5,8 @@ docker-compose.yml
 .venv
 .vscode/
 .github/
+.claude/
+.specify/
+dev/
 **/.ruff_cache
 **/.DS_Store

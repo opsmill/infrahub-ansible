@@ -1,6 +1,6 @@
 ---
-### infrahub_inventory.yml file in YAML format
-### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
+# ## infrahub_inventory.yml file in YAML format
+# ## opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
 # This inventory will retrieve the InfraDevice with the Attributes & Relationships requested in `include`.
 # The InfraDevice will be grouped by the Site name and the metro-area name
@@ -21,7 +21,6 @@ nodes:
       - display_label
       - tags.name
       - tags.display_label
-
 
 compose:
   hostname: name
