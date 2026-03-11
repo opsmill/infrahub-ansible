@@ -67,10 +67,10 @@ description: "Task list template for Ansible collection plugin development"
 
 ### If action plugin pattern (controller-side):
 
-- [ ] T004 Create action plugin at `plugins/action/<name>.py` inheriting from `ActionBase`
-- [ ] T005 Implement `run()` method with credential extraction, validation, and API calls
-- [ ] T006 Implement conditional `HAS_INFRAHUBCLIENT` import and runtime check
-- [ ] T007 Implement error handling with `handle_infrahub_exceptions_decorator` or try/except
+- [ ] T014 Create action plugin at `plugins/action/<name>.py` inheriting from `ActionBase`
+- [ ] T015 Implement `run()` method with credential extraction, validation, and API calls
+- [ ] T016 Implement conditional `HAS_INFRAHUBCLIENT` import and runtime check
+- [ ] T017 Implement error handling with `handle_infrahub_exceptions_decorator` or try/except
 
 ### Common:
 

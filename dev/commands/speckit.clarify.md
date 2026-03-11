@@ -113,9 +113,10 @@ Execution steps:
        | A | <Option A description> |
        | B | <Option B description> |
        | C | <Option C description> (add D/E as needed up to 5) |
-       | Short | Provide a different short answer (<=5 words) (Include only if free-form alternative is appropriate) |
+       | Short | Provide a different short answer (<=5 words) |
 
-       - After the table, add: `You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.`
+       - **"Short" row inclusion rule**: Always include the "Short" row unless the question requires a fixed, mutually exclusive set of architectural choices where free-form answers would be invalid (e.g., choosing between exactly two incompatible storage backends). When "Short" is omitted, the post-table guidance must state that only listed options are valid.
+       - After the table, add: `You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.` (Omit the "or provide your own short answer" clause only when the "Short" row is excluded.)
     - For short‑answer style (no meaningful discrete options):
        - Provide your **suggested answer** based on best practices and context.
        - Format as: `**Suggested:** <your proposed answer> - <brief reasoning>`
@@ -124,7 +125,7 @@ Execution steps:
        - If the user replies with "yes", "recommended", or "suggested", use your previously stated recommendation/suggestion as the answer.
        - Otherwise, validate the answer maps to one option or fits the <=5 word constraint.
        - If ambiguous, ask for a quick disambiguation (count still belongs to same question; do not advance).
-       - Once satisfactory, record it in working memory (do not yet write to disk) and move to the next queued question.
+       - Once satisfactory, record the accepted answer in working memory AND immediately integrate and persist it per "Integration after EACH accepted answer" below: ensure `## Clarifications` and `### Session YYYY-MM-DD` exist, append `- Q: <question> → A: <final answer>`, apply the section updates, replace invalidated text, and atomically overwrite the spec file. Then move to the next queued question.
     - Stop asking further questions when:
        - All critical ambiguities resolved early (remaining queued items become unnecessary), OR
        - User signals completion ("done", "good", "no more"), OR

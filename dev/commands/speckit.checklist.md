@@ -67,7 +67,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Audience: Reviewer (PR) if code-related; Author otherwise
    - Focus: Top 2 relevance clusters
 
-   Output the questions (label Q1/Q2/Q3). After answers: if ≥2 scenario classes (Alternate / Exception / Recovery / Non-Functional domain) remain unclear, you MAY ask up to TWO more targeted follow‑ups (Q4/Q5) with a one-line justification each (e.g., "Unresolved recovery path risk"). Do not exceed five total questions. Skip escalation if user explicitly declines more.
+   Output the questions (label Q1/Q2/Q3). After answers: you MAY ask up to TWO more targeted follow‑ups (Q4/Q5) with a one-line justification each (e.g., "Unresolved recovery path risk") when ≥2 of the following scenario classes remain unclear — a class is "unclear" if: (1) the user's answers do not explicitly mention or address it (e.g., no mention of alternate flows, exceptions, recovery steps, or NFRs), (2) the spec contains state mutations or failure modes but the user's answers do not describe recovery/rollback behaviors, or (3) non-functional requirements (performance, availability, security) are present in the spec but the user's answers lack depth/coverage. Do not exceed five total questions. Skip escalation if user explicitly declines more.
 
 3. **Understand user request**: Combine `$ARGUMENTS` + clarifying answers:
    - Derive checklist theme (e.g., security, review, deploy, ux)
@@ -204,17 +204,18 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 6. **Structure Reference**: Generate the checklist following the canonical template in `.specify/templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs starting at CHK001.
 
-7. **Report**: Output full path to created checklist, item count, and remind user that each run creates a new file. Summarize:
+7. **Report**: Output full path to the checklist file, item count, and whether this run **created** a new file or **appended** to an existing one. Remind the user that subsequent runs for the same domain will append to the existing `[domain].md`. Summarize:
    - Focus areas selected
    - Depth level
    - Actor/timing
    - Any explicit user-specified must-have items incorporated
 
-**Important**: Each `/speckit.checklist` command invocation creates a checklist file using short, descriptive names unless file already exists. This allows:
+**Important**: Each `/speckit.checklist` invocation creates a new `[domain].md` (e.g., `ux.md`, `test.md`, `security.md`) when no file for that domain exists, and **appends** new items to the existing `[domain].md` on reruns. This allows:
 
 - Multiple checklists of different types (e.g., `ux.md`, `test.md`, `security.md`)
 - Simple, memorable filenames that indicate checklist purpose
 - Easy identification and navigation in the `checklists/` folder
+- Incremental enrichment of existing checklists across sessions
 
 To avoid clutter, use descriptive types and clean up obsolete checklists when done.
 

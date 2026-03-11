@@ -43,10 +43,10 @@ if [[ -f "$TEMPLATE" ]]; then
         echo "Warning: $IMPL_PLAN already exists, skipping template copy" >&2
     else
         cp "$TEMPLATE" "$IMPL_PLAN"
-        echo "Copied plan template to $IMPL_PLAN"
+        echo "Copied plan template to $IMPL_PLAN" >&2
     fi
 else
-    echo "Warning: Plan template not found at $TEMPLATE"
+    echo "Warning: Plan template not found at $TEMPLATE" >&2
     # Create a basic plan file if template doesn't exist
     [[ -f "$IMPL_PLAN" ]] || touch "$IMPL_PLAN"
 fi
@@ -54,7 +54,7 @@ fi
 # Output results
 if $JSON_MODE; then
     printf '{"FEATURE_SPEC":"%s","IMPL_PLAN":"%s","SPECS_DIR":"%s","BRANCH":"%s","HAS_GIT":"%s"}\n' \
-        "$FEATURE_SPEC" "$IMPL_PLAN" "$FEATURE_DIR" "$CURRENT_BRANCH" "$HAS_GIT"
+        "$(json_escape "$FEATURE_SPEC")" "$(json_escape "$IMPL_PLAN")" "$(json_escape "$FEATURE_DIR")" "$(json_escape "$CURRENT_BRANCH")" "$(json_escape "$HAS_GIT")"
 else
     echo "FEATURE_SPEC: $FEATURE_SPEC"
     echo "IMPL_PLAN: $IMPL_PLAN" 

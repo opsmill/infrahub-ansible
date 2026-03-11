@@ -57,7 +57,7 @@ Three test tiers ensure collection quality:
 ## Constraints and Requirements
 
 - **Python**: >=3.10, <3.14
-- **Ansible**: >=2.15.13rc1 (Python 3.9), >=2.17.7rc1 (Python 3.10+)
+- **Ansible**: ansible-core >=2.15 (Python >=3.9), ansible-core >=2.17 (Python >=3.10)
 - **infrahub-sdk**: >=1.5, <2.0 (with `[all]` extras for sync support)
 - **License**: GPLv3 — copyright header required on every Python file
 - **Linting**: Ruff with `select = ["ALL"]`, line-length 120 (hard limit 150), double quotes, spaces, preview mode enabled

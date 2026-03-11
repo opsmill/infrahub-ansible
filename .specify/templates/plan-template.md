@@ -12,7 +12,7 @@
 ## Technical Context
 
 **Language/Version**: Python >=3.10, <3.14
-**Primary Dependencies**: Ansible >=2.15, infrahub-sdk >=1.5 <2.0, Ruff
+**Primary Dependencies**: Ansible >=2.15, infrahub-sdk >=1.5, <2.0, Ruff
 **Storage**: N/A (Infrahub is the data store, accessed via infrahub-sdk)
 **Testing**: pytest (unit, mocked SDK), ansible-test (sanity), Ansible playbooks (integration), all via Docker
 **Target Platform**: Ansible controller (Linux/macOS)

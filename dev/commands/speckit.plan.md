@@ -33,7 +33,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Phase 1: Update agent context by running the agent script
    - Re-evaluate Constitution Check post-design
 
-4. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+4. **Stop and report**: Command ends after Phase 1 planning. Report branch, IMPL_PLAN path, and generated artifacts. Hand off to `speckit.tasks` for task generation.
 
 ## Phases
 
@@ -76,13 +76,15 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Skip if project is purely internal (build scripts, one-off tools, etc.)
 
 3. **Agent context update**:
-   - Run `.specify/scripts/bash/update-agent-context.sh`
-   - Pass an optional agent name (e.g., `claude`, `cursor`) to target a specific agent, or omit to update all existing agent files
-   - Update the appropriate agent-specific context file
+   - Run `.specify/scripts/bash/update-agent-context.sh [agent-name]`
+   - Examples:
+     - `.specify/scripts/bash/update-agent-context.sh claude` — update only the Claude agent context file (CLAUDE.md)
+     - `.specify/scripts/bash/update-agent-context.sh` — update all existing agent files
+   - Update the appropriate agent-specific context file(s)
    - Add only new technology from current plan
    - Preserve manual additions between markers
 
-**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
+**Output**: data-model.md, /contracts/*, quickstart.md, agent context file(s) (e.g., CLAUDE.md, .cursor/rules/specify-rules.mdc — one per targeted agent)
 
 ## Key rules
 

@@ -336,8 +336,11 @@ create_new_agent_file() {
         recent_change="- $escaped_branch: Added"
     fi
 
+    local escaped_project_name
+    escaped_project_name=$(escape_sed_replacement "$project_name")
+
     local substitutions=(
-        "s|\[PROJECT NAME\]|$project_name|"
+        "s|\[PROJECT NAME\]|$escaped_project_name|"
         "s|\[DATE\]|$current_date|"
         "s|\[EXTRACTED FROM ALL PLAN.MD FILES\]|$tech_stack|"
         "s|\[ACTUAL STRUCTURE FROM PLANS\]|$project_structure|g"
@@ -449,8 +452,8 @@ update_existing_agent_file() {
         # Handle Recent Changes section
         if [[ "$line" == "## Recent Changes" ]]; then
             echo "$line" >> "$temp_file"
-            # Add new change entry right after the heading
-            if [[ -n "$new_change_entry" ]]; then
+            # Add new change entry right after the heading, but only if not already present
+            if [[ -n "$new_change_entry" ]] && ! grep -Fq -- "$new_change_entry" "$target_file"; then
                 echo "$new_change_entry" >> "$temp_file"
             fi
             in_changes_section=true
@@ -461,8 +464,12 @@ update_existing_agent_file() {
             in_changes_section=false
             continue
         elif [[ $in_changes_section == true ]] && [[ "$line" == "- "* ]]; then
-            # Keep only first 2 existing changes
-            if [[ $existing_changes_count -lt 2 ]]; then
+            # Keep more existing changes when no new entry is added
+            local max_keep=2
+            if [[ -z "$new_change_entry" ]] || grep -Fq -- "$new_change_entry" "$target_file"; then
+                max_keep=3
+            fi
+            if [[ $existing_changes_count -lt $max_keep ]]; then
                 echo "$line" >> "$temp_file"
                 existing_changes_count=$((existing_changes_count + 1))
             fi
@@ -656,92 +663,72 @@ update_specific_agent() {
 
 update_all_existing_agents() {
     local found_agent=false
-    
+    local any_failure=false
+    local rc=0
+
+    # Track already-updated file paths to avoid duplicate writes
+    # (multiple agent variables may point to the same file, e.g. AGENTS_FILE)
+    local -a visited_files=()
+
+    _already_visited() {
+        local target="$1"
+        local f
+        for f in "${visited_files[@]}"; do
+            if [[ "$f" == "$target" ]]; then
+                return 0
+            fi
+        done
+        return 1
+    }
+
+    _try_update() {
+        local file="$1"
+        local name="$2"
+        if [[ -f "$file" ]]; then
+            if _already_visited "$file"; then
+                log_info "Skipping $name (file already updated: $file)"
+                return 0
+            fi
+            visited_files+=("$file")
+            found_agent=true
+            update_agent_file "$file" "$name"; rc=$?
+            if [[ $rc -ne 0 ]]; then
+                any_failure=true
+            fi
+        fi
+    }
+
     # Check each possible agent file and update if it exists
-    if [[ -f "$CLAUDE_FILE" ]]; then
-        update_agent_file "$CLAUDE_FILE" "Claude Code"
-        found_agent=true
-    fi
-    
-    if [[ -f "$GEMINI_FILE" ]]; then
-        update_agent_file "$GEMINI_FILE" "Gemini CLI"
-        found_agent=true
-    fi
-    
-    if [[ -f "$COPILOT_FILE" ]]; then
-        update_agent_file "$COPILOT_FILE" "GitHub Copilot"
-        found_agent=true
-    fi
-    
-    if [[ -f "$CURSOR_FILE" ]]; then
-        update_agent_file "$CURSOR_FILE" "Cursor IDE"
-        found_agent=true
-    fi
-    
-    if [[ -f "$QWEN_FILE" ]]; then
-        update_agent_file "$QWEN_FILE" "Qwen Code"
-        found_agent=true
-    fi
-    
-    if [[ -f "$AGENTS_FILE" ]]; then
-        update_agent_file "$AGENTS_FILE" "Codex/opencode"
-        found_agent=true
-    fi
-    
-    if [[ -f "$WINDSURF_FILE" ]]; then
-        update_agent_file "$WINDSURF_FILE" "Windsurf"
-        found_agent=true
-    fi
-    
-    if [[ -f "$KILOCODE_FILE" ]]; then
-        update_agent_file "$KILOCODE_FILE" "Kilo Code"
-        found_agent=true
-    fi
+    _try_update "$CLAUDE_FILE" "Claude Code"
+    _try_update "$GEMINI_FILE" "Gemini CLI"
+    _try_update "$COPILOT_FILE" "GitHub Copilot"
+    _try_update "$CURSOR_FILE" "Cursor IDE"
+    _try_update "$QWEN_FILE" "Qwen Code"
+    _try_update "$AGENTS_FILE" "Codex/opencode"
+    _try_update "$WINDSURF_FILE" "Windsurf"
+    _try_update "$KILOCODE_FILE" "Kilo Code"
+    _try_update "$AUGGIE_FILE" "Auggie CLI"
+    _try_update "$ROO_FILE" "Roo Code"
+    _try_update "$CODEBUDDY_FILE" "CodeBuddy CLI"
+    _try_update "$SHAI_FILE" "SHAI"
+    _try_update "$QODER_FILE" "Qoder CLI"
+    _try_update "$Q_FILE" "Amazon Q Developer CLI"
+    _try_update "$AGY_FILE" "Antigravity"
+    _try_update "$BOB_FILE" "IBM Bob"
 
-    if [[ -f "$AUGGIE_FILE" ]]; then
-        update_agent_file "$AUGGIE_FILE" "Auggie CLI"
-        found_agent=true
-    fi
-    
-    if [[ -f "$ROO_FILE" ]]; then
-        update_agent_file "$ROO_FILE" "Roo Code"
-        found_agent=true
-    fi
-
-    if [[ -f "$CODEBUDDY_FILE" ]]; then
-        update_agent_file "$CODEBUDDY_FILE" "CodeBuddy CLI"
-        found_agent=true
-    fi
-
-    if [[ -f "$SHAI_FILE" ]]; then
-        update_agent_file "$SHAI_FILE" "SHAI"
-        found_agent=true
-    fi
-
-    if [[ -f "$QODER_FILE" ]]; then
-        update_agent_file "$QODER_FILE" "Qoder CLI"
-        found_agent=true
-    fi
-
-    if [[ -f "$Q_FILE" ]]; then
-        update_agent_file "$Q_FILE" "Amazon Q Developer CLI"
-        found_agent=true
-    fi
-
-    if [[ -f "$AGY_FILE" ]]; then
-        update_agent_file "$AGY_FILE" "Antigravity"
-        found_agent=true
-    fi
-    if [[ -f "$BOB_FILE" ]]; then
-        update_agent_file "$BOB_FILE" "IBM Bob"
-        found_agent=true
-    fi
-    
     # If no agent files exist, create a default Claude file
     if [[ "$found_agent" == false ]]; then
         log_info "No existing agent files found, creating default Claude file..."
-        update_agent_file "$CLAUDE_FILE" "Claude Code"
+        update_agent_file "$CLAUDE_FILE" "Claude Code"; rc=$?
+        if [[ $rc -ne 0 ]]; then
+            any_failure=true
+        fi
     fi
+
+    if [[ "$any_failure" == true ]]; then
+        return 1
+    fi
+    return 0
 }
 print_summary() {
     echo
