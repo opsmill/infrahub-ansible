@@ -1,14 +1,11 @@
 ---
-x-args:
-  &args
+x-args: &args
   PYTHON_VER: ${PYTHON_VER}
 # Build block with context and target default
-x-build:
-  &build
+x-build: &build
   args: *args
   context: .
-x-service:
-  &service
+x-service: &service
   environment:
     ANSIBLE_INTEGRATION_ARGS: ${ANSIBLE_INTEGRATION_ARGS:-}
     ANSIBLE_SANITY_ARGS: ${ANSIBLE_SANITY_ARGS:-}

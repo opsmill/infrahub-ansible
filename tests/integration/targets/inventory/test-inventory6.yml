@@ -1,6 +1,6 @@
 ---
-### infrahub_inventory.yml file in YAML format
-### opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
+# ## infrahub_inventory.yml file in YAML format
+# ## opsmill.infrahub.inventory plugin is able to do a lookup for ENV vars: INFRAHUB_API_TOKEN and INFRAHUB_ADDRESS
 
 # This inventory will retrieve the InfraDevice matching *all* the filters.
 # So it will retrieved the InfraDevice present on site 'jfk1' with the role 'edge'

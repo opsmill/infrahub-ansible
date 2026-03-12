@@ -39,7 +39,7 @@
         description: "This is a test branch"
         state: present
 
-    - name: Create a Platform 'Test Plaform'
+    - name: Create a Platform 'Test Platform' in branch 'test'
       opsmill.infrahub.node:
         kind: "InfraPlatform"
         branch: "test"

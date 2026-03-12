@@ -5,7 +5,6 @@ name: "Update Documentation"
 on:
   workflow_call:
   workflow_dispatch:
-
 jobs:
   generate_docs:
     runs-on: "ubuntu-22.04"
@@ -36,8 +35,8 @@ jobs:
         uses: github-actions-x/commit@v2.9
         with:
           github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
-          push-branch: 'stable'
-          commit-message: 'chore: update docs'
+          push-branch: "stable"
+          commit-message: "chore: update docs"
           files: docs/
           name: opsmill-bot
           email: github-bot@opsmill.com

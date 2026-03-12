@@ -21,6 +21,7 @@ Get inventory hosts from Infrahub
 | `compose` | `dict` | No | {} | List of custom Ansible host vars to create from the objects fetched from Infrahub |
 | `keyed_groups` | `list` | No | [] | Create groups based on attributes or relationships. groups is created as `attribute__value` |
 | `groups` | `dict` | No | {} | Create groups based on jinja filter. |
+| `hostnames` | `list` | No | [] | A list of attribute paths used to determine the inventory hostname. Each entry is a dotted path resolved against node attributes (e.g., "name", "primary_address.address"). The special value "display_label" resolves to the node's display label. First non-empty string value wins. Falls back to display_label if none resolve. Referenced attributes must be present in the node's include list. |
 | `validate_certs` | `` | No | True | Whether or not to validate SSL of the Infrahub instance |
 
 ## Examples
@@ -63,6 +64,20 @@ compose:
 keyed_groups:
   - prefix: site
     key: site.name
+
+# Using hostnames to set clean inventory hostnames
+plugin: opsmill.infrahub.inventory
+api_endpoint: http://localhost:8000
+
+hostnames:
+  - name
+  - display_label
+
+nodes:
+  InfraDevice:
+    include:
+      - name
+      - primary_address.address
 ```
 
 ## Return values

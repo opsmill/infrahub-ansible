@@ -7,7 +7,7 @@ on:
     branches:
       - stable
     paths-ignore:
-      - 'docs/**'
+      - "docs/**"
 
 jobs:
   check_commit:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 2  # Fetches the commit history for the last 2 commits
+          fetch-depth: 2 # Fetches the commit history for the last 2 commits
       - id: filter
         run: |
           commit_author=$(git log -1 --pretty=format:'%an')
@@ -77,8 +77,8 @@ jobs:
         uses: github-actions-x/commit@v2.9
         with:
           github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
-          push-branch: 'stable'
-          commit-message: 'chore: update pyproject.toml & galaxy.yml'
+          push-branch: "stable"
+          commit-message: "chore: update pyproject.toml & galaxy.yml"
           files: pyproject.toml galaxy.yml uv.lock
           name: opsmill-bot
           email: github-bot@opsmill.com

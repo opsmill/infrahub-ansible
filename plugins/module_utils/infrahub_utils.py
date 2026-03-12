@@ -852,6 +852,54 @@ if HAS_INFRAHUBCLIENT:
 
             return host_node_attributes
 
+        @staticmethod
+        def resolve_dotted_path(attributes: dict, path: str) -> str | None:
+            """Resolve a dotted attribute path (e.g. 'primary_address.address') through a nested dict."""
+            current = attributes
+            for part in path.split("."):
+                if not isinstance(current, dict) or part not in current:
+                    return None
+                current = current[part]
+            return current if isinstance(current, str) else None
+
+        def resolve_hostnames(self, host_node_attributes: dict[str, Any], hostnames: list[str]) -> dict[str, Any]:
+            """Re-key host_node_attributes based on the hostnames priority list.
+
+            Parameters:
+                host_node_attributes (dict[str, Any]): A dictionary with processed host node attributes.
+                hostnames (list[str]): A list of attribute paths to try in order.
+
+            Returns:
+                dict[str, Any]: A new dictionary re-keyed by the first matching hostname.
+            """
+            if not hostnames:
+                return host_node_attributes
+
+            result: dict[str, Any] = {}
+            for original_key, attributes in host_node_attributes.items():
+                new_key = None
+                for path in hostnames:
+                    if path == "display_label":
+                        resolved = self.resolve_dotted_path(attributes, path)
+                        new_key = resolved or original_key
+                        break
+                    resolved = self.resolve_dotted_path(attributes, path)
+                    if resolved:
+                        new_key = resolved
+                        break
+
+                if not new_key:
+                    new_key = original_key
+
+                if new_key in result:
+                    self._handle_display(
+                        message=f"Duplicate hostname '{new_key}' found, last entry wins.",
+                        level="WARNING",
+                    )
+                result[new_key] = attributes
+
+            return result
+
         def create_node(self, kind: str, data: dict) -> InfrahubNodeSync:
             """
             Create a node after validating required fields against schema

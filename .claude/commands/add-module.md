@@ -1,1 +1,0 @@
-../../dev/commands/add-module.md

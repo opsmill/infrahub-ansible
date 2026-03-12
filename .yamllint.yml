@@ -8,6 +8,8 @@ ignore:
   - docs/node_modules/**
 
 rules:
+  braces:
+    max-spaces-inside: 1
   comments-indentation: disable
   comments:
     # Changed this to stop a mess between linters from Prettier (vscode) to yamllint
@@ -17,3 +19,6 @@ rules:
     max: 120
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: false
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

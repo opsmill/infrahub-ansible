@@ -1,1 +1,0 @@
-../../dev/commands/fix-bug.md
