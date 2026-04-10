@@ -2,8 +2,11 @@ from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type
 
+import base64
+import hashlib
 import traceback
 from copy import deepcopy
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ansible.module_utils.basic import env_fallback
@@ -46,6 +49,20 @@ INFRAHUB_ARG_SPEC = dict(
     state=dict(required=False, default="present", choices=["present", "absent"]),
     validate_certs=dict(type="bool", default=True),
     timeout=dict(required=False, type="int", default=10),
+)
+
+TEXT_MIME_TYPES = frozenset(
+    {
+        "text/plain",
+        "text/markdown",
+        "text/csv",
+        "application/json",
+        "application/yaml",
+        "application/x-yaml",
+        "application/hcl",
+        "application/graphql",
+        "application/xml",
+    }
 )
 
 if HAS_INFRAHUBCLIENT:
@@ -508,9 +525,70 @@ if HAS_INFRAHUBCLIENT:
         @staticmethod
         def delete_node(node: InfrahubNodeSync) -> None:
             """
-            Save changes to a node
+            Delete a node
             """
             node.delete()
+
+        @staticmethod
+        def get_file_object_local_checksum(file_path: str) -> str:
+            """
+            Compute the SHA-1 checksum of a local file for idempotency comparison with
+            the server-stored checksum on a CoreFileObject node.
+
+            Parameters:
+                file_path (str): Absolute or relative path to the local file.
+
+            Returns:
+                str: Lowercase hex digest of the SHA-1 hash.
+            """
+            return hashlib.sha1(Path(file_path).read_bytes(), usedforsecurity=False).hexdigest()
+
+        def fetch_file_content(self, node: InfrahubNodeSync) -> dict[str, str | None]:
+            """
+            Download the binary content of a CoreFileObject node and return it as
+            base64-encoded bytes plus an optional UTF-8 decoded text representation.
+
+            Parameters:
+                node (InfrahubNodeSync): An Infrahub node that inherits from CoreFileObject.
+
+            Returns:
+                dict: {"binary": base64_str, "text": str_or_None}
+            """
+            content: bytes = node.download_file()
+            is_text = node.file_type.value in TEXT_MIME_TYPES
+            return {
+                "binary": base64.b64encode(content).decode("ascii"),
+                "text": content.decode("utf-8", errors="replace") if is_text else None,
+            }
+
+        def fetch_file_object(
+            self,
+            kind: str,
+            node_id: str | None = None,
+            hfid: list[str] | None = None,
+            branch: str | None = None,
+        ) -> tuple[InfrahubNodeSync, bytes]:
+            """
+            Fetch a CoreFileObject node and download its binary file content.
+
+            Parameters:
+                kind (str): The schema node kind inheriting from CoreFileObject.
+                node_id (str, optional): UUID of the node to fetch.
+                hfid (list[str], optional): HFID components identifying the node.
+                branch (str, optional): Branch to query. Defaults to default_branch.
+
+            Returns:
+                tuple: (InfrahubNodeSync, bytes) — the node and its raw file content.
+            """
+            node = self.fetch_single_node(
+                kind=kind,
+                id=node_id,
+                hfid=hfid,
+                branch=branch,
+                raise_when_missing=True,
+            )
+            content: bytes = node.download_file()
+            return node, content
 
     class InfrahubBaseProcessor:
         def __init__(
@@ -1170,6 +1248,9 @@ if HAS_INFRAHUBCLIENT:
                 value = data.get(element)
                 if value is None:
                     return None
+                # Unwrap nested {"value": ...} dicts used by Ansible data format
+                if isinstance(value, dict) and "value" in value:
+                    value = value["value"]
                 hfid_values.append(str(value))
 
             return hfid_values
@@ -1215,8 +1296,8 @@ if HAS_INFRAHUBCLIENT:
             if not node_id and not node_hfid and schema.human_friendly_id:
                 node_hfid = self.rebuild_hfid_from_data(schema, data)
             if not node_id and not node_hfid:
-                # TODO: Should we build filters from data, example: data["name"] => name__value
-                pass
+                return None
+
             try:
                 node = self.client.fetch_single_node(kind=kind, id=node_id, hfid=node_hfid, raise_when_missing=False)
             except Exception as exc:
@@ -1433,10 +1514,15 @@ if HAS_INFRAHUBCLIENT:
             # https://github.com/opsmill/infrahub-sdk-python/issues/272
             for attr_name in data:
                 if attr_name in self.infrahub_node._schema.attribute_names:
+                    attr_value = data.get(attr_name)
+                    # Unwrap {"value": ...} dicts from Ansible data format —
+                    # setattr on SDK node attributes expects the raw value.
+                    if isinstance(attr_value, dict) and "value" in attr_value:
+                        attr_value = attr_value["value"]
                     setattr(
                         self.infrahub_node,
                         attr_name,
-                        data.get(attr_name),
+                        attr_value,
                     )
                 elif attr_name in self.infrahub_node._schema.relationship_names:
                     rel_schema = next(rel for rel in self.infrahub_node._schema.relationships if rel.name == attr_name)
@@ -1597,6 +1683,9 @@ if HAS_INFRAHUBCLIENT:
 
 
 if not HAS_INFRAHUBCLIENT:
+
+    def get_node_identifier(node) -> str:  # type: ignore[misc]
+        return "unknown"
 
     class InfrahubclientWrapper:
         pass

@@ -707,7 +707,7 @@ dev = [
 requires-dist = [
     { name = "ansible-core", specifier = ">=2.17.14" },
     { name = "filelock", specifier = ">=3.20.1" },
-    { name = "infrahub-sdk", extras = ["all"], specifier = ">=1.5,<2.0" },
+    { name = "infrahub-sdk", extras = ["all"], specifier = ">=1.19.0,<2.0" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "numpy", marker = "python_full_version >= '3.9' and python_full_version < '3.12' and extra == 'numpy'", specifier = ">=1.24.2,<2" },
     { name = "numpy", marker = "python_full_version == '3.12.*' and extra == 'numpy'", specifier = ">=1.26.2,<2" },
@@ -733,7 +733,7 @@ dev = [
 
 [[package]]
 name = "infrahub-sdk"
-version = "1.17.0"
+version = "1.19.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dulwich" },
@@ -746,9 +746,9 @@ dependencies = [
     { name = "ujson" },
     { name = "whenever" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/08/60/47f22fea92421085c449be78ad7219c66e2417978cd73a05aeb5c5159562/infrahub_sdk-1.17.0.tar.gz", hash = "sha256:2eca77193a855efe9819374e3d5c53eabcfcf13e3af90cc294d327b3844c41d0", size = 749554, upload-time = "2025-12-11T08:18:04.604Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/43/86aa7711e89e4abea8216b462c43d46d298cb076fc53db1b05a91eabdcc7/infrahub_sdk-1.19.0.tar.gz", hash = "sha256:a397d1ea5c3747cf661cdab99cc4339886458afc246e14e13de72d5bc0dae3bd", size = 874068, upload-time = "2026-03-16T15:27:29.431Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6b/66/b95ea7f7e228d62e111ae1b79659a84bc1cfaf61781d3edd6b2194ca8cfc/infrahub_sdk-1.17.0-py3-none-any.whl", hash = "sha256:e5f0d016e7a2276cb87c9268596bfa0e23aa17c3397270c218be30812d4150a9", size = 194423, upload-time = "2025-12-11T08:18:03.077Z" },
+    { url = "https://files.pythonhosted.org/packages/17/4d/4302c2cde325fdb486736da3b71b309041c69b23cd9b39707aa4b5bedf02/infrahub_sdk-1.19.0-py3-none-any.whl", hash = "sha256:40f9e31b83a8ed472f5b49f77f7158620f33ee05c74cb0ca29e9397918be7db4", size = 212058, upload-time = "2026-03-16T15:27:27.948Z" },
 ]
 
 [package.optional-dependencies]
