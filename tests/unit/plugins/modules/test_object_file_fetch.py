@@ -204,7 +204,7 @@ class TestMissingIdentifier:
         task = make_mock_task({"node_id": None, "hfid": None})
         action = make_action_module(task=task)
 
-        with pytest.raises(AnsibleError, match="node_id.*hfid|hfid.*node_id"):
+        with pytest.raises(AnsibleError, match=r"node_id.*hfid|hfid.*node_id"):
             action.run()
 
 

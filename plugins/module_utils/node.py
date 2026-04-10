@@ -54,13 +54,15 @@ class NodeModule(InfrahubModule):
         # Non-CoreFileObject kinds cannot use file_path or fetch_file
         if not is_file_object and (file_path or fetch_file):
             param = "file_path" if file_path else "fetch_file"
-            self._handle_errors(
-                msg=f"Kind '{kind}' is not a CoreFileObject. '{param}' requires a CoreFileObject kind."
-            )
+            self._handle_errors(msg=f"Kind '{kind}' is not a CoreFileObject. '{param}' requires a CoreFileObject kind.")
 
         lookup_data = data.get("data", {})
         self.infrahub_node = self._lookup_node(
-            schema=schema, kind=kind, data=lookup_data, file_path=file_path, is_file_object=is_file_object,
+            schema=schema,
+            kind=kind,
+            data=lookup_data,
+            file_path=file_path,
+            is_file_object=is_file_object,
         )
 
         if self.state == "present":
@@ -89,7 +91,12 @@ class NodeModule(InfrahubModule):
         self.module.exit_json(**self.result)
 
     def _lookup_node(
-        self, schema, kind: str, data: dict, file_path: str | None = None, is_file_object: bool = False,
+        self,
+        schema,
+        kind: str,
+        data: dict,
+        file_path: str | None = None,
+        is_file_object: bool = False,
     ):
         """Look up an existing node in Infrahub.
 
@@ -107,7 +114,7 @@ class NodeModule(InfrahubModule):
         Returns:
             InfrahubNodeSync | None: The existing node or None.
         """
-        if is_file_object and not schema.human_friendly_id and "id" not in data:
+        if is_file_object and not schema.human_friendly_id and "id" not in data and file_path:
             file_name = Path(file_path).name
             try:
                 return self.client.fetch_single_node(
@@ -190,9 +197,10 @@ class NodeModule(InfrahubModule):
             # Apply attr changes in memory before saving
             for attr_name, attr_value in data.items():
                 if attr_name in self.infrahub_node._schema.attribute_names:
-                    if isinstance(attr_value, dict) and "value" in attr_value:
-                        attr_value = attr_value["value"]
-                    setattr(self.infrahub_node, attr_name, attr_value)
+                    resolved = (
+                        attr_value["value"] if isinstance(attr_value, dict) and "value" in attr_value else attr_value
+                    )
+                    setattr(self.infrahub_node, attr_name, resolved)
             if not self.check_mode:
                 self.infrahub_node.upload_from_path(Path(file_path))
                 self.infrahub_node.save()

@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 
-def pytest_configure(config) -> None:
+def pytest_configure(config: object) -> None:
     repo_root = Path(__file__).parent.resolve()
     collections_dir = repo_root / ".pytest_collections"
     link_target = collections_dir / "ansible_collections" / "opsmill" / "infrahub"

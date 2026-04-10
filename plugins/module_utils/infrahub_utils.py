@@ -1684,7 +1684,7 @@ if HAS_INFRAHUBCLIENT:
 
 if not HAS_INFRAHUBCLIENT:
 
-    def get_node_identifier(node) -> str:  # type: ignore[misc]
+    def get_node_identifier(_node) -> str:  # type: ignore[misc]
         return "unknown"
 
     class InfrahubclientWrapper:

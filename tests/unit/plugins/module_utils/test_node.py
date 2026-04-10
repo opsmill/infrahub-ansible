@@ -227,14 +227,14 @@ class TestUpdateAttrsOnlyNoFilePath:
 
         super_called = []
 
-        def fake_super_ensure(kind, data):
+        def fake_super_ensure(kind, data) -> None:
             super_called.append(True)
             node_module.result["msg"] = f"{kind} contract.pdf already exists"
 
         with patch.object(
             NodeModule.__bases__[0],
             "_ensure_object_exists",
-            side_effect=lambda kind, data: fake_super_ensure(kind, data),
+            side_effect=fake_super_ensure,
         ):
             node_module._ensure_object_exists(
                 kind="NetworkCircuitContract",
@@ -460,7 +460,8 @@ class TestRealChecksumComputation:
 
         expected = hashlib.sha1(content, usedforsecurity=False).hexdigest()
         assert result == expected
-        assert len(result) == 40
+        sha1_hex_length = 40
+        assert len(result) == sha1_hex_length
 
     def test_identical_content_same_checksum(self, tmp_path):
         """Same file content always produces the same checksum."""
