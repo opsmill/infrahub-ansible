@@ -32,7 +32,6 @@ options:
         description:
             - The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN
         type: str
-        no_log: true
     timeout:
         required: False
         description: Timeout for Infrahub requests in seconds
@@ -154,23 +153,25 @@ msg:
   type: str
 """
 
+from copy import deepcopy
+
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import INFRAHUB_ARG_SPEC
 
 
 def main() -> None:
     """Main definition of Action Plugin for object_file_fetch."""
+    argument_spec = deepcopy(INFRAHUB_ARG_SPEC)
+    argument_spec.pop("state")
+    argument_spec.update(
+        branch=dict(required=False, type="str", default="main"),
+        kind=dict(required=True, type="str"),
+        node_id=dict(required=False, type="str", default=None),
+        hfid=dict(required=False, type="list", elements="str", default=None),
+        dest=dict(required=False, type="str", default=None),
+    )
     AnsibleModule(
-        argument_spec=dict(
-            api_endpoint=dict(required=False, type="str", default=None),
-            token=dict(required=False, type="str", no_log=True, default=None),
-            timeout=dict(required=False, type="int", default=10),
-            validate_certs=dict(required=False, type="bool", default=True),
-            branch=dict(required=False, type="str", default="main"),
-            kind=dict(required=True, type="str"),
-            node_id=dict(required=False, type="str", default=None),
-            hfid=dict(required=False, type="list", elements="str", default=None),
-            dest=dict(required=False, type="str", default=None),
-        ),
+        argument_spec=argument_spec,
         required_one_of=[("node_id", "hfid")],
         supports_check_mode=False,
     )

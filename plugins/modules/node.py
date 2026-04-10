@@ -154,7 +154,11 @@ def main() -> None:
         fetch_file=dict(required=False, type="bool", default=False),
     )
 
-    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+        supports_check_mode=True,
+        mutually_exclusive=[("file_path", "fetch_file")],
+    )
 
     node_module = NodeModule(module=module)
     node_module.run()

@@ -38,6 +38,13 @@ def make_mock_task(args=None):
     return task
 
 
+def make_mock_schema(inherit_from=None):
+    """Return a mock schema with configurable inherit_from."""
+    schema = MagicMock()
+    schema.inherit_from = inherit_from if inherit_from is not None else ["CoreFileObject"]
+    return schema
+
+
 def make_mock_node(
     node_id="uuid-1234",
     file_name="contract.pdf",
@@ -84,6 +91,7 @@ class TestFetchByNodeId:
         """Fetching by node_id returns binary content and metadata fields."""
         node = make_mock_node()
         mock_client = MockClient.return_value
+        mock_client.fetch_single_schema.return_value = make_mock_schema()
         mock_client.fetch_file_object.return_value = (node, FILE_CONTENT)
 
         action = make_action_module()
@@ -102,6 +110,7 @@ class TestFetchByNodeId:
         """Fetching by node_id calls fetch_file_object with the right args."""
         node = make_mock_node()
         mock_client = MockClient.return_value
+        mock_client.fetch_single_schema.return_value = make_mock_schema()
         mock_client.fetch_file_object.return_value = (node, FILE_CONTENT)
 
         action = make_action_module()
@@ -127,6 +136,7 @@ class TestFetchByHfid:
         """Fetching by hfid returns binary content and metadata fields."""
         node = make_mock_node()
         mock_client = MockClient.return_value
+        mock_client.fetch_single_schema.return_value = make_mock_schema()
         mock_client.fetch_file_object.return_value = (node, FILE_CONTENT)
 
         task = make_mock_task({"node_id": None, "hfid": ["contract.pdf"]})
@@ -155,6 +165,7 @@ class TestDestDirectory:
         """When dest is a directory, file is written to dest/file_name."""
         node = make_mock_node(file_name="contract.pdf")
         mock_client = MockClient.return_value
+        mock_client.fetch_single_schema.return_value = make_mock_schema()
         mock_client.fetch_file_object.return_value = (node, FILE_CONTENT)
 
         dest_dir = str(tmp_path) + "/"
@@ -179,6 +190,7 @@ class TestDestFilePath:
         """When dest is a file path, file is written exactly at that path."""
         node = make_mock_node()
         mock_client = MockClient.return_value
+        mock_client.fetch_single_schema.return_value = make_mock_schema()
         mock_client.fetch_file_object.return_value = (node, FILE_CONTENT)
 
         dest_file = str(tmp_path / "my-contract.pdf")
@@ -222,6 +234,7 @@ class TestNonFileObjectKind:
 
         node = make_mock_node(is_file=False)
         mock_client = MockClient.return_value
+        mock_client.fetch_single_schema.return_value = make_mock_schema(inherit_from=[])
         mock_client.fetch_file_object.return_value = (node, FILE_CONTENT)
 
         action = make_action_module()

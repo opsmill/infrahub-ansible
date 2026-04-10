@@ -95,8 +95,9 @@ class ActionModule(ActionBase):
                 )
             node, content = result_tuple
 
-            # Validate the fetched node is a CoreFileObject
-            if not node.is_file_object():
+            # Validate the kind inherits from CoreFileObject via schema introspection
+            schema = client.fetch_single_schema(kind=kind, raise_when_missing=False)
+            if not schema or not (hasattr(schema, "inherit_from") and "CoreFileObject" in (schema.inherit_from or [])):
                 raise AnsibleError(
                     f"Kind '{kind}' is not a CoreFileObject. 'object_file_fetch' requires a CoreFileObject kind."
                 )
