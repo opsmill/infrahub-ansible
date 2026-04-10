@@ -6,6 +6,7 @@ from __future__ import absolute_import, annotations, division, print_function
 __metaclass__ = type
 
 from pathlib import Path
+from typing import Any
 
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     InfrahubModule,
@@ -33,7 +34,7 @@ class NodeModule(InfrahubModule):
         if file_path and not Path(file_path).exists():
             self._handle_errors(msg=f"file_path '{file_path}' does not exist on the controller")
 
-        self.result = {"changed": False}
+        self.result: dict[str, Any] = {"changed": False}
 
         schema = self.client.fetch_single_schema(kind=kind, raise_when_missing=False)
         if not schema:
@@ -92,12 +93,12 @@ class NodeModule(InfrahubModule):
 
     def _lookup_node(
         self,
-        schema,
+        schema: Any,
         kind: str,
-        data: dict,
+        data: dict[str, Any],
         file_path: str | None = None,
         is_file_object: bool = False,
-    ):
+    ) -> Any:
         """Look up an existing node in Infrahub.
 
         For CoreFileObject kinds without an HFID, derives file_name from
@@ -127,7 +128,7 @@ class NodeModule(InfrahubModule):
 
         return self._get_object(schema=schema, kind=kind, data=data)
 
-    def _ensure_object_exists(self, kind: str, data: dict, file_path=None) -> None:
+    def _ensure_object_exists(self, kind: str, data: dict[str, Any], file_path: str | None = None) -> None:
         """
         Used when `state` is present to make sure an object exists.
         Delegates to file-aware create/update when file_path is set.
@@ -143,7 +144,7 @@ class NodeModule(InfrahubModule):
                 self.result["changed"] = True
                 self.result["diff"] = diff
             else:
-                self.infrahub_node, diff = self._update_object_with_file(data=object_data, file_path=file_path)
+                self.infrahub_node, diff = self._update_object_with_file(data=object_data, file_path=file_path)  # type: ignore[assignment]
                 identifier = get_node_identifier(node=self.infrahub_node)
                 if diff:
                     self.result["msg"] = f"{kind} {identifier} updated"
@@ -154,7 +155,7 @@ class NodeModule(InfrahubModule):
         else:
             super()._ensure_object_exists(kind=kind, data=data)
 
-    def _create_object_with_file(self, kind: str, data: dict, file_path: str):
+    def _create_object_with_file(self, kind: str, data: dict[str, Any], file_path: str) -> tuple[Any, dict[str, Any]]:
         """
         Create a CoreFileObject node and upload the local file.
 
@@ -178,7 +179,7 @@ class NodeModule(InfrahubModule):
         diff = self._build_diff(before={"state": "absent"}, after={"state": "present"})
         return node, diff
 
-    def _update_object_with_file(self, data: dict, file_path: str):
+    def _update_object_with_file(self, data: dict[str, Any], file_path: str) -> tuple[Any, dict[str, Any] | None]:
         """
         Update a CoreFileObject node, re-uploading the file only if its SHA-1 checksum changed.
 
@@ -208,4 +209,4 @@ class NodeModule(InfrahubModule):
             return self.infrahub_node, diff
 
         # File unchanged — fall through to regular attr update
-        return self._update_object(data=data)
+        return self._update_object(data=data)  # type: ignore[no-any-return]
