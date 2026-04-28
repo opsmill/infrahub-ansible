@@ -593,6 +593,9 @@ if HAS_INFRAHUBCLIENT:
             store = self.client.client.store
             peers: list[Any] = []
 
+            if not node_attr.peers:
+                node_attr.fetch()
+
             for peer in node_attr.peers:
                 related_node = store.get(key=peer.id, raise_when_missing=False)
                 if not related_node:
