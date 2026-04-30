@@ -17,13 +17,13 @@ except ImportError:
 
 
 @pytest.mark.skipif(not HAS_TRUST_API, reason="ansible-core < 2.19 has no trust API")
-def test_mark_trusted_marks_plain_string():
+def test_mark_trusted_marks_plain_string() -> None:
     result = _mark_trusted("router1")
     assert is_trusted_as_template(result)
 
 
 @pytest.mark.skipif(not HAS_TRUST_API, reason="ansible-core < 2.19 has no trust API")
-def test_mark_trusted_recurses_into_dict_and_list():
+def test_mark_trusted_recurses_into_dict_and_list() -> None:
     attributes = {
         "name": "router1",
         "asn": 65001,
@@ -40,13 +40,13 @@ def test_mark_trusted_recurses_into_dict_and_list():
     assert result["asn"] == 65001
 
 
-def test_mark_trusted_preserves_non_string_scalars():
+def test_mark_trusted_preserves_non_string_scalars() -> None:
     # Works on every ansible-core version (no-op fallback on <2.19).
     result = _mark_trusted({"id": 42, "active": True, "ratio": 0.5, "missing": None})
     assert result == {"id": 42, "active": True, "ratio": 0.5, "missing": None}
 
 
-def test_mark_trusted_handles_set_and_tuple():
+def test_mark_trusted_handles_set_and_tuple() -> None:
     result_set = _mark_trusted({"a", "b"})
     assert isinstance(result_set, set)
     assert {str(s) for s in result_set} == {"a", "b"}
