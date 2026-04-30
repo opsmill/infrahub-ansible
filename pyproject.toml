@@ -52,12 +52,14 @@ warn_unused_ignores = true
 # Exclude problematic module that has complex try/except patterns
 exclude = [
     "plugins/module_utils/infrahub_utils\\.py$",
+    "tests/",
 ]
 
 [[tool.mypy.overrides]]
 module = "tasks.*"
 # Invoke Collection typing is overly strict about module types
 disallow_untyped_defs = false
+
 
 [tool.pyright]
 # Disable pyright - we use mypy for type checking
@@ -147,6 +149,11 @@ ignore = [
     "ALL"
 ]
 
+"plugins/action/object_file_fetch.py" = [
+    "PLR0914", # Too many local variables — action plugin run() method
+    "PLR0915", # Too many statements — action plugin run() method
+]
+
 "plugins/**/*.py" = [
     ##################################################################################################
     # Review and change the below later                                                              #
@@ -168,6 +175,23 @@ ignore = [
 "tasks/__init__.py" = [
     "RUF067", # __init__ module re-exports (invoke task runner pattern)
     "T201",   # use of `print`
+]
+
+"conftest.py" = [
+    "ANN001", # pytest hook signature is fixed
+    "ARG001", # pytest hook requires `config` param even if unused
+]
+
+"tests/**/*.py" = [
+    "ANN001", # test helpers and mock patches don't need annotations
+    "ANN201", # test methods don't need return type annotations
+    "ARG001", # unused function arguments from fixtures/patches
+    "ARG002", # unused method arguments from @patch decorators
+    "N803",   # MockProcessor-style names from @patch decorators
+    "PLR0917", # too many positional args in test helpers
+    "PLR2004", # magic values in test assertions
+    "S101",   # assert is standard in pytest
+    "S108",   # /tmp paths are fine in tests
 ]
 
 #https://docs.astral.sh/ruff/formatter/black/
