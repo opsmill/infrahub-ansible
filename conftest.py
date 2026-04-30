@@ -18,7 +18,7 @@ def pytest_configure(config: object) -> None:
     collections_dir = repo_root / ".pytest_collections"
     link_target = collections_dir / "ansible_collections" / "opsmill" / "infrahub"
     link_target.parent.mkdir(parents=True, exist_ok=True)
-    if not link_target.exists():
+    if not link_target.exists() and not link_target.is_symlink():
         link_target.symlink_to(repo_root)
     collections_str = str(collections_dir)
     if collections_str not in sys.path:

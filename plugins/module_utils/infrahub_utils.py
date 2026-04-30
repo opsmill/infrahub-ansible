@@ -1251,6 +1251,8 @@ if HAS_INFRAHUBCLIENT:
                 # Unwrap nested {"value": ...} dicts used by Ansible data format
                 if isinstance(value, dict) and "value" in value:
                     value = value["value"]
+                if value is None:
+                    return None
                 hfid_values.append(str(value))
 
             return hfid_values
