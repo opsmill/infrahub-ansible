@@ -169,41 +169,30 @@ ignore = [
 ]
 
 "tasks/*.py" = [
+    "RUF067", # __init__ module re-exports (invoke task runner pattern)
     "T201",   # use of `print`
 ]
 
 "tests/**/*.py" = [
     "ANN001", # Missing type annotation for function argument
     "ANN201", # Missing return type annotation for public function
-    "ANN202", # Missing return type annotation for private function
+    "ANN202", # Missing return type annotation for private
+    "ARG001", # unused function arguments from fixtures/patches
+    "ARG002", # unused method arguments from @patch decorators
     "INP001", # Implicit namespace package
+    "N803",   # MockProcessor-style names from @patch decorators
+    "PLR0917", # too many positional args in test helpers
     "PLC2701", # Private name import (tests intentionally probe internals)
     "PLR2004", # Magic value used in comparison
     "S101",   # Use of `assert`
+    "S108",   # /tmp paths are fine in tests
     "UP001",  # `__metaclass__ = type` is implied
     "UP010",  # Unnecessary `__future__` imports
-]
-
-"tasks/__init__.py" = [
-    "RUF067", # __init__ module re-exports (invoke task runner pattern)
-    "T201",   # use of `print`
 ]
 
 "conftest.py" = [
     "ANN001", # pytest hook signature is fixed
     "ARG001", # pytest hook requires `config` param even if unused
-]
-
-"tests/**/*.py" = [
-    "ANN001", # test helpers and mock patches don't need annotations
-    "ANN201", # test methods don't need return type annotations
-    "ARG001", # unused function arguments from fixtures/patches
-    "ARG002", # unused method arguments from @patch decorators
-    "N803",   # MockProcessor-style names from @patch decorators
-    "PLR0917", # too many positional args in test helpers
-    "PLR2004", # magic values in test assertions
-    "S101",   # assert is standard in pytest
-    "S108",   # /tmp paths are fine in tests
 ]
 
 #https://docs.astral.sh/ruff/formatter/black/
