@@ -1,0 +1,70 @@
+---
+title: object_file_fetch
+description: Fetch file content from a CoreFileObject node in Infrahub
+---
+
+# Modules modules
+
+Downloads the binary file content stored on a CoreFileObject schema node. Identifies the node by UUID (node_id) or HFID (hfid). Optionally saves the file to a local destination path. Returns base64-encoded binary content and metadata regardless of I(dest). 
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `api_endpoint` | `str` | No |  | Endpoint of the Infrahub API, optional env=INFRAHUB_ADDRESS |
+| `token` | `str` | No |  | The API token created through Infrahub, optional env=INFRAHUB_API_TOKEN |
+| `timeout` | `int` | No | 10 | Timeout for Infrahub requests in seconds |
+| `validate_certs` | `bool` | No | True | Whether or not to validate SSL of the Infrahub instance |
+| `branch` | `str` | No | main | Branch in which the request is made |
+| `kind` | `str` | Yes |  | Schema kind that inherits from CoreFileObject (e.g. C(NetworkCircuitContract)) |
+| `node_id` | `str` | No |  | UUID of the CoreFileObject node to fetch. One of I(node_id) or I(hfid) is required. |
+| `hfid` | `list` | No |  | Human-friendly ID component values for the CoreFileObject node. One of I(node_id) or I(hfid) is required. |
+| `dest` | `str` | No | None | Local path to save the file content. When a directory path is given (trailing slash or existing directory), the file is saved as C({dest}/{node.file_name}). When a file path is given, the file is saved exactly at that path. When omitted, file content is returned as variables only. |
+
+## Examples
+
+```yaml
+---
+- name: Fetch contract PDF by node UUID
+  opsmill.infrahub.object_file_fetch:
+    kind: NetworkCircuitContract
+    node_id: "abc123-uuid"
+  register: fetch_result
+
+- name: Write fetched file to disk
+  ansible.builtin.copy:
+    content: "{{ fetch_result.binary | b64decode }}"
+    dest: /tmp/contract.pdf
+
+- name: Fetch and save to directory by HFID
+  opsmill.infrahub.object_file_fetch:
+    kind: NetworkCircuitContract
+    hfid:
+      - "contract.pdf"
+    dest: /tmp/contracts/
+  register: fetch_result
+# File saved to /tmp/contracts/contract.pdf
+# fetch_result.dest == "/tmp/contracts/contract.pdf"
+
+- name: Fetch and save to explicit file path
+  opsmill.infrahub.object_file_fetch:
+    kind: NetworkCircuitContract
+    node_id: "abc123-uuid"
+    dest: /tmp/my-contract.pdf
+  register: fetch_result
+# File saved to exactly /tmp/my-contract.pdf
+```
+
+## Return values
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `binary` | `str` | Base64-encoded file content downloaded from the CoreFileObject node. |
+| `text` | `str` | UTF-8 decoded file content for text MIME types (text/plain, application/json, etc.). null for binary MIME types. |
+| `file_name` | `str` | Original filename as stored in Infrahub. |
+| `file_type` | `str` | MIME type of the file as detected by Infrahub. |
+| `file_size` | `int` | Size of the file in bytes. |
+| `checksum` | `str` | SHA-1 hex digest of the file content as stored in Infrahub. |
+| `node_id` | `str` | UUID of the fetched CoreFileObject node. |
+| `dest` | `str` | Resolved local path where the file was saved. null if I(dest) was not provided. |
+| `msg` | `str` | Status message. |

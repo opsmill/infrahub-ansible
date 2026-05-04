@@ -19,6 +19,8 @@ Creates, Updates or Deletes a node of a given Kind in Infrahub through Infrahub 
 | `branch` | `str` | No | main | Branch in which the request is made |
 | `validate_certs` | `bool` | No | True | Whether or not to validate SSL of the Infrahub instance |
 | `state` | `str` | No | present | Use C(present) or C(absent) for adding or removing. |
+| `file_path` | `str` | No | None | Local filesystem path to the file to upload when creating or updating a CoreFileObject node. Required when the kind inherits from CoreFileObject (unless C(fetch_file) is used instead). Mutually exclusive with C(fetch_file). When provided, the module computes a SHA-1 checksum and skips the upload if it matches the server-side checksum (idempotent). Fails if the kind does not inherit from CoreFileObject. Ignored in check mode (no upload performed). |
+| `fetch_file` | `bool` | No | False | When C(true), download the file content from the CoreFileObject node and include it in the result as C(binary) (base64-encoded) and C(text) (UTF-8 decoded for text MIME types, null otherwise). Required when the kind inherits from CoreFileObject and C(file_path) is not provided. Mutually exclusive with C(file_path). Ignored in check mode (no download performed). Fails if the kind does not inherit from CoreFileObject. |
 
 ## Examples
 
@@ -50,3 +52,5 @@ Creates, Updates or Deletes a node of a given Kind in Infrahub through Infrahub 
 |-----|------|-------------|
 | `object` | `dict` | Serialized object as created or already existent within Infrahub |
 | `msg` | `str` | Message indicating failure or info about what has been achieved |
+| `binary` | `str` | Base64-encoded file content downloaded from the CoreFileObject node. Present only when I(fetch_file=true) and not in check mode. |
+| `text` | `str` | UTF-8 decoded file content for text MIME types (text/plain, application/json, etc.). null for binary MIME types. Present only when I(fetch_file=true) and not in check mode. |
