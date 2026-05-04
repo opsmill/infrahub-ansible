@@ -196,6 +196,33 @@ try:
 except ImportError as imp_exc:
     PACKAGING_IMPORT_ERROR = imp_exc
 
+try:
+    from ansible.template import trust_as_template as _trust_as_template
+except ImportError:  # ansible-core < 2.19
+
+    def _trust_as_template(value: Any) -> Any:
+        return value
+
+
+def _mark_trusted(value: Any) -> Any:
+    """Recursively mark string values as trusted-as-template.
+
+    ansible-core 2.19's legacy JSON encoder wraps untagged strings as
+    {"__ansible_unsafe": "..."} in `ansible-inventory --list` output;
+    tagging plugin-supplied strings restores plain JSON output (#323).
+    """
+    if isinstance(value, str):
+        return _trust_as_template(value)
+    if isinstance(value, dict):
+        return {k: _mark_trusted(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_mark_trusted(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(_mark_trusted(v) for v in value)
+    if isinstance(value, set):
+        return {_mark_trusted(v) for v in value}
+    return value
+
 
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     NAME = "opsmill.infrahub.inventory"
@@ -276,17 +303,18 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for host_node, attributes in host_node_attributes.items():
             self.inventory.add_host(host_node)
 
-            self.set_host_variables(host_node=host_node, attributes=attributes)
+            trusted_attributes = _mark_trusted(attributes)
+            self.set_host_variables(host_node=host_node, attributes=trusted_attributes)
 
             self._add_host_to_composed_groups(
                 groups=self.groups,
-                variables=attributes,
+                variables=trusted_attributes,
                 host=host_node,
                 strict=self.strict,
             )
             self._add_host_to_keyed_groups(
                 keys=self.keyed_groups,
-                variables=attributes,
+                variables=trusted_attributes,
                 host=host_node,
                 strict=self.strict,
             )
