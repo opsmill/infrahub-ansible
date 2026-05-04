@@ -16,7 +16,8 @@ short_description: Creates, Updates or Deletes a node in Infrahub
 description:
     - Creates, Updates or Deletes a node of a given Kind in Infrahub through Infrahub SDK
 requirements:
-    - infrahub-sdk
+    - infrahub-sdk>=1.19.0
+    - "Infrahub server >= 1.8 when using file_path or fetch_file (CoreFileObject support)"
 options:
     api_endpoint:
         required: False
@@ -61,6 +62,30 @@ options:
         choices: [ absent, present ]
         default: present
         type: str
+    file_path:
+        required: False
+        description:
+            - Local filesystem path to the file to upload when creating or updating a CoreFileObject node.
+            - Required when the kind inherits from CoreFileObject (unless C(fetch_file) is used instead).
+            - Mutually exclusive with C(fetch_file).
+            - When provided, the module computes a SHA-1 checksum and skips the upload if it matches the
+              server-side checksum (idempotent).
+            - Fails if the kind does not inherit from CoreFileObject.
+            - Ignored in check mode (no upload performed).
+        type: str
+        default: null
+    fetch_file:
+        required: False
+        description:
+            - When C(true), download the file content from the CoreFileObject node and include it in the
+              result as C(binary) (base64-encoded) and C(text) (UTF-8 decoded for text MIME types, null
+              otherwise).
+            - Required when the kind inherits from CoreFileObject and C(file_path) is not provided.
+            - Mutually exclusive with C(file_path).
+            - Ignored in check mode (no download performed).
+            - Fails if the kind does not inherit from CoreFileObject.
+        type: bool
+        default: false
 """
 
 EXAMPLES = """
@@ -94,6 +119,19 @@ msg:
   description: Message indicating failure or info about what has been achieved
   returned: always
   type: str
+binary:
+  description:
+    - Base64-encoded file content downloaded from the CoreFileObject node.
+    - Present only when I(fetch_file=true) and not in check mode.
+  returned: when fetch_file=true and not check_mode
+  type: str
+text:
+  description:
+    - UTF-8 decoded file content for text MIME types (text/plain, application/json, etc.).
+    - null for binary MIME types.
+    - Present only when I(fetch_file=true) and not in check mode.
+  returned: when fetch_file=true and not check_mode
+  type: str
 """
 
 from copy import deepcopy
@@ -112,9 +150,15 @@ def main() -> None:
         kind=dict(required=True, type="str"),
         data=dict(required=True, type="raw"),
         branch=dict(required=False, type="str", default="main"),
+        file_path=dict(required=False, type="str", default=None),
+        fetch_file=dict(required=False, type="bool", default=False),
     )
 
-    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+        supports_check_mode=True,
+        mutually_exclusive=[("file_path", "fetch_file")],
+    )
 
     node_module = NodeModule(module=module)
     node_module.run()

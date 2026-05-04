@@ -4,12 +4,12 @@ version = "1.8.0"
 description = "Ansible collection to interact with Infrahub's API"
 authors = [{name = "OpsMill", email = "info@opsmill.com"}]
 license = {text = "GPLv3"}
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.11,<3.15"
 
 dependencies = [
-    "ansible-core>=2.17.14",
-    "filelock>=3.20.1",  # CVE-2025-68146: transitive dep of tox, pinned for security
-    "infrahub-sdk[all]>=1.5,<2.0",
+    "ansible-core>=2.18",
+    "filelock>=3.25.2",  # CVE-2025-68146: transitive dep of tox, pinned for security
+    "infrahub-sdk[all]>=1.19.0,<2.0",
     "jinja2>=3.1.6",
 ]
 
@@ -17,23 +17,23 @@ dependencies = [
 numpy = [
     "numpy>=1.24.2,<2; python_version>='3.9' and python_version<'3.12'",
     "numpy>=1.26.2,<2; python_version>='3.12' and python_version<'3.13'",
-    "numpy>=2.1.0,<3; python_version>='3.13'",
+    "numpy>=2.2.6,<3; python_version>='3.13'",
 ]
 
 [dependency-groups]
 dev = [
     "codecov",
-    "invoke>=2.2.1,<3",
-    "mypy>=1.15.0,<2",
-    "types-PyYAML>=6.0.12",
-    "ruff==0.15.5",
+    "invoke>=3.0.3,<4",
+    "mypy>=1.20.1,<2",
+    "types-PyYAML>=6.0.12.20260408",
+    "ruff==0.15.12",
     "mock>=5.2.0,<6",
-    "pytest>=9.0.2,<10",
+    "pytest>=9.0.3,<10",
     "pytest-mock",
     "pytest-xdist",
     "pytest-pythonpath",
-    "ansible-lint>=26.2.0,<27",
-    "tox>=4.47.0,<5",
+    "ansible-lint>=26.4.0,<27",
+    "tox>=4.52.1,<5",
 ]
 
 [tool.pytest.ini_options]
@@ -52,12 +52,14 @@ warn_unused_ignores = true
 # Exclude problematic module that has complex try/except patterns
 exclude = [
     "plugins/module_utils/infrahub_utils\\.py$",
+    "tests/",
 ]
 
 [[tool.mypy.overrides]]
 module = "tasks.*"
 # Invoke Collection typing is overly strict about module types
 disallow_untyped_defs = false
+
 
 [tool.pyright]
 # Disable pyright - we use mypy for type checking
@@ -147,6 +149,11 @@ ignore = [
     "ALL"
 ]
 
+"plugins/action/object_file_fetch.py" = [
+    "PLR0914", # Too many local variables — action plugin run() method
+    "PLR0915", # Too many statements — action plugin run() method
+]
+
 "plugins/**/*.py" = [
     ##################################################################################################
     # Review and change the below later                                                              #
@@ -162,12 +169,30 @@ ignore = [
 ]
 
 "tasks/*.py" = [
+    "RUF067", # __init__ module re-exports (invoke task runner pattern)
     "T201",   # use of `print`
 ]
 
-"tasks/__init__.py" = [
-    "RUF067", # __init__ module re-exports (invoke task runner pattern)
-    "T201",   # use of `print`
+"tests/**/*.py" = [
+    "ANN001", # Missing type annotation for function argument
+    "ANN201", # Missing return type annotation for public function
+    "ANN202", # Missing return type annotation for private
+    "ARG001", # unused function arguments from fixtures/patches
+    "ARG002", # unused method arguments from @patch decorators
+    "INP001", # Implicit namespace package
+    "N803",   # MockProcessor-style names from @patch decorators
+    "PLR0917", # too many positional args in test helpers
+    "PLC2701", # Private name import (tests intentionally probe internals)
+    "PLR2004", # Magic value used in comparison
+    "S101",   # Use of `assert`
+    "S108",   # /tmp paths are fine in tests
+    "UP001",  # `__metaclass__ = type` is implied
+    "UP010",  # Unnecessary `__future__` imports
+]
+
+"conftest.py" = [
+    "ANN001", # pytest hook signature is fixed
+    "ARG001", # pytest hook requires `config` param even if unused
 ]
 
 #https://docs.astral.sh/ruff/formatter/black/
