@@ -1,6 +1,6 @@
 [project]
 name = "infrahub_ansible_modules"
-version = "1.8.0"
+version = "1.8.1"
 description = "Ansible collection to interact with Infrahub's API"
 authors = [{name = "OpsMill", email = "info@opsmill.com"}]
 license = {text = "GPLv3"}
