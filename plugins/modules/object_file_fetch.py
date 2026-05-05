@@ -72,7 +72,7 @@ options:
         description:
             - Local path to save the file content.
             - When a directory path is given (trailing slash or existing directory),
-              the file is saved as C({dest}/{node.file_name}).
+              the file is saved as `{dest}/{node.file_name}`.
             - When a file path is given, the file is saved exactly at that path.
             - When omitted, file content is returned as variables only.
         type: str

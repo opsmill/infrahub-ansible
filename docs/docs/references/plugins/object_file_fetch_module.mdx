@@ -19,7 +19,7 @@ Downloads the binary file content stored on a CoreFileObject schema node. Identi
 | `kind` | `str` | Yes |  | Schema kind that inherits from CoreFileObject (e.g. C(NetworkCircuitContract)) |
 | `node_id` | `str` | No |  | UUID of the CoreFileObject node to fetch. One of I(node_id) or I(hfid) is required. |
 | `hfid` | `list` | No |  | Human-friendly ID component values for the CoreFileObject node. One of I(node_id) or I(hfid) is required. |
-| `dest` | `str` | No | None | Local path to save the file content. When a directory path is given (trailing slash or existing directory), the file is saved as C({dest}/{node.file_name}). When a file path is given, the file is saved exactly at that path. When omitted, file content is returned as variables only. |
+| `dest` | `str` | No | None | Local path to save the file content. When a directory path is given (trailing slash or existing directory), the file is saved as `{dest}/{node.file_name}`. When a file path is given, the file is saved exactly at that path. When omitted, file content is returned as variables only. |
 
 ## Examples
 
