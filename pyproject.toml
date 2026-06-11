@@ -140,6 +140,7 @@ ignore = [
     "PLR6301",  # Method could be a function, class method, or static method
     "PLR1702",  # Too many nested blocks
     "PLR0913",  # Too many arguments in function definition
+    "PLW0717",  # Too many statements in try clause (preview rule)
     "RET504",   # Unnecessary assignment before `return` statement
 ]
 
