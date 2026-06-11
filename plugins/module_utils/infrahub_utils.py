@@ -1298,8 +1298,11 @@ if HAS_INFRAHUBCLIENT:
             if not node_id and not node_hfid:
                 return None
 
+            include = [key for key in data if key not in ("id", "hfid")] or None
             try:
-                node = self.client.fetch_single_node(kind=kind, id=node_id, hfid=node_hfid, raise_when_missing=False)
+                node = self.client.fetch_single_node(
+                    kind=kind, id=node_id, hfid=node_hfid, include=include, raise_when_missing=False
+                )
             except Exception as exc:
                 self._handle_errors(f"An error occurred while retrieving {kind} {data} due to {exc}")
 

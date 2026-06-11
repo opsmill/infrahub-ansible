@@ -541,6 +541,54 @@ class TestRealChecksumComputation:
 
 
 # ---------------------------------------------------------------------------
+# Regression: _get_object must pass user data keys as include on fetch.
+# Without include, cardinality-MANY relationships stay uninitialized on the
+# fetched node and are missing from the "before" diff snapshot, so idempotent
+# re-runs report changed: true (fixed in 6f1315e, lost in 0142ad6).
+# ---------------------------------------------------------------------------
+
+
+class TestGetObjectIncludesUserKeys:
+    def test_fetch_includes_user_data_keys(self):
+        """_get_object passes user field names as include, excluding id/hfid."""
+        mock_client = make_mock_client(existing_node=make_mock_node())
+        mock_module = make_mock_module()
+
+        node_module = NodeModule(module=mock_module, client=mock_client)
+        data = {
+            "id": "uuid-1234",
+            "name": {"value": "tag1"},
+            "description": {"value": "managed by ansible"},
+            "related_tags": [{"id": "uuid-5678"}],
+        }
+        node_module._get_object(schema=MagicMock(), kind="BuiltinTag", data=data)
+
+        mock_client.fetch_single_node.assert_called_once_with(
+            kind="BuiltinTag",
+            id="uuid-1234",
+            hfid=None,
+            include=["name", "description", "related_tags"],
+            raise_when_missing=False,
+        )
+
+    def test_fetch_identifier_only_defaults_include_to_none(self):
+        """Identifier-only data (e.g. state: absent) keeps default fetch behavior."""
+        mock_client = make_mock_client(existing_node=make_mock_node())
+        mock_module = make_mock_module()
+
+        node_module = NodeModule(module=mock_module, client=mock_client)
+        node_module._get_object(schema=MagicMock(), kind="BuiltinTag", data={"id": "uuid-1234"})
+
+        mock_client.fetch_single_node.assert_called_once_with(
+            kind="BuiltinTag",
+            id="uuid-1234",
+            hfid=None,
+            include=None,
+            raise_when_missing=False,
+        )
+
+
+# ---------------------------------------------------------------------------
 # Schema-based version gating (CoreFileObject inherit_from validation)
 # ---------------------------------------------------------------------------
 
