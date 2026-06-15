@@ -1,0 +1,35 @@
+.github/workflows/sync-docs.yml
+  s_44a5681d71572d::t_979c8aa2a42089 1-85
+.github/workflows/release.yml
+  s_44a5681d71572d::t_cfe6237b6ee83e 1-71
+.yamllint.yml
+  s_44a5681d71572d::t_7b19d308e48185 9-11
+.github/workflows/labels.yml
+  s_44a5681d71572d::t_aaed9eab3cd50b 1-27
+.github/workflows/labeler.yml
+  s_44a5681d71572d::t_f1502f4943ffde 1-30
+.github/workflows/ci.yml
+  s_44a5681d71572d::t_e634a095cb7ccb 163
+  s_44a5681d71572d::t_3fa3a85fa77ea3 1-154,156-162,164-172
+  s_44a5681d71572d::t_0a9bc35a454a0d 155
+docs/cicd-migration.md
+  s_44a5681d71572d::t_e0751c31c44a7b 1-185
+.github/workflows/auto-bump.yml
+  s_44a5681d71572d::t_cce3b95d065187 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "a7db0a3737c15173c608c225b095acbf3fd894d8",
+  "prompts": {},
+  "sessions": {
+    "s_44a5681d71572d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55f90437-5430-45ba-8b47-8eed2c547f4d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
