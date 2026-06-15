@@ -1,0 +1,42 @@
+docs/cicd-migration.md
+  s_44a5681d71572d::t_1985dcf908e83e 216-222
+  s_44a5681d71572d::t_e0751c31c44a7b 1-26,28,30-67,101-164,183-215
+  s_44a5681d71572d::t_cac8f57f75283d 68-100
+  s_44a5681d71572d::t_a9cdeddd330cc2 27,29
+  s_44a5681d71572d::t_388b441b7a82ad 165-182
+.github/workflows/auto-bump.yml
+  s_44a5681d71572d::t_cce3b95d065187 3,5-13,18-23,26-38
+.github/workflows/sync-docs.yml
+  s_44a5681d71572d::t_979c8aa2a42089 2,4-15,17-22,24-26,28-48,50-51,54-62,64-65,68,70,72,74,77-85
+.github/workflows/ci.yml
+  s_44a5681d71572d::t_0a9bc35a454a0d 155
+  s_44a5681d71572d::t_3fa3a85fa77ea3 3-8,10-21,24,29-55,57-86,88-107,109-123,125-131,133-144,146-147,150-154,156-162,168,170-172
+  s_44a5681d71572d::t_e634a095cb7ccb 163
+.github/workflows/release.yml
+  s_44a5681d71572d::t_ac4246ab08f931 5-6,8-18,20-28,31-32,37,41,44,46,48-49,51-52,54-55,57,59-60,62-66,69-71,74,78,81-85
+  s_44a5681d71572d::t_aaadc918145262 67-68
+  s_44a5681d71572d::t_cfe6237b6ee83e 3,7,19,29,34-36,38,40,43,73,75-77,79,86-90
+  s_44a5681d71572d::t_f8f766143a7ec4 61
+.github/workflows/labeler.yml
+  s_44a5681d71572d::t_f1502f4943ffde 3,5-12,14-18,20,23-25,27,29-30
+.yamllint.yml
+  s_44a5681d71572d::t_7b19d308e48185 9-11
+.github/workflows/labels.yml
+  s_44a5681d71572d::t_aaed9eab3cd50b 3,5-11,15,20,22-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "2b17158b77b7464ffb71d8ddf3e7b9ab8ab2501d",
+  "prompts": {},
+  "sessions": {
+    "s_44a5681d71572d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55f90437-5430-45ba-8b47-8eed2c547f4d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}
