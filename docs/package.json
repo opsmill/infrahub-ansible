@@ -30,6 +30,25 @@
     "@docusaurus/types": "3.10.0",
     "typescript": "~5.5.2"
   },
+  "overrides": {
+    "@babel/core": "7.29.6",
+    "@babel/plugin-transform-modules-systemjs": "7.29.4",
+    "fast-uri": "3.1.2",
+    "follow-redirects": "1.16.0",
+    "joi": "17.13.4",
+    "js-yaml@>=4.0.0 <4.2.0": "4.2.0",
+    "launch-editor": "2.14.1",
+    "lodash": "4.18.1",
+    "postcss": "8.5.10",
+    "qs": "6.15.2",
+    "serialize-javascript": "7.0.5",
+    "shell-quote": "1.8.4",
+    "uuid": "11.1.1",
+    "webpack": "5.104.1",
+    "webpack-dev-server": "5.2.5",
+    "ws@>=8.0.0 <8.21.0": "8.21.0",
+    "ws@>=7.0.0 <7.5.11": "7.5.11"
+  },
   "browserslist": {
     "production": [
       ">0.5%",
