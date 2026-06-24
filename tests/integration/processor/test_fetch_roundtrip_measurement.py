@@ -103,7 +103,7 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         return result, sum(trackers.values())
 
     def test_depth1_many_animals(self, infrahub_port, seeded):
-        result, _ = self._measure(
+        result, _count = self._measure(
             infrahub_port, "S3 depth1 animals.name", {TESTING_PERSON: {"include": ["name", "animals.name"]}}
         )
         assert result and len(result) == seeded["people"]
@@ -115,7 +115,7 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         assert all(a.get("name") for a in animals)
 
     def test_depth1_many_tags(self, infrahub_port, seeded):
-        result, _ = self._measure(
+        result, _count = self._measure(
             infrahub_port, "S3 depth1 tags.name", {TESTING_PERSON: {"include": ["name", "tags.name"]}}
         )
         assert result and len(result) == seeded["people"]
@@ -125,7 +125,7 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         assert all(t.get("name") for t in tags)
 
     def test_depth2_nested(self, infrahub_port, seeded):
-        result, _ = self._measure(
+        result, _count = self._measure(
             infrahub_port, "S2 depth2 animals.owner.name", {TESTING_PERSON: {"include": ["name", "animals.owner.name"]}}
         )
         assert result and len(result) == seeded["people"]
@@ -137,7 +137,7 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         assert all(a.get("owner", {}).get("name") for a in animals)
 
     def test_combined(self, infrahub_port, seeded):
-        result, _ = self._measure(
+        result, _count = self._measure(
             infrahub_port,
             "combined animals.name+tags.name+animals.owner.name",
             {TESTING_PERSON: {"include": ["name", "animals.name", "tags.name", "animals.owner.name"]}},
@@ -146,7 +146,7 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
 
     def test_inherited_attr_cats(self, infrahub_port, seeded):
         # `name` is inherited from the Animal generic -> exercises _resolve_schema_attribute.
-        result, _ = self._measure(
+        result, _count = self._measure(
             infrahub_port, "S4 inherited cat.name+breed", {TESTING_CAT: {"include": ["name", "breed"]}}
         )
         assert result and len(result) == seeded["cats"]

@@ -47,7 +47,7 @@ def test_each_host_node_resolved_once_across_kinds(mocker):
         "KindA": [FakeNode("KindA", "a1"), FakeNode("KindA", "a2")],
         "KindB": [FakeNode("KindB", "b1"), FakeNode("KindB", "b2")],
     }
-    processor, _ = _make_processor(mocker, nodes_by_kind)
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind)
     mocker.patch.object(processor, "get_related_nodes", return_value=[])
     resolve = mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
 
