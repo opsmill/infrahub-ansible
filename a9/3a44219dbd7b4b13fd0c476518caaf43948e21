@@ -1,0 +1,21 @@
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_7efdc1bfddf5d9::t_7eae0978befd96 50
+tests/integration/processor/test_fetch_roundtrip_measurement.py
+  s_7efdc1bfddf5d9::t_8417438711361f 106,118,128,140,149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "a93a44219dbd7b4b13fd0c476518caaf43948e21",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
