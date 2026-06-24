@@ -1,0 +1,19 @@
+.github/workflows/workflow-ansible-linter-and-tests.yml
+  s_7efdc1bfddf5d9::t_269d557ce567f6 39-65,72-73,80-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "6b8ba50aa69ebdeaf6184cabfcc0bcaab808d60d",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
