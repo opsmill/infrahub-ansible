@@ -1,0 +1,33 @@
+tests/integration/modules/schema.py
+  s_7efdc1bfddf5d9::t_972a71704a88ab 1-45
+tests/integration/modules/playbooks/node_create.yml
+  s_7efdc1bfddf5d9::t_6b9017b0eaf523 1-26
+tests/integration/modules/conftest.py
+  s_7efdc1bfddf5d9::t_9b000f627fe9bc 1-25
+tests/integration/modules/playbooks/schema_load.yml
+  s_7efdc1bfddf5d9::t_951a760fa7c87c 1-47
+tests/integration/modules/test_modules_integration.py
+  s_7efdc1bfddf5d9::t_735a51b6992bc5 44-45
+  s_7efdc1bfddf5d9::t_e263f346a451e7 70
+  s_7efdc1bfddf5d9::t_ff687fa65746c9 1-43,46-69,71-85
+tests/integration/modules/playbooks/branch_lifecycle.yml
+  s_7efdc1bfddf5d9::t_449b43234c6113 1-47
+tests/integration/modules/playbooks/node_lifecycle.yml
+  s_7efdc1bfddf5d9::t_44718c6ddab2eb 1-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "e101680e5e63f58af682254565fa18132ad5652b",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
