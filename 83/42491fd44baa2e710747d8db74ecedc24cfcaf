@@ -1,0 +1,110 @@
+.agents/commands/speckit.plan.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-92
+meta/runtime.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 2
+tests/unit/plugins/inventory/test_inventory_trust.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-56
+plugins/inventory/inventory.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 199-225,306-307,311,317
+.agents/commands/add-module.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-64
+dev/adr/README.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-4
+AGENTS.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 3,5-8,23,26-29,32-35,37,39-43,45,47-49,54-57,75
+plugins/module_utils/infrahub_utils.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 5-6,9,54-67,528,532-592,1293-1295,1341-1343,1345-1347,1562-1566,1570,1732-1733
+README.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 18,21
+tests/unit/plugins/module_utils/test_node.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-667
+plugins/module_utils/node.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 8-15,30-37,43-68,70,74-78,81-89,93-212
+CLAUDE.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1
+.github/workflows/workflow-publish.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 25,52
+.github/workflows/github-labeler.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 18
+.github/workflows/trigger-push-stable.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 18,49
+.agents/commands/fix-bug.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-83
+.agents/commands/speckit.taskstoissues.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-53
+.github/workflows/workflow-linter.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 34,49,66,98,120
+docs/package.json
+  s_7efdc1bfddf5d9::t_baa0e10682e412 33-51,65
+.agents/commands/speckit.constitution.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-84
+.agents/commands/speckit.implement.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-134
+conftest.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-25
+plugins/modules/object_file_fetch.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-181
+tests/unit/conftest.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-2,4-11,14-16,18,20,23-40
+docs/docs/readme.mdx
+  s_7efdc1bfddf5d9::t_baa0e10682e412 5,33-35,39
+tests/unit/plugins/modules/test_object_file_fetch.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-243
+docs/docs/guides/installation.mdx
+  s_7efdc1bfddf5d9::t_baa0e10682e412 20,23
+docs/docs/references/plugins/object_file_fetch_module.mdx
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-70
+.agents/commands/speckit.analyze.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-186
+.github/workflows/workflow-release-drafter.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 28
+docs/docs/references/plugins/node_module.mdx
+  s_7efdc1bfddf5d9::t_baa0e10682e412 22-23,55-56
+.github/file-filters.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 31
+.agents/commands/speckit.checklist.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-294
+.github/workflows/workflow-sync-docs.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 12,17
+CHANGELOG.rst
+  s_7efdc1bfddf5d9::t_baa0e10682e412 7-20
+galaxy.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 13
+tox-ansible.ini
+  s_7efdc1bfddf5d9::t_baa0e10682e412 6,16
+.agents/commands/speckit.clarify.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-182
+.agents/commands/speckit.specify.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-258
+docs/_templates/plugin.mdx.j2
+  s_7efdc1bfddf5d9::t_baa0e10682e412 8,16,33
+tasks/docs.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 3,11-31,253
+.github/workflows/workflow-changelog-and-docs.yml
+  s_7efdc1bfddf5d9::t_baa0e10682e412 13,34-46
+pyproject.toml
+  s_7efdc1bfddf5d9::t_de163edbb51705 200,208,210-211,213,218-219
+  s_7efdc1bfddf5d9::t_baa0e10682e412 3,7,10,27,29,79,87,167,177-179,223,227-229
+.agents/commands/speckit.tasks.md
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-137
+plugins/action/object_file_fetch.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 1-141
+plugins/modules/node.py
+  s_7efdc1bfddf5d9::t_baa0e10682e412 19-20,65-88,122-134,153-154,157-161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "8342491fd44baa2e710747d8db74ecedc24cfcaf",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
