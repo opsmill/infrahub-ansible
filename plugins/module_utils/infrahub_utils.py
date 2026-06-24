@@ -577,13 +577,22 @@ if HAS_INFRAHUBCLIENT:
                     parsed[attr]["has_simple"] = True
             return parsed
 
-        def _resolve_schema_attribute(self, node: InfrahubNodeSync, root_attr: str, node_attr: Any) -> str | None:
-            """Resolve a schema attribute value, handling inherited attributes."""
+        def _resolve_schema_attribute(
+            self, node: InfrahubNodeSync, root_attr: str, node_attr: Any, refetch_cache: dict[str, Any]
+        ) -> str | None:
+            """Resolve a schema attribute value, handling inherited attributes.
+
+            Inherited attributes are not populated in the store, so a falsy value
+            triggers a refetch of the full node. ``refetch_cache`` holds that node for
+            the duration of one ``resolve_node_mapping`` call, so a node with several
+            empty/inherited attributes is refetched once instead of once per attribute.
+            """
             if node_attr.value:
                 return str(node_attr.value)
             # FIXME: If the attribute is inherited, it's not populated properly in store
-            tmp_node = node._client.get(id=node.id, kind=node._schema.kind)
-            tmp_attr = getattr(tmp_node, root_attr, None)
+            if "node" not in refetch_cache:
+                refetch_cache["node"] = node._client.get(id=node.id, kind=node._schema.kind)
+            tmp_attr = getattr(refetch_cache["node"], root_attr, None)
             return str(tmp_attr.value) if tmp_attr.value else tmp_attr.value
 
         def _resolve_many_relationship(
@@ -593,7 +602,10 @@ if HAS_INFRAHUBCLIENT:
             store = self.client.client.store
             peers: list[Any] = []
 
-            if not node_attr.peers:
+            # Fetch only when the relationship has not been loaded yet. Guarding on
+            # `initialized` (not `peers`) avoids re-fetching a relationship that was
+            # already fetched but is genuinely empty (peers == [] in both cases).
+            if not node_attr.initialized:
                 node_attr.fetch()
 
             for peer in node_attr.peers:
@@ -606,13 +618,13 @@ if HAS_INFRAHUBCLIENT:
                     continue
 
                 if has_nested:
-                    peer_data: dict[str, Any] = {"id": related_node.id}
+                    # include_id=True already prepends {"id": related_node.id}, matching
+                    # _resolve_one_relationship — no need to build/merge the dict by hand.
                     nested_result = self.resolve_node_mapping(
-                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=False
+                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
                     )
                     if nested_result:
-                        peer_data.update(nested_result)
-                    peers.append(peer_data)
+                        peers.append(nested_result)
                 else:
                     peers.append(related_node.id)
 
@@ -659,6 +671,9 @@ if HAS_INFRAHUBCLIENT:
             attribute_dict: dict[str, Any] = {}
             node_schema = node._schema
             parsed_attrs = self._parse_attrs(attrs)
+            # Shared across this node's attributes so an inherited-attribute refetch
+            # of the node happens at most once (see _resolve_schema_attribute).
+            refetch_cache: dict[str, Any] = {}
 
             for root_attr, attr_info in parsed_attrs.items():
                 nested_attrs, has_simple, has_nested = (
@@ -679,7 +694,9 @@ if HAS_INFRAHUBCLIENT:
 
                 # Handle schema attributes
                 if root_attr in node_schema.attribute_names and has_simple and not has_nested:
-                    attribute_dict[root_attr] = self._resolve_schema_attribute(node, root_attr, node_attr)
+                    attribute_dict[root_attr] = self._resolve_schema_attribute(
+                        node, root_attr, node_attr, refetch_cache
+                    )
 
                 # Handle relationships
                 elif root_attr in node_schema.relationship_names:
@@ -790,10 +807,16 @@ if HAS_INFRAHUBCLIENT:
                     include = None
                     exclude = None
                     filters = None
+                # The SDK only prefetches a relationship when its top-level field name is in
+                # `include`; a dotted path like "animals.name" doesn't match, so relationship
+                # membership isn't prefetched and each host node costs an extra round-trip to
+                # fetch it. Pass the flattened top-level names so membership comes back in the
+                # main query. `include` (with dotted paths) is still used for resolution below.
+                fetch_include = sorted({attr.split(".", 1)[0] for attr in include}) if include else include
                 try:
                     nodes_from_kind = self.client.fetch_nodes(
                         kind=node_kind,
-                        include=include,
+                        include=fetch_include,
                         exclude=exclude,
                         filters=filters,
                         prefetch_relationships=prefetch_relationships,
@@ -818,6 +841,12 @@ if HAS_INFRAHUBCLIENT:
                 return None
 
             host_node_attributes = {}
+
+            # Phase 1: bulk-prefetch every related (peer) kind into the store, each kind
+            # at most once. Deduping across host kinds avoids re-fetching a peer kind that
+            # several host kinds point at, and pulling all of them before resolution means
+            # every host node below resolves against a fully-populated store.
+            prefetched_related: set[str] = set()
             for node_kind, node_attributes in node_attributes_dict.items():
                 related_kinds = self.get_related_nodes(schema=schema_dict[node_kind], attrs=node_attributes)
                 self._handle_display(
@@ -825,13 +854,19 @@ if HAS_INFRAHUBCLIENT:
                     level="DEBUG",
                 )
                 for related_kind in related_kinds:
+                    if related_kind in prefetched_related:
+                        continue
+                    prefetched_related.add(related_kind)
                     schema_dict[related_kind] = self.client.fetch_single_schema(kind=related_kind)
                     self._handle_display(
                         message=f"Prefetching related nodes for kind '{related_kind}'",
                         level="DEBUG",
                     )
                     try:
-                        self.client.fetch_nodes(kind=related_kind, prefetch_relationships=False, order=order)
+                        # prefetch_relationships=True so the peers' own relationships (depth-2,
+                        # e.g. animals.owner) come back populated, avoiding a per-peer round-trip
+                        # during nested resolution.
+                        self.client.fetch_nodes(kind=related_kind, prefetch_relationships=True, order=order)
                     except Exception as exc:
                         self._handle_display(
                             exception=exc,
@@ -839,19 +874,23 @@ if HAS_INFRAHUBCLIENT:
                             level="WARNING",
                         )
                         continue
-                for host_node in all_nodes:
-                    result = self.resolve_node_mapping(
-                        node=host_node,
-                        attrs=node_attributes_dict[host_node._schema.kind],
-                        schemas=schema_dict,
-                        include_id=include_id,
-                    )
-                    self._handle_display(
-                        message=f"Resolved attributes for node '{get_node_identifier(host_node)}'",
-                        level="DEBUG",
-                    )
-                    if result:
-                        host_node_attributes[str(host_node)] = result
+
+            # Phase 2: resolve each host node exactly once (using its own kind's attributes).
+            # Previously this loop was nested inside the per-kind loop above, so every node
+            # was resolved once per requested kind (N x K) with all the fetches that implies.
+            for host_node in all_nodes:
+                result = self.resolve_node_mapping(
+                    node=host_node,
+                    attrs=node_attributes_dict[host_node._schema.kind],
+                    schemas=schema_dict,
+                    include_id=include_id,
+                )
+                self._handle_display(
+                    message=f"Resolved attributes for node '{get_node_identifier(host_node)}'",
+                    level="DEBUG",
+                )
+                if result:
+                    host_node_attributes[str(host_node)] = result
 
             return host_node_attributes
 

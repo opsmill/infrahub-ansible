@@ -34,14 +34,38 @@ dev = [
     "pytest-pythonpath",
     "ansible-lint>=26.4.0,<27",
     "tox>=4.52.1,<5",
+    "pytest-httpx>=0.30",
+]
+# Integration tests use testcontainers. Kept in a separate group because
+# infrahub-testcontainers -> prefect-client pins cachetools<7, which conflicts
+# with the dev group's tox (cachetools>=7). Install with `uv sync --group integration`.
+integration = [
+    "pytest>=9.0.3,<10",
+    "pytest-mock",
+    "infrahub-testcontainers>=1.7.3",
+]
+
+[tool.uv]
+# dev and integration have incompatible transitive pins (cachetools); resolve them
+# independently so each group locks on its own.
+conflicts = [
+    [{ group = "dev" }, { group = "integration" }],
 ]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# Disable infrahub-testcontainers' performance-test plugin: its startup hook calls
+# psutil.cpu_freq(), which raises on macOS and aborts collection. Harmless when the
+# plugin isn't installed (e.g. the default dev env). The container fixtures come from
+# the base class, not this plugin.
+addopts = ["-p", "no:pytest-infrahub-performance-test"]
 testpaths = [
     "tests"
 ]
 pythonpath = ["."]
+markers = [
+    "integration: requires a live Infrahub via testcontainers (needs docker); see tests/integration/processor",
+]
 
 [tool.mypy]
 pretty = true
@@ -159,6 +183,25 @@ ignore = [
     "F404",   # `from __future__` imports must occur at the beginning of the file
     "UP001",  # `__metaclass__ = type` is implied
     "UP010",  # Unnecessary `__future__` imports
+]
+
+"tests/**/*.py" = [
+    "S101",    # use of `assert` (expected in tests)
+    "S105",    # possible hardcoded password (test credentials)
+    "S106",    # possible hardcoded password passed to argument (test credentials)
+    "ANN001",  # Missing type annotation for function argument
+    "ANN002",  # Missing type annotation for *args
+    "ANN003",  # Missing type annotation for **kwargs
+    "ANN201",  # Missing return type annotation for public function
+    "ANN202",  # Missing return type annotation for private function
+    "ANN204",  # Missing return type annotation for special method (e.g. __init__)
+    "ARG001",  # Unused function argument (pytest fixtures)
+    "ARG005",  # Unused lambda argument (mock side_effects)
+    "PLR2004", # Magic value used in comparison (expected counts in assertions)
+    "INP001",  # implicit namespace package (test packages need no __init__)
+    "TC002",   # move third-party import into type-checking block (not worth it in tests)
+    "E402",    # module-level import not at top (intentional: after importorskip guard)
+    "T201",    # use of print (intentional: integration measurement output)
 ]
 
 "tasks/*.py" = [
