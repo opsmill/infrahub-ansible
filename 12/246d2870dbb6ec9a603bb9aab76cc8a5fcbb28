@@ -1,0 +1,19 @@
+docs/superpowers/specs/2026-06-24-inventory-plugin-test-suite-design.md
+  s_7efdc1bfddf5d9::t_12e7e954d5fa86 1-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "12246d2870dbb6ec9a603bb9aab76cc8a5fcbb28",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
