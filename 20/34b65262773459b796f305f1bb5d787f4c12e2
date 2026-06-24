@@ -1,0 +1,41 @@
+tests/integration/inventory/__init__.py
+  s_7efdc1bfddf5d9::t_e9f2e741a6c337 1-2
+tests/integration/inventory/configs/grouping.yml
+  s_7efdc1bfddf5d9::t_6d44f53a637a06 1-17
+pyproject.toml
+  s_7efdc1bfddf5d9::t_6c500827d4052b 202-204
+tests/integration/inventory/configs/hostnames.yml
+  s_7efdc1bfddf5d9::t_6d44f53a637a06 1-8
+tests/integration/inventory/test_inventory_integration.py
+  s_7efdc1bfddf5d9::t_758abfe4cec5f3 69
+  s_7efdc1bfddf5d9::t_dcba5f764d0519 1-25,31,33-68,70-105
+  s_7efdc1bfddf5d9::t_e9f2e741a6c337 26-30,32
+tests/integration/inventory/configs/nested.yml
+  s_7efdc1bfddf5d9::t_6d44f53a637a06 1-11
+tests/integration/inventory/conftest.py
+  s_7efdc1bfddf5d9::t_e9f2e741a6c337 30
+  s_7efdc1bfddf5d9::t_9c0688bd66dd36 27-29,31-32
+  s_7efdc1bfddf5d9::t_915c22987b1770 1-26
+tests/integration/inventory/schema.py
+  s_7efdc1bfddf5d9::t_107a81eb89024b 1-133
+tests/integration/inventory/configs/basic.yml
+  s_7efdc1bfddf5d9::t_6d44f53a637a06 1-8
+.github/workflows/workflow-integration-testcontainers.yml
+  s_7efdc1bfddf5d9::t_ad98a08e28bf14 76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "2034b65262773459b796f305f1bb5d787f4c12e2",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
