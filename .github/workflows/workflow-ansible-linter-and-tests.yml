@@ -57,19 +57,17 @@ jobs:
       - name: "Run unit tests"
         run: "uv run pytest tests/unit -v"
 
-  # Integration tests: spin up a real Infrahub via testcontainers. Runs after
-  # sanity so we don't pay for the heavy stack when basic checks already fail.
-  # On PRs we run only the correctness tests (the heavy schema-load `measurement`
-  # benchmark is too slow to converge on a standard runner); the full suite runs
-  # on the nightly schedule and manual dispatch.
+  # Integration tests: spin up a real Infrahub via testcontainers. The full stack
+  # (neo4j, rabbitmq, prefect, ...) is too flaky on standard GitHub-hosted runners
+  # to gate pull requests — observed both schema-load convergence timeouts and a
+  # rabbitmq .erlang.cookie permission failure — so this runs on the nightly
+  # schedule and manual dispatch only, never on PRs. PRs are gated by sanity,
+  # ansible-lint and the (reliable) unit-tests job above.
   integration-testcontainers:
     needs: sanity
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     uses: ./.github/workflows/workflow-integration-testcontainers.yml
     secrets: inherit
-    with:
-      pytest_marker: >-
-        ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        && 'integration' || 'integration and not measurement' }}
 
   all_green:
     if: ${{ always() }}
