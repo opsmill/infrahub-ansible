@@ -1,0 +1,26 @@
+---
+# Single create — used by the check-mode test: under --check the module should
+# report changed but must NOT actually create the node (verified via the SDK).
+- name: Node create only
+  gather_facts: false
+  hosts: localhost
+  vars:
+    infrahub_branch: "main"
+    thing_name: "check-widget"
+
+  tasks:
+    - name: Create the thing
+      opsmill.infrahub.node:
+        kind: "TestingThing"
+        branch: "{{ infrahub_branch }}"
+        data:
+          name: "{{ thing_name }}"
+          description: "dry-run"
+        state: present
+      register: r_create
+
+    - name: Assert create reported changed (even in check mode)
+      ansible.builtin.assert:
+        that:
+          - r_create.changed
+        fail_msg: "create should report changed: {{ r_create }}"
