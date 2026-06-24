@@ -10,6 +10,8 @@ docs/_build/*
 **/.ruff_cache
 **/.DS_Store
 .python-version
+**/.pytest_cache
+.pytest_collections/
 
 # https://github.com/ansible/ansible/issues/68499
 # ansible_collections/
