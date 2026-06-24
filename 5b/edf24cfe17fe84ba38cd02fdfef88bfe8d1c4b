@@ -1,0 +1,23 @@
+.github/workflows/trigger-release.yml
+  s_7efdc1bfddf5d9::t_6169f7b1ea508a 18-22
+.gitignore
+  s_7efdc1bfddf5d9::t_8151116917dd26 13-14
+.github/workflows/workflow-integration-testcontainers.yml
+  s_7efdc1bfddf5d9::t_b93383588ace9a 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "5bedf24cfe17fe84ba38cd02fdfef88bfe8d1c4b",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
