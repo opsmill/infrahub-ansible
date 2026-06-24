@@ -28,5 +28,6 @@ markdown_all: &markdown_all
   - "**/*.{md,mdx}"
 
 documentation_all:
+  - *ansible_plugins
   - *doc_files
   - *markdown_all

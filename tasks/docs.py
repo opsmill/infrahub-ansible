@@ -1,11 +1,33 @@
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Any, NamedTuple
 
 import yaml
 from invoke import Context, task
+
+# Splits text on Markdown inline code spans (single backticks) so MDX-escaping
+# only runs on prose, not on code spans where `{var}` is already safe.
+_CODE_SPAN_RE = re.compile(r"(`[^`]+`)")
+
+
+def mdx_safe(value: object) -> str:
+    """Render a docstring description as MDX-safe text.
+
+    Joins list-style descriptions into one line and escapes JSX-reserved braces
+    that appear outside Markdown code spans, preventing MDX from interpreting
+    placeholders like ``{var}`` as JSX expressions referencing undefined names.
+    """
+    if value is None:
+        return ""
+    text = " ".join(str(item) for item in value) if isinstance(value, list) else str(value)
+    parts = _CODE_SPAN_RE.split(text)
+    return "".join(
+        part if index % 2 == 1 else part.replace("{", r"\{").replace("}", r"\}") for index, part in enumerate(parts)
+    )
+
 
 MAIN_DIRECTORY = "."
 NAMESPACE = "INFRAHUB-ANSIBLE-DOCS"
@@ -228,6 +250,7 @@ def generate_docs(context: Context, debug: bool = False, plugin_type: str | None
         trim_blocks=False,
         lstrip_blocks=True,
     )
+    environment.filters["mdx_safe"] = mdx_safe
 
     plugin_template = environment.from_string((template_dir / "plugin.mdx.j2").read_text())
     readme_template = environment.from_string((template_dir / "readme.mdx.j2").read_text())

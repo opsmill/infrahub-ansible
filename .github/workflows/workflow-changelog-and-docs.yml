@@ -10,7 +10,7 @@ jobs:
     runs-on: "ubuntu-22.04"
     name: "Create Docs"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           fetch-depth: 0
@@ -30,6 +30,20 @@ jobs:
 
       - name: "Generate Docs"
         run: "uv run invoke generate-doc"
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: docs/package-lock.json
+
+      - name: "Install Node dependencies"
+        run: npm install
+        working-directory: ./docs
+
+      - name: "Build documentation"
+        run: "uv run invoke docusaurus"
 
       - name: commit docs
         uses: github-actions-x/commit@v2.9
