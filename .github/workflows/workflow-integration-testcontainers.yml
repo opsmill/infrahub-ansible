@@ -73,4 +73,4 @@ jobs:
       - name: "Run processor integration tests"
         run: >-
           uv run --no-default-groups --group integration pytest
-          tests/integration/processor -m "${{ inputs.pytest_marker || 'integration' }}" -v
+          tests/integration -m "${{ inputs.pytest_marker || 'integration' }}" -v

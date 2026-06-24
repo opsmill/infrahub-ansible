@@ -1,0 +1,11 @@
+---
+plugin: opsmill.infrahub.inventory
+nodes:
+  TestingHost:
+    include:
+      - name
+      - site.name
+      - site.region.name
+compose:
+  region: site.region.name
+  location: site.name
