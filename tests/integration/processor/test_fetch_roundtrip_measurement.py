@@ -30,7 +30,10 @@ from infrahub_sdk.testing.schemas.animal import (
     SchemaAnimal,
 )
 
-pytestmark = pytest.mark.integration
+# `measurement` marks the heavy schema-load + seed benchmark: it gates only the
+# scheduled/dispatch runs, not every PR (the convergence step is too slow for a
+# standard GitHub runner). The lighter correctness test carries the PR gate.
+pytestmark = [pytest.mark.integration, pytest.mark.measurement]
 
 
 def _processor_for(client_sync: InfrahubClientSync) -> iu.InfrahubNodesProcessor:

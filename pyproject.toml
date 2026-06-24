@@ -65,6 +65,7 @@ testpaths = [
 pythonpath = ["."]
 markers = [
     "integration: requires a live Infrahub via testcontainers (needs docker); see tests/integration/processor",
+    "measurement: heavy schema-load round-trip benchmark; scheduled/dispatch only, not on every PR",
 ]
 
 [tool.mypy]

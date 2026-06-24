@@ -14,6 +14,11 @@ on:
         required: false
         default: ""
         type: string
+      pytest_marker:
+        description: "pytest -m marker expression selecting which integration tests to run"
+        required: false
+        default: "integration"
+        type: string
   workflow_dispatch:
     inputs:
       runs-on:
@@ -68,4 +73,4 @@ jobs:
       - name: "Run processor integration tests"
         run: >-
           uv run --no-default-groups --group integration pytest
-          tests/integration/processor -m integration -v
+          tests/integration/processor -m "${{ inputs.pytest_marker || 'integration' }}" -v

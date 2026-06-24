@@ -59,10 +59,17 @@ jobs:
 
   # Integration tests: spin up a real Infrahub via testcontainers. Runs after
   # sanity so we don't pay for the heavy stack when basic checks already fail.
+  # On PRs we run only the correctness tests (the heavy schema-load `measurement`
+  # benchmark is too slow to converge on a standard runner); the full suite runs
+  # on the nightly schedule and manual dispatch.
   integration-testcontainers:
     needs: sanity
     uses: ./.github/workflows/workflow-integration-testcontainers.yml
     secrets: inherit
+    with:
+      pytest_marker: >-
+        ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        && 'integration' || 'integration and not measurement' }}
 
   all_green:
     if: ${{ always() }}
