@@ -1,0 +1,26 @@
+tests/unit/plugins/inventory/conftest.py
+  s_7efdc1bfddf5d9::t_e68927e9f03b4d 1-27
+  s_7efdc1bfddf5d9::t_60960d77d9f07d 28-30,32-33
+  s_7efdc1bfddf5d9::t_24143ce4014480 31
+tests/unit/plugins/inventory/test_inventory_population.py
+  s_7efdc1bfddf5d9::t_9a2c24e96e7b9f 122-148
+  s_7efdc1bfddf5d9::t_378bdf59b1ab20 25
+  s_7efdc1bfddf5d9::t_5eb20df03b89a9 1-17,20-24,26-121
+  s_7efdc1bfddf5d9::t_4fd370debaca4f 18-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "82cc5ecc364bad5b8c7c19d9fdfc1fe79eb5f818",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
