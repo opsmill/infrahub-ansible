@@ -1,0 +1,56 @@
+tests/unit/plugins/module_utils/test_inherited_attribute_refetch.py
+  s_7efdc1bfddf5d9::t_242d9f234b9ae3 1-52
+tests/integration/processor/conftest.py
+  s_7efdc1bfddf5d9::t_f4d7614ec69095 1-16
+tests/integration/processor/test_fetch_roundtrip_measurement.py
+  s_7efdc1bfddf5d9::t_a0d542c6f609a2 110-115,122-125,132-137
+  s_7efdc1bfddf5d9::t_d62e5c71a1296c 1-23,28-92,101-104,106,108-109,116,118,120-121,126,128,130-131,138,140,142-146,148-149,151-155
+  s_7efdc1bfddf5d9::t_e68083a56b98e8 25
+  s_7efdc1bfddf5d9::t_16a8b3c47588dc 24,26-27
+  s_7efdc1bfddf5d9::t_3a8ea90c922534 93-100,105,107,117,119,127,129,139,141,147,150
+plugins/module_utils/infrahub_utils.py
+  s_7efdc1bfddf5d9::t_01ac01ef996566 810-815,819
+  s_7efdc1bfddf5d9::t_e44c3228ee27f2 580-589,593-595
+  s_7efdc1bfddf5d9::t_96a28f6ebb3867 866-869
+  s_7efdc1bfddf5d9::t_4550fff8ebca67 674-676
+  s_7efdc1bfddf5d9::t_97f67d2705fcd5 844-849,857-859,877-893
+  s_7efdc1bfddf5d9::t_44d1c261748860 605-608
+  s_7efdc1bfddf5d9::t_7edd3836763e5d 697-699
+  s_7efdc1bfddf5d9::t_4f818fec0102d7 621-622,624,627
+pyproject.toml
+  s_7efdc1bfddf5d9::t_399407e6526726 37
+  s_7efdc1bfddf5d9::t_02f9c3c616a88b 197
+  s_7efdc1bfddf5d9::t_5c0277dfa8f3a6 38,188-192,195-196,198-201,205-206
+  s_7efdc1bfddf5d9::t_cd4ccc64555351 204
+  s_7efdc1bfddf5d9::t_414589ab415205 57-61
+  s_7efdc1bfddf5d9::t_3e23b70fc6f673 193-194
+  s_7efdc1bfddf5d9::t_aad9ca3a3259fe 202-203
+  s_7efdc1bfddf5d9::t_0a7d9f610960f4 39-52,66-68
+tests/integration/processor/test_fetch_and_process_integration.py
+  s_7efdc1bfddf5d9::t_c406dbd5a2838c 1-24,28-56
+  s_7efdc1bfddf5d9::t_4e63329850c4c1 25-27
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_7efdc1bfddf5d9::t_f806e24aa5af22 1-72,74-75
+  s_7efdc1bfddf5d9::t_acaf52af2f691a 73
+tests/unit/conftest.py
+  s_7efdc1bfddf5d9::t_957919dc91bf5e 1-18
+tests/unit/plugins/module_utils/test_graphql_roundtrip_benchmark.py
+  s_7efdc1bfddf5d9::t_071a64dbb6346f 1-15,17-88
+  s_7efdc1bfddf5d9::t_44e983d25363e6 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "9d70911dc852e5b25ab63708bfaea2876310990a",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
