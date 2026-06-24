@@ -1,0 +1,26 @@
+.github/workflows/workflow-integration-testcontainers.yml
+  s_7efdc1bfddf5d9::t_4b8f83f73283e4 17-21
+  s_7efdc1bfddf5d9::t_3c2a630d617497 76
+.github/workflows/workflow-ansible-linter-and-tests.yml
+  s_7efdc1bfddf5d9::t_43d957cdf0baac 62-64,69-72
+pyproject.toml
+  s_7efdc1bfddf5d9::t_0cf8e35fac2438 68
+tests/integration/processor/test_fetch_roundtrip_measurement.py
+  s_7efdc1bfddf5d9::t_f852b43b12a5f0 33-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "9915c23aea38b02c2a348d8e4adfa5aa0c41515b",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
