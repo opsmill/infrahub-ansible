@@ -39,9 +39,10 @@
         schemas: "{{ test_schema }}"
       register: r_load
 
-    - name: Assert load applied the schema
+    - name: Assert load applied the schema (changed)
       ansible.builtin.assert:
         that:
+          - r_load.changed is true
           - r_load.msg is defined
           - r_load.hash is defined
-        fail_msg: "schema load failed: {{ r_load }}"
+        fail_msg: "schema load should have applied a new schema (changed): {{ r_load }}"

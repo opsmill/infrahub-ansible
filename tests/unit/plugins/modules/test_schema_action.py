@@ -42,14 +42,14 @@ def test_loads_and_flattens_nodes_and_generics(tmp_path):
 
 
 def test_missing_file_raises_ansible_error(tmp_path):
-    with pytest.raises(AnsibleError):
+    with pytest.raises(AnsibleError, match="Schema file not found"):
         _action()._load_schema_files([str(tmp_path / "does-not-exist.yml")])
 
 
 def test_invalid_yaml_raises_ansible_error(tmp_path):
     bad = tmp_path / "bad.yml"
     bad.write_text("nodes: [unterminated\n")
-    with pytest.raises(AnsibleError):
+    with pytest.raises(AnsibleError, match="Failed to parse YAML file"):
         _action()._load_schema_files([str(bad)])
 
 
