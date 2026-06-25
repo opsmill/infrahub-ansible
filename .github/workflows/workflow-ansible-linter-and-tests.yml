@@ -35,26 +35,54 @@ jobs:
     uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@v1.1.0
   sanity:
     uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@v1.1.0
-  # unit-galaxy:
-  #   uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
-  # unit-source:
-  #   uses: ansible-network/github_actions/.github/workflows/unit_source.yml@main
-  #   with:
-  #     collection_pre_install: >-
-  #       git+https://github.com/ansible-collections/ansible.utils.git
+
+  # Unit tests: fast, mock-based (pytest-httpx); no external services.
+  unit-tests:
+    name: "Unit tests (pytest)"
+    runs-on: ${{ inputs.runs-on || 'ubuntu-22.04' }}
+    timeout-minutes: 15
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v7"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v6"
+        with:
+          python-version: "3.12"
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v7"
+        with:
+          version: "0.9.18"
+      - name: "Install dev dependencies"
+        run: "uv sync --group dev"
+      - name: "Run unit tests"
+        run: "uv run pytest tests/unit -v"
+
+  # Integration tests: spin up a real Infrahub via testcontainers. The full stack
+  # (neo4j, rabbitmq, prefect, ...) is too flaky on standard GitHub-hosted runners
+  # to gate pull requests — observed both schema-load convergence timeouts and a
+  # rabbitmq .erlang.cookie permission failure — so this runs on the nightly
+  # schedule and manual dispatch only, never on PRs. PRs are gated by sanity,
+  # ansible-lint and the (reliable) unit-tests job above.
+  integration-testcontainers:
+    needs: sanity
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/workflow-integration-testcontainers.yml
+    secrets: inherit
 
   all_green:
     if: ${{ always() }}
     needs:
       - sanity
       - ansible-lint
-      # - unit-galaxy
-      # - unit-source
+      - unit-tests
+      - integration-testcontainers
     runs-on: ubuntu-22.04
     steps:
       - run: >-
           python -c "assert 'failure' not in
           set([
           '${{ needs.sanity.result }}',
-          '${{ needs.ansible-lint.result }}'
+          '${{ needs.ansible-lint.result }}',
+          '${{ needs.unit-tests.result }}',
+          '${{ needs.integration-testcontainers.result }}'
           ])"

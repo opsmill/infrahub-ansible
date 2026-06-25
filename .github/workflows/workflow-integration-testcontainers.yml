@@ -1,0 +1,81 @@
+---
+# yamllint disable rule:truthy
+name: "Run Testcontainers Integration Tests"
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "The OS to run the job on"
+        required: false
+        default: "ubuntu-22.04"
+        type: string
+      infrahub_version:
+        description: "Infrahub image version to test against (empty = infrahub-testcontainers package default)"
+        required: false
+        default: ""
+        type: string
+      pytest_marker:
+        description: "pytest -m marker expression selecting which integration tests to run"
+        required: false
+        default: "integration"
+        type: string
+  workflow_dispatch:
+    inputs:
+      runs-on:
+        description: "The OS to run the job on"
+        required: false
+        default: "ubuntu-22.04"
+        type: string
+      infrahub_version:
+        description: "Infrahub image version to test against (empty = infrahub-testcontainers package default)"
+        required: false
+        default: ""
+        type: string
+      pytest_marker:
+        description: "pytest -m marker expression selecting which integration tests to run"
+        required: false
+        default: "integration"
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-integration
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  integration-testcontainers:
+    name: "Processor integration tests (testcontainers)"
+    runs-on: ${{ inputs.runs-on || 'ubuntu-22.04' }}
+    timeout-minutes: 45
+    env:
+      # Pin the Infrahub image version to validate against a specific (e.g. newly
+      # released) server; empty falls back to the infrahub-testcontainers default.
+      INFRAHUB_TESTING_IMAGE_VER: ${{ inputs.infrahub_version }}
+      # Only used if the Opsmill registry is private; left empty otherwise the
+      # docker login step is skipped (the image pulls anonymously).
+      OPSMILL_REGISTRY_USER: ${{ secrets.OPSMILL_REGISTRY_USER }}
+      OPSMILL_REGISTRY_TOKEN: ${{ secrets.OPSMILL_REGISTRY_TOKEN }}
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v7"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v6"
+        with:
+          python-version: "3.12"
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v7"
+        with:
+          version: "0.9.18"
+      - name: "Log in to Opsmill registry (if credentials are configured)"
+        if: ${{ env.OPSMILL_REGISTRY_TOKEN != '' }}
+        run: >-
+          echo "$OPSMILL_REGISTRY_TOKEN"
+          | docker login registry.opsmill.io -u "$OPSMILL_REGISTRY_USER" --password-stdin
+      - name: "Install integration dependencies"
+        run: "uv sync --no-default-groups --group integration"
+      - name: "Run processor integration tests"
+        run: >-
+          uv run --no-default-groups --group integration pytest
+          tests/integration/processor -m "${{ inputs.pytest_marker || 'integration' }}" -v
