@@ -1,0 +1,21 @@
+tests/unit/plugins/modules/test_schema_action.py
+  s_7efdc1bfddf5d9::t_2f900d889b11c5 45,52
+tests/integration/modules/playbooks/schema_load.yml
+  s_7efdc1bfddf5d9::t_0c711438981306 42,45,48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "aa76600695d7ded8b7a75722816fd218b136182d",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
