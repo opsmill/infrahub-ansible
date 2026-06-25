@@ -1,0 +1,22 @@
+.github/workflows/workflow-integration-testcontainers.yml
+  s_7efdc1bfddf5d9::t_e8e6fae2c61ec1 49
+  s_7efdc1bfddf5d9::t_c3474164dde3b2 78
+tests/unit/plugins/inventory/conftest.py
+  s_7efdc1bfddf5d9::t_7c1c39bfccbd75 6-17,25,28-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "e1c66e5e4d68c6ea34465f964e1f27c98d7dd03c",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
