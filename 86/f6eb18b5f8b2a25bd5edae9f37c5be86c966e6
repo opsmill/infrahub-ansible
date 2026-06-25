@@ -1,0 +1,19 @@
+.github/workflows/workflow-integration-testcontainers.yml
+  s_7efdc1bfddf5d9::t_585e3d27d5ade3 34-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "86f6eb18b5f8b2a25bd5edae9f37c5be86c966e6",
+  "prompts": {},
+  "sessions": {
+    "s_7efdc1bfddf5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f7f6e78-5db6-4d18-96fb-db4ca6484bc8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <benoit+claude@opsmill.com>"
+    }
+  }
+}
