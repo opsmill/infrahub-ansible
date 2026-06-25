@@ -1,0 +1,48 @@
+---
+# Self-asserting schema module: check (valid, no change) then load (applied).
+# Loads onto the branch given by `infrahub_branch`.
+- name: Schema module check + load
+  gather_facts: false
+  hosts: localhost
+  vars:
+    infrahub_branch: "main"
+    test_schema:
+      - version: "1.0"
+        nodes:
+          - namespace: "Testing"
+            name: "Gadget"
+            label: "Gadget"
+            attributes:
+              - name: "name"
+                kind: "Text"
+                unique: true
+
+  tasks:
+    - name: Check the schema (no apply)
+      opsmill.infrahub.schema:
+        action: check
+        branch: "{{ infrahub_branch }}"
+        schemas: "{{ test_schema }}"
+      register: r_check
+
+    - name: Assert check is valid and not changed
+      ansible.builtin.assert:
+        that:
+          - r_check.valid is true
+          - r_check.changed is false
+        fail_msg: "schema check failed: {{ r_check }}"
+
+    - name: Load the schema
+      opsmill.infrahub.schema:
+        action: load
+        branch: "{{ infrahub_branch }}"
+        schemas: "{{ test_schema }}"
+      register: r_load
+
+    - name: Assert load applied the schema (changed)
+      ansible.builtin.assert:
+        that:
+          - r_load.changed is true
+          - r_load.msg is defined
+          - r_load.hash is defined
+        fail_msg: "schema load should have applied a new schema (changed): {{ r_load }}"

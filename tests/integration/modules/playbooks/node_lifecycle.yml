@@ -1,0 +1,89 @@
+---
+# Self-asserting node lifecycle: create -> idempotent re-create -> update ->
+# delete -> idempotent re-delete. Runs against the branch given by `infrahub_branch`.
+# api_endpoint/token come from INFRAHUB_ADDRESS / INFRAHUB_API_TOKEN in the env.
+- name: Node module lifecycle
+  gather_facts: false
+  hosts: localhost
+  vars:
+    infrahub_branch: "main"
+    thing_name: "widget-1"
+
+  tasks:
+    - name: Create the thing
+      opsmill.infrahub.node:
+        kind: "TestingThing"
+        branch: "{{ infrahub_branch }}"
+        data:
+          name: "{{ thing_name }}"
+          description: "first"
+        state: present
+      register: r_create
+
+    - name: Assert create reported changed
+      ansible.builtin.assert:
+        that:
+          - r_create.changed
+        fail_msg: "create should be changed: {{ r_create }}"
+
+    - name: Create the thing again (no change expected)
+      opsmill.infrahub.node:
+        kind: "TestingThing"
+        branch: "{{ infrahub_branch }}"
+        data:
+          name: "{{ thing_name }}"
+          description: "first"
+        state: present
+      register: r_recreate
+
+    - name: Assert re-create is idempotent
+      ansible.builtin.assert:
+        that:
+          - not r_recreate.changed
+        fail_msg: "re-create should be idempotent: {{ r_recreate }}"
+
+    - name: Update the description
+      opsmill.infrahub.node:
+        kind: "TestingThing"
+        branch: "{{ infrahub_branch }}"
+        data:
+          name: "{{ thing_name }}"
+          description: "second"
+        state: present
+      register: r_update
+
+    - name: Assert update reported changed
+      ansible.builtin.assert:
+        that:
+          - r_update.changed
+        fail_msg: "update should be changed: {{ r_update }}"
+
+    - name: Delete the thing
+      opsmill.infrahub.node:
+        kind: "TestingThing"
+        branch: "{{ infrahub_branch }}"
+        data:
+          name: "{{ thing_name }}"
+        state: absent
+      register: r_delete
+
+    - name: Assert delete reported changed
+      ansible.builtin.assert:
+        that:
+          - r_delete.changed
+        fail_msg: "delete should be changed: {{ r_delete }}"
+
+    - name: Delete the thing again (already absent)
+      opsmill.infrahub.node:
+        kind: "TestingThing"
+        branch: "{{ infrahub_branch }}"
+        data:
+          name: "{{ thing_name }}"
+        state: absent
+      register: r_redelete
+
+    - name: Assert re-delete is idempotent
+      ansible.builtin.assert:
+        that:
+          - not r_redelete.changed
+        fail_msg: "re-delete should be idempotent: {{ r_redelete }}"

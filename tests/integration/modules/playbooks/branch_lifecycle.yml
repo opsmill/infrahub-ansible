@@ -1,0 +1,47 @@
+---
+# Self-asserting branch lifecycle: create -> idempotent re-create -> delete.
+# The branch name is provided via `mod_branch_name`.
+- name: Branch module lifecycle
+  gather_facts: false
+  hosts: localhost
+  vars:
+    mod_branch_name: "ansible-module-test-branch"
+
+  tasks:
+    - name: Create the branch
+      opsmill.infrahub.branch:
+        name: "{{ mod_branch_name }}"
+        description: "created by the branch module integration test"
+        sync_with_git: false
+        state: present
+      register: r_create
+
+    - name: Assert create reported changed
+      ansible.builtin.assert:
+        that:
+          - r_create.changed
+        fail_msg: "branch create should be changed: {{ r_create }}"
+
+    - name: Create the branch again (already exists)
+      opsmill.infrahub.branch:
+        name: "{{ mod_branch_name }}"
+        state: present
+      register: r_recreate
+
+    - name: Assert re-create is idempotent
+      ansible.builtin.assert:
+        that:
+          - not r_recreate.changed
+        fail_msg: "branch re-create should be idempotent: {{ r_recreate }}"
+
+    - name: Delete the branch
+      opsmill.infrahub.branch:
+        name: "{{ mod_branch_name }}"
+        state: absent
+      register: r_delete
+
+    - name: Assert delete reported changed
+      ansible.builtin.assert:
+        that:
+          - r_delete.changed
+        fail_msg: "branch delete should be changed: {{ r_delete }}"
