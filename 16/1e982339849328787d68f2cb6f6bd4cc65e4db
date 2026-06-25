@@ -1,0 +1,23 @@
+tests/integration/inventory/test_inventory_integration.py
+  s_ce016983b0ee29::t_d066c2cc032c50 80
+  s_ce016983b0ee29::t_b44eba2b98e5b6 86
+tests/integration/inventory/schema.py
+  s_ce016983b0ee29::t_0867206be3c596 104
+  s_ce016983b0ee29::t_58cefd26f07059 119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "161e982339849328787d68f2cb6f6bd4cc65e4db",
+  "prompts": {},
+  "sessions": {
+    "s_ce016983b0ee29": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ef234637-6029-4083-b6c6-5a6f3954c653",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
