@@ -101,7 +101,7 @@ def seed_dataset(client: InfrahubClientSync) -> dict:
     sites: dict[str, object] = {}
     tags: dict[str, object] = {}
 
-    for _, _, _, site_name, region_name, _, host_tags in HOSTS:
+    for _name, _role, _platform, site_name, region_name, _address, host_tags in HOSTS:
         if region_name not in regions:
             node = client.create(kind=REGION, name=region_name)
             node.save()
@@ -116,7 +116,7 @@ def seed_dataset(client: InfrahubClientSync) -> dict:
                 node.save()
                 tags[tag_name] = node
 
-    for name, role, platform, site_name, _, address, host_tags in HOSTS:
+    for name, role, platform, site_name, _region_name, address, host_tags in HOSTS:
         addr = client.create(kind=ADDRESS, address=address)
         addr.save()
         host = client.create(
