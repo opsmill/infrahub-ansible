@@ -77,13 +77,13 @@ class TestInventoryIntegration(TestInfrahubDockerClient):
         return _parse_cli_inventory(result.stdout)
 
     def test_cli_basic_lists_all_hosts(self, infrahub_port, dataset):
-        hosts, _, hostvars = self._run_cli(infrahub_port, "basic.yml")
+        hosts, _groups, hostvars = self._run_cli(infrahub_port, "basic.yml")
         assert hosts == ALL_HOSTS
         assert hostvars["host-a"]["role"] == "edge"
         assert hostvars["host-d"]["platform"] == "nxos"
 
     def test_cli_grouping(self, infrahub_port, dataset):
-        hosts, groups, _ = self._run_cli(infrahub_port, "grouping.yml")
+        hosts, groups, _hostvars = self._run_cli(infrahub_port, "grouping.yml")
         assert hosts == ALL_HOSTS
         assert groups["site_paris"] == {"host-a", "host-b"}
         assert groups["site_denver"] == {"host-c", "host-d"}
