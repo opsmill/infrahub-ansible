@@ -1,3 +1,23 @@
+<!--
+Sync Impact Report
+===================
+Version change: 1.0.0 → 1.1.0 (MINOR: new Boundaries/Never section + doc-accuracy guardrail added; no principle redefinitions or removals)
+Modified principles: None (Principles I–V kept verbatim)
+Staleness fixes (reconciled against AGENTS.md Tech Stack table):
+  - Dependency manager corrected to uv (was a pre-uv tool reference)
+  - Ansible requirement aligned to ansible-core >=2.17.7rc1 (Python 3.10+),
+    replacing the earlier dual pre-2.17 / 2.17 phrasing
+Added sections:
+  - Boundaries / Never (constitutional non-negotiables, mirrors AGENTS.md Boundaries)
+  - Documentation Accuracy guardrail folded into Principle V (generate-doc; no hand-edited MDX)
+Removed sections: None
+Templates requiring updates:
+  - .specify/templates/plan-template.md — ✅ compatible (Constitution Check derives gates at plan time)
+  - .specify/templates/spec-template.md — ✅ compatible
+  - .specify/templates/tasks-template.md — ✅ compatible
+Follow-up TODOs: None
+-->
+
 # opsmill.infrahub Ansible Collection Constitution
 
 ## Core Principles
@@ -53,16 +73,17 @@ Three test tiers ensure collection quality:
 - **Integration tests**: Ansible playbooks in `tests/integration/targets/<name>/tasks/main.yml` exercising the full module-to-API path against a running Infrahub instance
 - **Docker pipeline**: All tests run in Docker via `docker-compose.yml` with multi-stage builds (base, sanity, unittests, integration)
 - **CI**: Linter + sanity + unit tests run on every PR to `develop`
+- **Documentation accuracy**: Any change to a module docstring (`DOCUMENTATION`, `EXAMPLES`, `RETURN`) MUST be followed by `invoke generate-doc` in the same change. The generated plugin reference (`docs/docs/references/plugins/*.mdx`, `docs/docs/readme.mdx`) is regenerated, never hand-edited; edit the source docstrings or the `docs/_templates/` Jinja2 templates instead
 
 ## Constraints and Requirements
 
 - **Python**: >=3.10, <3.14
-- **Ansible**: ansible-core >=2.15 (Python >=3.9), ansible-core >=2.17 (Python >=3.10)
+- **Ansible**: ansible-core >=2.17.7rc1 (Python 3.10+)
 - **infrahub-sdk**: >=1.5, <2.0 (with `[all]` extras for sync support)
 - **License**: GPLv3 — copyright header required on every Python file
 - **Linting**: Ruff with `select = ["ALL"]`, line-length 120 (hard limit 150), double quotes, spaces, preview mode enabled
 - **Additional linters**: yamllint, ansible-lint, markdownlint, Vale
-- **Dependencies**: Managed via Poetry (`pyproject.toml`)
+- **Dependencies**: Managed via uv (`pyproject.toml`)
 
 ## Development Workflow
 
@@ -73,6 +94,21 @@ Three test tiers ensure collection quality:
 - **Docker pipeline**: `docker-compose.yml` orchestrates all test execution
 - **Module creation**: Follow `dev/guides/creating-a-module.md` — stub, action/module_utils, tests, docs, changelog
 
+## Boundaries
+
+### Never
+
+These are constitutional non-negotiables (they mirror, and are binding over, the AGENTS.md Boundaries):
+
+- Never call `InfrahubClientSync` or `InfrahubclientWrapper` directly from a module or action plugin, bypassing the `InfrahubModule`/`ActionBase` base classes
+- Never use the async SDK (`InfrahubClient`) — this collection is synchronous only
+- Never remove `__metaclass__ = type` or the `from __future__ import` boilerplate from a plugin file — it breaks `ansible-test sanity`
+- Never skip the conditional `HAS_INFRAHUBCLIENT` import guard in any plugin
+- Never hardcode credentials — always provide environment-variable fallbacks (`INFRAHUB_ADDRESS`, `INFRAHUB_API_TOKEN`) and mark token parameters `no_log=True`
+- Never hand-edit generated documentation (`docs/docs/references/plugins/*.mdx`, `docs/docs/readme.mdx`) — regenerate with `invoke generate-doc`
+- Never commit secrets, API keys, or credentials to the repository
+- Never force-push to `stable` or `develop`
+
 ## Governance
 
 - This constitution supersedes ad-hoc decisions. All PRs must verify compliance with these principles
@@ -80,4 +116,4 @@ Three test tiers ensure collection quality:
 - Use `dev/guides/creating-a-module.md` as the runtime development guide for new modules
 - Complexity beyond these established patterns must be justified with documented rationale
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-25 | **Last Amended**: 2026-02-25
+**Version**: 1.1.0 | **Ratified**: 2026-02-25 | **Last Amended**: 2026-06-29
