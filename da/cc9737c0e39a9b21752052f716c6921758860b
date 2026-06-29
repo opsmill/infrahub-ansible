@@ -1,0 +1,31 @@
+.agents/commands/rebase.md
+  s_31700b6854edc7::t_7877d14a746d7f 1-12
+.agents/commands/monitoring-pull-requests.md
+  s_31700b6854edc7::t_4072b4b5f0a6e0 1-12
+.agents/commands/grilling-ideas.md
+  s_31700b6854edc7::t_4bfae2ecc3f5a2 1-12
+.agents/commands/creating-issues.md
+  s_31700b6854edc7::t_27b24f014e3b40 1-12
+.agents/commands/creating-prd.md
+  s_31700b6854edc7::t_ca8d04d9b7662a 1-12
+.agents/commands/pr.md
+  s_31700b6854edc7::t_b9a30d9fa8b069 1-12
+.agents/commands/commit.md
+  s_31700b6854edc7::t_17ff363779b7a5 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "dacc9737c0e39a9b21752052f716c6921758860b",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
