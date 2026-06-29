@@ -1,0 +1,33 @@
+dev/knowledge/processors-and-arg-spec.md
+  s_31700b6854edc7::t_ef40cda183ffac 1-102
+dev/README.md
+  s_31700b6854edc7::t_c993c230ee8df5 33
+  s_31700b6854edc7::t_2683596ca84e31 50
+  s_31700b6854edc7::t_6a68f7c1206ef9 57-58
+dev/adr/0005-doc-generation-pipeline.md
+  s_31700b6854edc7::t_be92d7613529a7 1-55
+dev/adr/0004-docker-based-testing.md
+  s_31700b6854edc7::t_0619e0c26814a4 1-57
+dev/guidelines/python.md
+  s_31700b6854edc7::t_bdf9f62848e705 113
+dev/guides/releasing-the-collection.md
+  s_31700b6854edc7::t_1a971e1e90915f 1-80
+dev/guidelines/documentation.md
+  s_31700b6854edc7::t_63b0537440d5ef 150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "f4e8516cc149d34e0f27c2ff0b4caa295f71fab9",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
