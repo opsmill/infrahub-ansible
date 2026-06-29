@@ -6,6 +6,8 @@ ignore:
   - examples
   - tests/**
   - docs/node_modules/**
+  - .specify/**  # vendored spec-kit tooling — own formatting, not collection YAML
+  - .agents/**   # vendored agent skills/commands
 
 rules:
   braces:
