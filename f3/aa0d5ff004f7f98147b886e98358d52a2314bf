@@ -1,0 +1,26 @@
+.claude/hooks/session-start.sh
+  s_31700b6854edc7::t_136bbb05e52bee 1-23
+AGENTS.md
+  s_31700b6854edc7::t_31863c28232120 5-6
+  s_31700b6854edc7::t_79bc18df3b0801 12-32
+.gitignore
+  s_31700b6854edc7::t_a5102c533a17eb 16-20
+.claude/settings.json
+  s_31700b6854edc7::t_5b30e91f104307 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "f3aa0d5ff004f7f98147b886e98358d52a2314bf",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
