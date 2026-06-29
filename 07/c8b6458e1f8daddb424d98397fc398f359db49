@@ -1,0 +1,24 @@
+tests/integration/inventory/test_inventory_integration.py
+  s_31e3d3894462df::t_6db7efbff5df3d 98
+pyproject.toml
+  s_31e3d3894462df::t_6e2c8b5cb3b90f 223-228
+tests/integration/modules/playbooks/branch_lifecycle.yml
+  s_31e3d3894462df::t_907fa93c881c6c 2-3
+  s_31e3d3894462df::t_64fff197b94c64 49-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "07c8b6458e1f8daddb424d98397fc398f359db49",
+  "prompts": {},
+  "sessions": {
+    "s_31e3d3894462df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "400e64e7-abfa-4926-8905-e96e754907da",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
