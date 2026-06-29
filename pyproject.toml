@@ -199,9 +199,6 @@ ignore = [
     "S105",    # possible hardcoded password (test credentials)
     "S106",    # possible hardcoded password passed to argument (test credentials)
     "S108",    # /tmp paths are fine in tests
-    "S404",    # subprocess import (integration tests drive ansible-inventory)
-    "S603",    # subprocess call (args are controlled, not user input)
-    "S607",    # partial executable path (resolved via shutil.which)
     "ANN001",  # Missing type annotation for function argument
     "ANN002",  # Missing type annotation for *args
     "ANN003",  # Missing type annotation for **kwargs
@@ -221,6 +218,12 @@ ignore = [
     "T201",    # use of print (intentional: integration measurement output)
     "UP001",   # `__metaclass__ = type` is implied
     "UP010",   # Unnecessary `__future__` imports
+]
+
+"tests/integration/**/*.py" = [
+    "S404",    # subprocess import (integration tests drive ansible-inventory)
+    "S603",    # subprocess call (args are controlled, not user input)
+    "S607",    # partial executable path (resolved via shutil.which)
 ]
 
 "tasks/*.py" = [

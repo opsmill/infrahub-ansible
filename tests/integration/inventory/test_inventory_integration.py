@@ -95,6 +95,7 @@ class TestInventoryIntegration(TestInfrahubDockerClient):
         # parse() drives the real fetch (depth-2 site.region.name) and composes vars.
         env = {"INFRAHUB_ADDRESS": f"http://localhost:{infrahub_port}", "INFRAHUB_API_TOKEN": ADMIN_TOKEN}
         plugin = inventory_loader.get("opsmill.infrahub.inventory")
+        assert plugin is not None, "inventory plugin opsmill.infrahub.inventory not found"
         with mock.patch.dict(os.environ, env):
             plugin.parse(InventoryData(), DataLoader(), str(CONFIGS / "nested.yml"))
 

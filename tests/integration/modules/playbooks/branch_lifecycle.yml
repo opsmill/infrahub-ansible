@@ -1,5 +1,6 @@
 ---
-# Self-asserting branch lifecycle: create -> idempotent re-create -> delete.
+# Self-asserting branch lifecycle: create -> idempotent re-create -> delete ->
+# idempotent re-delete.
 # The branch name is provided via `mod_branch_name`.
 - name: Branch module lifecycle
   gather_facts: false
@@ -45,3 +46,15 @@
         that:
           - r_delete.changed
         fail_msg: "branch delete should be changed: {{ r_delete }}"
+
+    - name: Delete the branch again (already absent)
+      opsmill.infrahub.branch:
+        name: "{{ mod_branch_name }}"
+        state: absent
+      register: r_redelete
+
+    - name: Assert re-delete is idempotent
+      ansible.builtin.assert:
+        that:
+          - not r_redelete.changed
+        fail_msg: "branch re-delete should be idempotent: {{ r_redelete }}"
