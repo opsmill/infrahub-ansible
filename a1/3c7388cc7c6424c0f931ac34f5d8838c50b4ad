@@ -1,0 +1,21 @@
+.yamllint.yml
+  s_31700b6854edc7::t_d2e510516efce4 9-10
+.ansible-lint
+  s_31700b6854edc7::t_92b35eae2330e5 10-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "a13c7388cc7c6424c0f931ac34f5d8838c50b4ad",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
