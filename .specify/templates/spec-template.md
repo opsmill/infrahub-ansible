@@ -1,8 +1,11 @@
 # Feature Specification: [FEATURE NAME]
 
 **Feature Branch**: `[###-feature-name]`
+
 **Created**: [DATE]
+
 **Status**: Draft
+
 **Input**: User description: "$ARGUMENTS"
 
 ## User Scenarios & Testing *(mandatory)*
@@ -10,16 +13,14 @@
 <!--
   IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
   Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable Minimum Viable Plugin that delivers value.
+  you should still have a viable MVP (Minimum Viable Product) that delivers value.
 
   Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-
-  For Ansible module stories, express acceptance scenarios as playbook task executions
-  with expected outcomes (changed/ok/failed). Example:
-
-  **Given** an Infrahub instance with no BuiltinTag "test-tag",
-  **When** the module runs with `state: present` and `data: {name: "test-tag"}`,
-  **Then** the task reports `changed: true` and the tag exists in Infrahub.
+  Think of each story as a standalone slice of functionality that can be:
+  - Developed independently
+  - Tested independently
+  - Deployed independently
+  - Demonstrated to users independently
 -->
 
 ### User Story 1 - [Brief Title] (Priority: P1)
@@ -28,12 +29,12 @@
 
 **Why this priority**: [Explain the value and why it has this priority level]
 
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
 
 **Acceptance Scenarios**:
 
-1. **Given** [Infrahub state], **When** [module runs with params], **Then** [expected task result: changed/ok/failed + Infrahub state]
-2. **Given** [Infrahub state], **When** [module runs with params], **Then** [expected task result]
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
 ---
 
@@ -47,7 +48,7 @@
 
 **Acceptance Scenarios**:
 
-1. **Given** [Infrahub state], **When** [module runs with params], **Then** [expected task result]
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
 ---
 
@@ -61,7 +62,7 @@
 
 **Acceptance Scenarios**:
 
-1. **Given** [Infrahub state], **When** [module runs with params], **Then** [expected task result]
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
 ---
 
@@ -70,57 +71,61 @@
 ### Edge Cases
 
 <!--
-  Fill out edge cases relevant to this plugin. Consider these common scenarios:
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right edge cases.
 -->
 
-- What happens when `infrahub-sdk` is not installed (`HAS_INFRAHUBCLIENT` is False)?
-- What happens when the Infrahub API is unreachable (`ServerNotReachableError`)?
-- What happens when the specified `kind` does not exist in the Infrahub schema (`SchemaNotFoundError`)?
-- What happens when `check_mode` is enabled — are all API mutations skipped?
-- What happens when the object already exists with identical state (idempotency — `changed: false`)?
-- What happens when credentials are missing (no token, no api_endpoint, no environment variables)?
-- What happens when the specified `branch` does not exist (`BranchNotFoundError`)?
-- What happens when [feature-specific boundary condition]?
+- What happens when [boundary condition]?
+- How does system handle [error scenario]?
 
 ## Requirements *(mandatory)*
 
-### Functional Requirements
-
 <!--
-  Fill out functional requirements specific to this feature.
-  Use RFC 2119 keywords (MUST, SHOULD, MAY).
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right functional requirements.
 -->
 
-- **FR-001**: [Specific capability this plugin MUST provide]
-- **FR-002**: [Specific capability]
-- **FR-003**: [Specific capability]
+### Functional Requirements
 
-*Mark unclear requirements:*
+- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
+- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
+- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
+- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
+- **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
-- **FR-004**: [Capability] [NEEDS CLARIFICATION: details not specified]
+*Example of marking unclear requirements:*
 
-### Plugin Design *(mandatory for new plugins)*
+- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
+- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
-- **Plugin type**: [module | action plugin | inventory plugin | lookup plugin]
-- **Plugin pattern**: [module_utils (stateful CRUD with idempotency) | action plugin (controller-side API calls)]
-- **INFRAHUB_ARG_SPEC extensions**: [List new parameters beyond api_endpoint, token, timeout, branch, validate_certs, state]
-- **Infrahub API interactions**: [Which InfrahubclientWrapper methods will be called — e.g., fetch_single_node, create_node, save_node, delete_node, execute_graphql]
-- **Infrahub node kinds**: [Which schema kinds this plugin operates on — e.g., BuiltinTag, InfraDevice, or user-defined kinds]
-- **Return values**: [What the module returns — structure of the result dict]
+### Key Entities *(include if feature involves data)*
 
-### Non-Functional Requirements
-
-- **NFR-001**: Module MUST be idempotent — running twice with identical params yields `changed: false`
-- **NFR-002**: Module MUST support `check_mode` (no API calls when `module.check_mode` is True)
-- **NFR-003**: Module MUST pass `ansible-test sanity` with zero errors
-- **NFR-004**: [Additional NFRs specific to this feature]
+- **[Entity 1]**: [What it represents, key attributes without implementation]
+- **[Entity 2]**: [What it represents, relationships to other entities]
 
 ## Success Criteria *(mandatory)*
 
+<!--
+  ACTION REQUIRED: Define measurable success criteria.
+  These must be technology-agnostic and measurable.
+-->
+
 ### Measurable Outcomes
 
-- **SC-001**: Plugin passes `ansible-test sanity` with zero errors
-- **SC-002**: Plugin is idempotent across create, update, and no-change scenarios
-- **SC-003**: Plugin correctly supports `check_mode` without making API calls
-- **SC-004**: Unit tests cover all state transitions with mocked SDK (create, update, delete, no-change, error)
-- **SC-005**: [Feature-specific measurable outcome]
+- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
+- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
+- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
+- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+
+## Assumptions
+
+<!--
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right assumptions based on reasonable defaults
+  chosen when the feature description did not specify certain details.
+-->
+
+- [Assumption about target users, e.g., "Users have stable internet connectivity"]
+- [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
+- [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
+- [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]

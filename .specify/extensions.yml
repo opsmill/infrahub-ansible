@@ -1,0 +1,34 @@
+installed:
+- agent-context
+- opsmill
+settings:
+  auto_execute_hooks: true
+hooks:
+  after_specify:
+  - extension: agent-context
+    command: speckit.agent-context.update
+    enabled: true
+    optional: true
+    priority: 10
+    prompt: Execute speckit.agent-context.update?
+    description: Refresh agent context after specification
+    condition: null
+  after_plan:
+  - extension: agent-context
+    command: speckit.agent-context.update
+    enabled: true
+    optional: true
+    priority: 10
+    prompt: Execute speckit.agent-context.update?
+    description: Refresh agent context after planning
+    condition: null
+  after_taskstoissues:
+  - extension: opsmill
+    command: speckit.opsmill.summary
+    enabled: true
+    optional: true
+    priority: 10
+    prompt: Produce a session summary in the feature directory?
+    description: Flow-level timeline next to spec.md/plan.md, capturing the handoff
+      to the issue tracker.
+    condition: null
