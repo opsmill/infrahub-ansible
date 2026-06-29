@@ -110,7 +110,7 @@ ruff check --fix .
 
 - **yamllint** — YAML formatting (config: `.yamllint.yml`)
 - **ansible-lint** — Ansible-specific linting (config: `.ansible-lint`)
-- **markdownlint** — Markdown formatting (config: `.markdownlint.yml`)
+- **markdownlint** — Markdown formatting (config: `.markdownlint.yaml`)
 - **Vale** — Documentation prose style (config: `.vale.ini`)
 
 ## Python Version

@@ -30,6 +30,7 @@ generated from `docs/`.
 - [plugin-patterns.md](knowledge/plugin-patterns.md) — Ansible conventions: boilerplate, docstrings, arg specs, conditional imports, state management
 - [infrahub-sdk-usage.md](knowledge/infrahub-sdk-usage.md) — InfrahubclientWrapper, InfrahubModule, processor classes, sync-only pattern
 - [inventory-and-lookup.md](knowledge/inventory-and-lookup.md) — Dynamic inventory and GraphQL lookup plugins, end to end
+- [processors-and-arg-spec.md](knowledge/processors-and-arg-spec.md) — `INFRAHUB_ARG_SPEC`, the `deepcopy` extension pattern, and the processor class hierarchy
 
 ## Current Guidelines
 
@@ -46,12 +47,15 @@ generated from `docs/`.
 - [running-tests.md](guides/running-tests.md) — Invoke tasks, Docker Compose, pytest, troubleshooting
 - [adding-a-doc-fragment.md](guides/adding-a-doc-fragment.md) — When and how to add a shared doc fragment
 - [debugging-sanity-failures.md](guides/debugging-sanity-failures.md) — Reproduce and fix `ansible-test sanity` failures
+- [releasing-the-collection.md](guides/releasing-the-collection.md) — Cut a release: develop→stable, automated version bump, build, and Galaxy publish
 
 ## Current ADRs
 
 - [0001-two-plugin-patterns.md](adr/0001-two-plugin-patterns.md) — Module-utils vs action plugin patterns
 - [0002-sdk-abstraction-wrapper.md](adr/0002-sdk-abstraction-wrapper.md) — Wrap the SDK behind `InfrahubclientWrapper`
 - [0003-sync-only-sdk.md](adr/0003-sync-only-sdk.md) — Synchronous-only SDK usage
+- [0004-docker-based-testing.md](adr/0004-docker-based-testing.md) — Run all test modes in Docker via a multi-stage image
+- [0005-doc-generation-pipeline.md](adr/0005-doc-generation-pipeline.md) — Generate plugin reference MDX from docstrings
 
 ## Agent Commands
 
