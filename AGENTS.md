@@ -2,10 +2,33 @@
 
 Ansible collection — modules, plugins, and inventory sources for [Infrahub](https://github.com/opsmill/infrahub), an infrastructure data platform.
 
+This file is the portable router: repo-wide facts every agent needs up front. Deeper how-tos, architecture notes, and decision records live under [dev/](dev/) — see Navigation below.
+
 - **Namespace / Collection:** `opsmill.infrahub` · **License:** GPLv3
 - **Repo:** <https://github.com/opsmill/infrahub-ansible> · **Docs:** <https://docs.infrahub.app/ansible/>
 - **Constitution (binding principles):** [.specify/memory/constitution.md](.specify/memory/constitution.md)
 - **Dev docs index:** [dev/README.md](dev/README.md) · **Decision records:** [dev/adr/](dev/adr/)
+
+## Navigation
+
+Internal developer docs are indexed in [dev/README.md](dev/README.md): architecture in [dev/knowledge/](dev/knowledge/) ([architecture](dev/knowledge/architecture.md), [plugin-patterns](dev/knowledge/plugin-patterns.md), [infrahub-sdk-usage](dev/knowledge/infrahub-sdk-usage.md)), how-to guides in [dev/guides/](dev/guides/) ([creating-a-module](dev/guides/creating-a-module.md), [running-tests](dev/guides/running-tests.md)), coding rules in [dev/guidelines/](dev/guidelines/) ([python](dev/guidelines/python.md), [testing](dev/guidelines/testing.md), [documentation](dev/guidelines/documentation.md), [git-workflow](dev/guidelines/git-workflow.md)), decisions in [dev/adr/](dev/adr/), binding principles in [.specify/memory/constitution.md](.specify/memory/constitution.md), and agent commands in [.agents/commands/](.agents/commands/).
+
+## File Structure
+
+```text
+plugins/modules/        Module stubs (DOCUMENTATION + AnsibleModule)
+plugins/action/         Action plugins (controller-side logic)
+plugins/module_utils/   Core shared code (infrahub_utils, node, branch, exception)
+plugins/inventory/      Dynamic inventory plugin
+plugins/lookup/         GraphQL lookup plugin
+plugins/doc_fragments/  Reusable DOCUMENTATION fragments
+tests/                  Unit + integration + sanity tests
+docs/                   Docusaurus site + generated plugin reference
+dev/                    Internal developer docs (knowledge, guides, guidelines, adr)
+.agents/                Portable agent sources (commands, skills)
+.specify/               Spec-kit (constitution, templates, workflows)
+.claude/                Claude Code adapter (settings, symlinked commands)
+```
 
 ## Tech Stack
 
