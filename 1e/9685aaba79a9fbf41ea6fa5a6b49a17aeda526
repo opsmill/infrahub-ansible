@@ -1,0 +1,52 @@
+.agents/skills/commit/SKILL.md
+  s_31700b6854edc7::t_f3b7d38b855417 121-128
+.agents/skills/pr/SKILL.md
+  s_31700b6854edc7::t_f3b7d38b855417 158-159,222-228
+  s_31700b6854edc7::t_fa3766c843fab3 229
+.agents/skills/rebase/SKILL.md
+  s_31700b6854edc7::t_f3b7d38b855417 116-117,126-127,188-195
+  s_31700b6854edc7::t_d566928dc7567f 196
+.agents/skills/quality-gates/DECISION.md
+  s_31700b6854edc7::t_f3b7d38b855417 1-26
+.agents/skills/grilling-ideas/SKILL.md
+  s_31700b6854edc7::t_f3b7d38b855417 217-225
+.agents/skills/quality-gates/gates/gate-model.md
+  s_31700b6854edc7::t_f3b7d38b855417 1-57
+.agents/skills/quality-gates/hooks/ship-gate-check.sh
+  s_31700b6854edc7::t_f3b7d38b855417 1-73
+.agents/skills/quality-gates/gates/primitives/evidence-before-done.md
+  s_31700b6854edc7::t_f3b7d38b855417 1-14
+.agents/skills/quality-gates/SKILL.md
+  s_31700b6854edc7::t_f3b7d38b855417 1-86
+.agents/skills/quality-gates/gates/primitives/independent-judge.md
+  s_31700b6854edc7::t_f3b7d38b855417 1-86
+.agents/skills/monitoring-pull-requests/SKILL.md
+  s_31700b6854edc7::t_f3b7d38b855417 261-262,276-277,396-403
+  s_31700b6854edc7::t_3b61b6d37e7eac 404
+.agents/skills/creating-issues/SKILL.md
+  s_31700b6854edc7::t_f3b7d38b855417 114-122
+skills-lock.json
+  s_31700b6854edc7::t_f3b7d38b855417 40-45
+.agents/skills/quality-gates/gates/_index.md
+  s_31700b6854edc7::t_f3b7d38b855417 1-8
+.agents/skills/quality-gates/evals/evals.json
+  s_31700b6854edc7::t_f3b7d38b855417 1-50
+.agents/skills/quality-gates/gates/primitives/anti-gaming.md
+  s_31700b6854edc7::t_f3b7d38b855417 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "1e9685aaba79a9fbf41ea6fa5a6b49a17aeda526",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
