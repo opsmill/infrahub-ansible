@@ -37,6 +37,12 @@
       "skillPath": "opsmill-dev/skills/pr/SKILL.md",
       "computedHash": "146ab1b524c0c83b1f1df8a339b9e05c91a0addcb5890e1e2bf4b1d2db861fc6"
     },
+    "quality-gates": {
+      "source": "opsmill/opsmill-skills",
+      "sourceType": "github",
+      "skillPath": "opsmill-dev/skills/quality-gates/SKILL.md",
+      "computedHash": "2dee3043a860df4cd964b6ae705cb502be49bdf4f26f7accc7b53b388d211038"
+    },
     "rebase": {
       "source": "opsmill/opsmill-skills",
       "sourceType": "github",
