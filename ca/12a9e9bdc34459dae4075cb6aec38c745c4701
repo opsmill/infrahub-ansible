@@ -1,0 +1,58 @@
+.specify/extensions.yml
+  s_31700b6854edc7::t_c706344ae39d3b 27-43
+  s_31700b6854edc7::t_3a337ff7f9a74b 4-5
+.specify/extensions/.registry
+  s_31700b6854edc7::t_f49d8677907364 91-184
+.agents/commands/speckit.critique.run.md
+  s_1dba82a28dfa05::t_9ef62ffdda5eb2 1-242
+.agents/commands/speckit.review.code.md
+  s_1dba82a28dfa05::t_10437e4661898f 1-60
+.agents/commands/speckit.review.comments.md
+  s_1dba82a28dfa05::t_dfb251619d82bd 1-89
+.agents/commands/speckit.review.errors.md
+  s_1dba82a28dfa05::t_acf758d57896ed 1-147
+.specify/extensions/review/LICENSE
+  s_1dba82a28dfa05::t_d5f4f6855d3d05 1-21
+.specify/extensions/review/README.md
+  s_1dba82a28dfa05::t_d2c47c8ba7e85a 1-185
+.specify/extensions/review/commands/types.md
+  s_1dba82a28dfa05::t_b8f83e725c30ea 1-123
+.specify/extensions/review/config-template.yml
+  s_1dba82a28dfa05::t_ac2da4b9492bdf 1-17
+.specify/extensions/review/extension.yml
+  s_1dba82a28dfa05::t_9d46ae62fcacbe 1-81
+.specify/extensions/review/scripts/bash/detect-changed-files.sh
+  s_1dba82a28dfa05::t_ba540d7b65347d 1-243
+.specify/extensions/review/scripts/powershell/detect-changed-files.ps1
+  s_1dba82a28dfa05::t_8f74398df6ba1b 1-228
+.specify/extensions/review/tests/bats/detect-changed-files.bats
+  s_1dba82a28dfa05::t_80d950ea0d7fbe 1-650
+.specify/extensions/review/tests/bats/test_helper.bash
+  s_1dba82a28dfa05::t_7ffb06016a7528 1-90
+.specify/extensions/review/tests/pester/detect-changed-files.Tests.ps1
+  s_1dba82a28dfa05::t_a90dfb2add4ad5 1-740
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "ca12a9e9bdc34459dae4075cb6aec38c745c4701",
+  "prompts": {},
+  "sessions": {
+    "s_1dba82a28dfa05": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4428d3413287e0ce",
+        "model": "unknown"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    },
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
