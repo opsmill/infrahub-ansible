@@ -1,0 +1,33 @@
+.agents/skills/rebase/SKILL.md
+  s_31700b6854edc7::t_509f9deb71de1c 1-191
+.agents/skills/commit/SKILL.md
+  s_31700b6854edc7::t_509f9deb71de1c 1-164
+.agents/skills/creating-prd/SKILL.md
+  s_31700b6854edc7::t_509f9deb71de1c 1-319
+skills-lock.json
+  s_31700b6854edc7::t_509f9deb71de1c 1-47
+.agents/skills/creating-issues/SKILL.md
+  s_31700b6854edc7::t_509f9deb71de1c 1-119
+.agents/skills/grilling-ideas/SKILL.md
+  s_31700b6854edc7::t_509f9deb71de1c 1-252
+.agents/skills/pr/SKILL.md
+  s_31700b6854edc7::t_509f9deb71de1c 1-228
+.agents/skills/monitoring-pull-requests/SKILL.md
+  s_31700b6854edc7::t_509f9deb71de1c 1-397
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "ba9fd747df865926804d840e0ff77085f4dd6311",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
