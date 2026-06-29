@@ -1,0 +1,37 @@
+dev/guides/adding-a-doc-fragment.md
+  s_31700b6854edc7::t_77cccab289dd95 1-65
+dev/README.md
+  s_31700b6854edc7::t_958b7ffb27a76e 1,3-5,7,9-16,18,20-27,29-32,34,36-37,39-40,43,45,47-54,56,58-59,61-63
+dev/guidelines/module-docstrings.md
+  s_31700b6854edc7::t_1fd5847be61170 1-40
+dev/knowledge/inventory-and-lookup.md
+  s_31700b6854edc7::t_86229bda869db1 1-77
+dev/constitution.md
+  s_31700b6854edc7::t_6859c943f8cf56 1-6
+dev/guidelines/markdown.md
+  s_31700b6854edc7::t_6a829cfe58b25d 1-39
+dev/adr/0001-two-plugin-patterns.md
+  s_31700b6854edc7::t_424edbaf40f8cb 1-54
+dev/adr/0003-sync-only-sdk.md
+  s_31700b6854edc7::t_f98df159b6fbf3 1-44
+dev/guides/debugging-sanity-failures.md
+  s_31700b6854edc7::t_624e0e987d2cdf 1-66
+dev/adr/0002-sdk-abstraction-wrapper.md
+  s_31700b6854edc7::t_22fdd0026bc4d4 1-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "c7ffee4f383596e48193292e03f0bf73a93d366f",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
