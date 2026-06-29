@@ -1,0 +1,25 @@
+.specify/memory/constitution.md
+  s_31700b6854edc7::t_a31e1afc62132e 1-6,10-20
+  s_31700b6854edc7::t_b506933ac7637d 7-9
+  s_31700b6854edc7::t_e7ea25ae14fc25 76
+  s_31700b6854edc7::t_32ef56a840c0c6 81
+  s_31700b6854edc7::t_0c298aa8bd542e 86
+  s_31700b6854edc7::t_9e5da9356ee340 97-111
+  s_31700b6854edc7::t_37d2e253aefc8d 119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "26a6e814d7c45a95f9d7975fd309479cbbf9c141",
+  "prompts": {},
+  "sessions": {
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <bkohler@mbpbenoitkohler.tailc018d.ts.net>"
+    }
+  }
+}
