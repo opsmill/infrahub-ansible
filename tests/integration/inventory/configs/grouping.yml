@@ -1,0 +1,17 @@
+---
+plugin: opsmill.infrahub.inventory
+nodes:
+  TestingHost:
+    include:
+      - name
+      - role
+      - site.name
+      - site.region.name
+      - tags.name
+keyed_groups:
+  - prefix: site
+    key: site.name | lower
+  - prefix: region
+    key: site.region.name | lower
+groups:
+  edge_devices: "role == 'edge'"
