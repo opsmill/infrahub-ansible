@@ -2,6 +2,8 @@
 
 Ansible collection — modules, plugins, and inventory sources for [Infrahub](https://github.com/opsmill/infrahub), an infrastructure data platform.
 
+This file is the portable router: repo-wide facts every agent needs up front. Deeper how-tos, architecture notes, and decision records live under [dev/](dev/) — see Navigation below.
+
 - **Namespace / Collection:** `opsmill.infrahub` · **License:** GPLv3
 - **Repo:** <https://github.com/opsmill/infrahub-ansible> · **Docs:** <https://docs.infrahub.app/ansible/>
 - **Constitution (binding principles):** [.specify/memory/constitution.md](.specify/memory/constitution.md)

@@ -13,5 +13,10 @@ docs/_build/*
 **/.pytest_cache
 .pytest_collections/
 
+# Runtime Claude Code artifacts (never tracked; settings.json and commands are tracked)
+.claude/quality-gates/
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
+
 # https://github.com/ansible/ansible/issues/68499
 # ansible_collections/
