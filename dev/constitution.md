@@ -2,7 +2,7 @@
 Sync Impact Report
 ===================
 Version change: 1.0.0 → 1.1.0 (MINOR: new Boundaries/Never section + doc-accuracy guardrail added; no principle redefinitions or removals)
-Modified principles: None (Principles I–V kept verbatim)
+Modified principles: Principle V (Documentation Accuracy guardrail added); Principles I–IV unchanged
 Staleness fixes (reconciled against AGENTS.md Tech Stack table):
   - Dependency manager corrected to uv (was a pre-uv tool reference)
   - Ansible requirement aligned to ansible-core >=2.17.7rc1 (Python 3.10+),
@@ -100,7 +100,7 @@ Three test tiers ensure collection quality:
 
 These are constitutional non-negotiables (they mirror, and are binding over, the AGENTS.md Boundaries):
 
-- Never call `InfrahubClientSync` or `InfrahubclientWrapper` directly from a module or action plugin, bypassing the `InfrahubModule`/`ActionBase` base classes
+- Never bypass the SDK wrapper: all Infrahub API access goes through `InfrahubclientWrapper` — instantiated directly by action plugins (`ActionBase`) and reached via `InfrahubModule` in `module_utils`. Do not use the raw `infrahub-sdk` client (`InfrahubClientSync`) ad hoc
 - Never use the async SDK (`InfrahubClient`) — this collection is synchronous only
 - Never remove `__metaclass__ = type` or the `from __future__ import` boilerplate from a plugin file — it breaks `ansible-test sanity`
 - Never skip the conditional `HAS_INFRAHUBCLIENT` import guard in any plugin
