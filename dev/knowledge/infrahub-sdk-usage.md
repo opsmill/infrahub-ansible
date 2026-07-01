@@ -6,7 +6,9 @@ This collection wraps the `infrahub-sdk` Python package to interact with the Inf
 
 ```toml
 # pyproject.toml
-infrahub-sdk = {version = ">=1.5, <2.0", extras = ["all"]}
+dependencies = [
+    "infrahub-sdk[all]>=1.19.0,<2.0",
+]
 ```
 
 The `[all]` extras include sync support. This collection **only uses synchronous SDK methods** (`InfrahubClientSync`).

@@ -43,11 +43,12 @@ Today it defines:
    ```
 
 2. Reference it from each plugin's `DOCUMENTATION` via
-   `extends_documentation_fragment`, using the collection-qualified name:
+   `extends_documentation_fragment`. The name is the file basename followed by
+   the attribute — collection-qualified as `opsmill.infrahub.fragments.<ATTRIBUTE>`:
 
    ```yaml
    extends_documentation_fragment:
-     - opsmill.infrahub.my_fragment
+     - opsmill.infrahub.fragments.MY_FRAGMENT
    ```
 
    (Ansible-builtin fragments such as `constructed` and `inventory_cache` —

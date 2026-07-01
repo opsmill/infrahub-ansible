@@ -20,7 +20,7 @@ Use `InfrahubClientSync` exclusively. The async `InfrahubClient` is never used.
 
 - `InfrahubclientWrapper` constructs and holds an `InfrahubClientSync`; all
   wrapper methods block until completion.
-- The `infrahub-sdk` dependency is pinned `>=1.5, <2.0` with the `[all]` extras,
+- The `infrahub-sdk` dependency is pinned `>=1.19.0,<2.0` with the `[all]` extras,
   which include synchronous support.
 - No plugin defines `async def` entry points or runs an event loop.
 
