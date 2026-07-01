@@ -1,0 +1,21 @@
+dev/constitution.md
+  s_c0315893399261::t_b59ce67d1c216b 1-6
+dev/README.md
+  s_c0315893399261::t_a36285e9cc8880 20-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.8",
+  "base_commit_sha": "7cc5b00a33572cfdecc820d4ec12f2ecae6ab24e",
+  "prompts": {},
+  "sessions": {
+    "s_c0315893399261": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbd108aa-0606-467e-870a-9caacbcf6640",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
