@@ -1,0 +1,25 @@
+dev/adr/0003-sync-only-sdk.md
+  s_c0315893399261::t_8639628408ed36 23
+dev/knowledge/infrahub-sdk-usage.md
+  s_c0315893399261::t_abe4da2eb38dcb 9-11
+AGENTS.md
+  s_c0315893399261::t_6159498b801a69 16
+dev/guides/adding-a-doc-fragment.md
+  s_c0315893399261::t_1254d8e577ac06 46-47,51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.8",
+  "base_commit_sha": "cce3b3304b6ea4fa83899b4c1f8fd10d58456d38",
+  "prompts": {},
+  "sessions": {
+    "s_c0315893399261": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbd108aa-0606-467e-870a-9caacbcf6640",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
