@@ -17,8 +17,8 @@ generated from `docs/`.
 
 ## Directory Guide
 
-- **constitution.md**: The project constitution — binding principles maintained
-  through the spec-kit workflow. `.specify/memory/constitution.md` symlinks to it.
+- **constitution.md**: Pointer to the binding project principles in
+  `.specify/memory/constitution.md`. The authoritative reference.
 - **knowledge/**: Descriptive reference. How the system works.
 - **guidelines/**: Prescriptive rules. How code and docs should be written.
 - **guides/**: Step-by-step procedures for specific tasks.
