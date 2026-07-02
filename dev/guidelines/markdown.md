@@ -13,9 +13,9 @@ zero-padded numeric prefix (`0001-two-plugin-patterns.md`); see
 
 Three linters cover Markdown and the YAML embedded around it:
 
-- **markdownlint** — Markdown structure and formatting. Config:
-  [`.markdownlint.yaml`](../../.markdownlint.yaml) at the repo root. Run it with
-  your editor integration or `npx markdownlint-cli2 '**/*.md'`.
+- **rumdl** — Markdown structure and formatting. Config: `[tool.rumdl]` in
+  [`pyproject.toml`](../../pyproject.toml) at the repo root. Run it with
+  `uv run rumdl check .` or `invoke lint`.
 - **Vale** — prose style for the documentation site, using the custom
   `Infrahub` style under `.vale/styles/`. Config: [`.vale.ini`](../../.vale.ini).
   CI runs Vale over `docs/**/*.{md,mdx}` in `workflow-linter.yml`.
@@ -25,14 +25,16 @@ Three linters cover Markdown and the YAML embedded around it:
 
 ## Configured Rules
 
-`.markdownlint.yaml` starts from the default rule set and relaxes a few:
+`[tool.rumdl]` in `pyproject.toml` starts from the default rule set and
+disables a few:
 
 - `MD013` (line length) — disabled, for readable prose.
-- `MD024` (duplicate headings) — `siblings_only`, so tabbed sections may repeat.
-- `MD025` (single H1) — `front_matter_title: ""`, to avoid clashing with MDX.
-- `MD029` (ordered-list prefix) — disabled, for manual numbering.
 - `MD033` (inline HTML) — disabled, for MDX/React components.
-- `MD060` (table column style) — disabled, for table flexibility.
+- `MD041` (first-line heading) — disabled, for files with front matter or
+  non-heading starts.
+
+Vendored and generated trees are excluded: `docs/` (Vale-owned MDX), `.agents/`
+(vendored agent skills/commands), and `.specify/templates`.
 
 Markdown that ships to the docs site (`.mdx`) follows the same rules plus the
 Vale `Infrahub` style; see [documentation.md](documentation.md) for the docs

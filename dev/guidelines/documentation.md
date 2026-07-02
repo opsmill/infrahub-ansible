@@ -3,12 +3,13 @@
 ## Overview
 
 Documentation lives in two places:
+
 1. **Plugin docstrings** — `DOCUMENTATION`, `EXAMPLES`, `RETURN` in each module file
 2. **Docusaurus site** — generated from docstrings + hand-written content in `docs/`
 
 ## Doc Generation Pipeline
 
-```
+```text
 Plugin Python files (DOCUMENTATION/EXAMPLES/RETURN docstrings)
   → tasks/docs.py (extract_docstring, parse_ansible_doc)
     → Jinja2 templates (docs/_templates/*.mdx.j2)
@@ -37,7 +38,7 @@ invoke docusaurus
 
 **Never edit these directly** — they are overwritten by `generate-doc`:
 
-```
+```text
 docs/docs/references/plugins/<name>_module.mdx
 docs/docs/references/plugins/<name>_inventory.mdx
 docs/docs/references/plugins/<name>_lookup.mdx
@@ -112,7 +113,7 @@ msg:
 
 ### Structure
 
-```
+```text
 docs/
   docs/                     # Content pages
     references/
@@ -147,16 +148,18 @@ CI runs Vale automatically on documentation changes (`.github/workflows/workflow
 
 ## Markdown Linting
 
-Configuration in `.markdownlint.yaml`. Ensures consistent markdown formatting.
+Configuration in `[tool.rumdl]` in `pyproject.toml`. Ensures consistent markdown formatting.
 
 ## What to Document
 
 When adding a new module:
+
 1. Write complete `DOCUMENTATION`, `EXAMPLES`, and `RETURN` docstrings in the module file
 2. Run `invoke generate-doc` to regenerate reference docs
 3. Verify the generated MDX renders correctly with `invoke docusaurus`
 
 When adding features to existing modules:
+
 1. Update the relevant docstring sections
 2. Add new examples if the feature introduces new usage patterns
 3. Update `RETURN` if new return values are added

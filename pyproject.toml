@@ -264,7 +264,8 @@ disable = [
 ]
 exclude = [
     ".venv",
-    "docs/node_modules",
+    "docs",                # Docusaurus MDX — prose linted by Vale, structure verified by the docs build
+    ".agents",             # vendored agent skills/commands (tracked via skills-lock.json)
     ".specify/templates",  # vendored spec-kit content
 ]
 

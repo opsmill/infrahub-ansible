@@ -29,6 +29,7 @@ docker compose up --build --force-recreate --quiet-pull --exit-code-from integra
 ## Sanity Tests
 
 Run by `ansible-test sanity` inside the `sanity` Docker target. Checks:
+
 - Module documentation format
 - Python import correctness
 - Required boilerplate (`__metaclass__ = type`, `__future__` imports)
@@ -40,7 +41,7 @@ The `pep8` sanity test is skipped (Ruff handles this).
 
 ### Structure
 
-```
+```text
 tests/unit/
   plugins/
     module_utils/

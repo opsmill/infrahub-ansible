@@ -39,7 +39,7 @@ generated from `docs/`.
 - [testing.md](guidelines/testing.md) — Docker-based test execution, mocking, sanity/unit/integration
 - [documentation.md](guidelines/documentation.md) — Doc generation pipeline, Jinja2 templates, Docusaurus, Vale
 - [module-docstrings.md](guidelines/module-docstrings.md) — DOCUMENTATION/EXAMPLES/RETURN rules and doc fragments
-- [markdown.md](guidelines/markdown.md) — Markdown conventions, file naming, markdownlint/Vale/yamllint
+- [markdown.md](guidelines/markdown.md) — Markdown conventions, file naming, rumdl/Vale/yamllint
 - [git-workflow.md](guidelines/git-workflow.md) — Branch model (develop/stable), PR conventions, CI, versioning
 
 ## Current Guides

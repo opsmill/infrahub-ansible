@@ -28,6 +28,7 @@ jobs:
     outputs:
       python: ${{ steps.changes.outputs.python_all }}
       yaml: ${{ steps.changes.outputs.yaml_all }}
+      markdown: ${{ steps.changes.outputs.markdown_all }}
       documentation: ${{ steps.changes.outputs.documentation_all }}
     steps:
       - name: "Check out repository code"
@@ -55,6 +56,23 @@ jobs:
         run: "uv sync --group dev"
       - name: "Linting: yamllint"
         run: "uv run yamllint -s ."
+
+  markdown-lint:
+    if: needs.files-changed.outputs.markdown == 'true'
+    needs: ["files-changed"]
+    runs-on: "ubuntu-22.04"
+    timeout-minutes: 5
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v7"
+      - name: "Install uv"
+        uses: "astral-sh/setup-uv@v7"
+        with:
+          version: "0.9.18"
+      - name: "Install dependencies"
+        run: "uv sync --group dev"
+      - name: "Linting: rumdl"
+        run: "uv run rumdl check ."
 
   python-lint:
     if: needs.files-changed.outputs.python == 'true'
