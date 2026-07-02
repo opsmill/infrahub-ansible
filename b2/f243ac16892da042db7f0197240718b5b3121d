@@ -1,0 +1,29 @@
+.gitignore
+  s_e4ff8b11ba008f::t_c1aa556ec6a50f 23-30
+.github/workflows/update-infrahub.yml
+  s_e4ff8b11ba008f::t_c439d795370367 1-87
+AGENTS.md
+  s_e4ff8b11ba008f::t_e922327d73eac9 16-18
+.github/workflows/update-infrahub-sdk.yml
+  s_e4ff8b11ba008f::t_1575965821bf1a 1-85
+pyproject.toml
+  s_e4ff8b11ba008f::t_9ce6b160138126 7
+  s_e4ff8b11ba008f::t_162013e3ae501e 257-270
+  s_e4ff8b11ba008f::t_8b5a56f84d6e79 39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "b2f243ac16892da042db7f0197240718b5b3121d",
+  "prompts": {},
+  "sessions": {
+    "s_e4ff8b11ba008f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "677aae3b-c4ba-4bfb-a1d4-36b107bf276d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}
