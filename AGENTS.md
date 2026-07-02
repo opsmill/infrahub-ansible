@@ -13,8 +13,8 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 
 | Component | Version/Tool |
 |-----------|-------------|
-| Python | >=3.10, <3.14 |
-| ansible-core | >=2.17.7rc1 (Python 3.10+) |
+| Python | >=3.11, <3.15 |
+| ansible-core | >=2.18 |
 | infrahub-sdk | >=1.19.0, <2.0 |
 | Linter/Formatter | Ruff (pinned in pyproject.toml) |
 | Tests | pytest, ansible-test sanity (Docker-based) |
