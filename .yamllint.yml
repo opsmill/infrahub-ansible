@@ -24,3 +24,6 @@ rules:
   octal-values:
     forbid-implicit-octal: true
     forbid-explicit-octal: true
+  truthy:
+    # Avoid false positives on GitHub Actions `on:` keys
+    check-keys: false
