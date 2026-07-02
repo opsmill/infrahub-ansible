@@ -28,3 +28,8 @@ docs/_build/*
 *.key
 credentials.json
 secrets.yaml
+
+# Node / docs build
+**/node_modules/
+docs/.docusaurus/
+docs/build/
