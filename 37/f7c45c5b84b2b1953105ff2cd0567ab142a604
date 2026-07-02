@@ -1,0 +1,19 @@
+.yamllint.yml
+  s_e4ff8b11ba008f::t_ef6e50053ec3f2 25-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "37f7c45c5b84b2b1953105ff2cd0567ab142a604",
+  "prompts": {},
+  "sessions": {
+    "s_e4ff8b11ba008f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "677aae3b-c4ba-4bfb-a1d4-36b107bf276d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
