@@ -1,0 +1,58 @@
+tests/AGENTS.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 32,44
+dev/guidelines/git-workflow.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 57,67
+plugins/AGENTS.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 39,73
+.github/workflows/workflow-linter.yml
+  s_e4ff8b11ba008f::t_d6f1f8463505f2 60-76
+  s_e4ff8b11ba008f::t_3ddca3a7bb73b1 31
+docs/AGENTS.md
+  s_e4ff8b11ba008f::t_950f674ea4a0ea 80,82
+dev/guidelines/python.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 34,43,47
+  s_e4ff8b11ba008f::t_98f1770d3c04b6 116
+dev/README.md
+  s_e4ff8b11ba008f::t_89dc7afee9337d 35-36
+dev/guidelines/testing.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 61,81,157
+dev/knowledge/plugin-patterns.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 175,216
+tasks/linter.py
+  s_e4ff8b11ba008f::t_e5748edb86a5e4 15
+  s_e4ff8b11ba008f::t_6c9f66c0d87647 72-85
+dev/guides/running-tests.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 25,50,62,137,144
+pyproject.toml
+  s_e4ff8b11ba008f::t_052cdfba829c68 267
+  s_e4ff8b11ba008f::t_1f511a7f4ca555 268
+.specify/memory/constitution.md
+  s_e4ff8b11ba008f::t_cacb7a461f45b9 64-65
+dev/knowledge/infrahub-sdk-usage.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 237
+dev/knowledge/architecture.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 7,32,85,96,105,118,128
+dev/guidelines/documentation.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 6,12,41,116,156,162
+  s_e4ff8b11ba008f::t_a95d08f1a2f831 151
+dev/guides/creating-a-module.md
+  s_e4ff8b11ba008f::t_0b46bfac53bd44 15
+uv.lock
+  s_e4ff8b11ba008f::t_d235d474076a69 948,982-983,2569-2604
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "1213d471df9d8be335dee7f69b37bd2bc5c0d5f8",
+  "prompts": {},
+  "sessions": {
+    "s_e4ff8b11ba008f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "677aae3b-c4ba-4bfb-a1d4-36b107bf276d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
