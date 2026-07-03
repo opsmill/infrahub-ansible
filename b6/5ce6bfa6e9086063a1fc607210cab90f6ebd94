@@ -1,0 +1,73 @@
+.specify/extensions.yml
+  s_31700b6854edc7::t_27027bf0c8e1cb 4,9-80,82-88,97-104,106-112,129-136,138-144,153-168,170-176
+.agents/skills/speckit-git-commit/SKILL.md
+  s_31700b6854edc7::t_afd6d897445f8f 1-55
+.agents/skills/speckit-git-feature/SKILL.md
+  s_31700b6854edc7::t_e2f37806e35837 1-79
+.agents/skills/speckit-git-initialize/SKILL.md
+  s_31700b6854edc7::t_80f9b79f97364e 1-56
+.agents/skills/speckit-git-remote/SKILL.md
+  s_31700b6854edc7::t_d5120c7243c767 1-52
+.agents/skills/speckit-git-validate/SKILL.md
+  s_31700b6854edc7::t_56905a0fb5d361 1-56
+.specify/extensions/git/README.md
+  s_31700b6854edc7::t_6971f0f745a9a9 1-100
+.specify/extensions/git/commands/speckit.git.commit.md
+  s_31700b6854edc7::t_12fba6eaea4d19 1-48
+.specify/extensions/git/commands/speckit.git.feature.md
+  s_31700b6854edc7::t_e95b177d39627e 1-67
+.specify/extensions/git/commands/speckit.git.initialize.md
+  s_31700b6854edc7::t_fa1bd606ab5f44 1-49
+.specify/extensions/git/commands/speckit.git.remote.md
+  s_31700b6854edc7::t_8dd4632bade5a2 1-45
+.specify/extensions/git/commands/speckit.git.validate.md
+  s_31700b6854edc7::t_912446bbfefadb 1-49
+.specify/extensions/git/config-template.yml
+  s_31700b6854edc7::t_f1caf046000816 1-62
+.specify/extensions/git/extension.yml
+  s_31700b6854edc7::t_9ca4f4470b7ee2 1-140
+.specify/extensions/git/git-config.yml
+  s_31700b6854edc7::t_baaf8a7877dd1e 1-62
+.specify/extensions/git/scripts/bash/auto-commit.sh
+  s_31700b6854edc7::t_08e5a7e889f8ab 1-140
+.specify/extensions/git/scripts/bash/create-new-feature.sh
+  s_31700b6854edc7::t_bb0f164e97ff95 1-453
+.specify/extensions/git/scripts/bash/git-common.sh
+  s_31700b6854edc7::t_e0c78ec85eccb5 1-41
+.specify/extensions/git/scripts/bash/initialize-repo.sh
+  s_31700b6854edc7::t_ce5f09b8767e96 1-54
+.specify/extensions/git/scripts/powershell/auto-commit.ps1
+  s_31700b6854edc7::t_bb8af651206eb6 1-149
+.specify/extensions/git/scripts/powershell/create-new-feature.ps1
+  s_31700b6854edc7::t_57271e3d6fc912 1-403
+.specify/extensions/git/scripts/powershell/git-common.ps1
+  s_31700b6854edc7::t_a014ed5baae460 1-50
+.specify/extensions/git/scripts/powershell/initialize-repo.ps1
+  s_31700b6854edc7::t_961373c64c029e 1-69
+.specify/extensions/.registry
+  s_0eac9fb9ee4daa::t_8a319bcc6170d0 4-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "b65ce6bfa6e9086063a1fc607210cab90f6ebd94",
+  "prompts": {},
+  "sessions": {
+    "s_0eac9fb9ee4daa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a95b4b4c1f126cc87",
+        "model": "unknown"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    },
+    "s_31700b6854edc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4971f3a1-be46-4070-8b34-1184eb49b5d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
