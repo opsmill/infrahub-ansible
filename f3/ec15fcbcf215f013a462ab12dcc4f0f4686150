@@ -1,0 +1,21 @@
+dev/guidelines/markdown.md
+  s_ab9946ebf2d41a::t_b2530331c0a04c 37-38
+pyproject.toml
+  s_ab9946ebf2d41a::t_d026078fd6fbca 269-270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "f3ec15fcbcf215f013a462ab12dcc4f0f4686150",
+  "prompts": {},
+  "sessions": {
+    "s_ab9946ebf2d41a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aef1f010-5798-4b84-a980-39b19b4ccddd",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}
