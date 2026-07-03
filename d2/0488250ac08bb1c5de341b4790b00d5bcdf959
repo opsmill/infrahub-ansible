@@ -1,0 +1,19 @@
+dev/README.md
+  s_8b2d098a62761f::t_c8d02deb2cb0bc 20-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "d20488250ac08bb1c5de341b4790b00d5bcdf959",
+  "prompts": {},
+  "sessions": {
+    "s_8b2d098a62761f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "73b8b429-030d-494d-91b5-bb746c24307f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
