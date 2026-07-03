@@ -22,7 +22,7 @@ invoke tests-integration
 
 All tests run inside Docker containers. The `invoke` tasks wrap `docker compose` commands:
 
-```
+```text
 invoke tests-sanity
   → docker compose up --build --force-recreate --quiet-pull --exit-code-from sanity sanity
     → Dockerfile (base stage → sanity stage)
@@ -47,6 +47,7 @@ invoke tests-sanity
 ```
 
 What `ansible-test sanity` checks:
+
 - Module documentation format and completeness
 - Python import correctness
 - Required boilerplate (`__metaclass__ = type`)
@@ -58,6 +59,7 @@ The `pep8` sanity test is skipped — Ruff handles style checking.
 ### Fixing Sanity Failures
 
 Common issues:
+
 - Missing `__metaclass__ = type` → add to top of file
 - Missing `from __future__ import` → add the standard import line
 - Documentation format errors → check YAML syntax in `DOCUMENTATION` string
@@ -95,7 +97,6 @@ From `pyproject.toml`:
 
 ```toml
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
 ```
@@ -133,12 +134,14 @@ PYTHON_VER=3.11 docker compose up --build --exit-code-from sanity sanity
 ### Docker Build Failures
 
 If the Docker build fails on dependency installation:
+
 1. Check that `uv.lock` is up to date: `uv lock`
 2. Check for network issues (uv needs to download packages)
 
 ### Sanity Test Import Errors
 
 If sanity tests fail with import errors for `infrahub_sdk`:
+
 - This is expected in the sanity test environment
 - Ensure you use the conditional import pattern (`HAS_INFRAHUBCLIENT`)
 - The `infrahub-sdk` dependency is installed in the Docker image but `ansible-test` may use isolated environments

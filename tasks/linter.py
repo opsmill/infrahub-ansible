@@ -12,6 +12,7 @@ def lint_all(context: Context) -> None:
     lint_autoflake(context)
     lint_ruff(context)
     lint_yaml(context)
+    lint_markdown(context)
 
     print(f" - [{NAMESPACE}] All linter have been executed!")
 
@@ -66,6 +67,20 @@ def lint_yaml(context: Context) -> None:
     print(f" - [{NAMESPACE}] Format yaml with yamllint")
     exec_cmd = "yamllint ."
     context.run(exec_cmd, pty=True)
+
+
+# ----------------------------------------------------------------------------
+# Linter tasks - Markdown
+# ----------------------------------------------------------------------------
+
+
+@task
+def lint_markdown(context: Context) -> None:
+    """This will run rumdl to lint all markdown files."""
+    print(f" - [{NAMESPACE}] Check markdown with rumdl")
+    exec_cmd = "rumdl check ."
+    with context.cd(ESCAPED_REPO_PATH):
+        context.run(exec_cmd, pty=True)
 
 
 # ----------------------------------------------------------------------------

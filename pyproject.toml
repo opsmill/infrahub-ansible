@@ -4,6 +4,7 @@ version = "1.8.3"
 description = "Ansible collection to interact with Infrahub's API"
 authors = [{name = "OpsMill", email = "info@opsmill.com"}]
 license = {text = "GPLv3"}
+readme = "README.md"
 requires-python = ">=3.11,<3.15"
 
 dependencies = [
@@ -35,6 +36,7 @@ dev = [
     "ansible-lint>=26.4.0,<27",
     "tox>=4.52.1,<5",
     "pytest-httpx>=0.30",
+    "rumdl",
 ]
 # Integration tests use testcontainers. Kept in a separate group because
 # infrahub-testcontainers -> prefect-client pins cachetools<7, which conflicts
@@ -53,7 +55,6 @@ conflicts = [
 ]
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 # Disable infrahub-testcontainers' performance-test plugin: its startup hook calls
 # psutil.cpu_freq(), which raises on macOS and aborts collection. Harmless when the
 # plugin isn't installed (e.g. the default dev env). The container fixtures come from
@@ -252,6 +253,22 @@ max-line-length = 150
 [tool.ruff.lint.mccabe]
 # Target max-complexity=10
 max-complexity = 19
+
+[tool.rumdl]
+# OpsMill standard markdown linting (rumdl). NOTE: rumdl expects `disable = [...]`,
+# not the `MD0xx = false` form shown in some older docs.
+disable = [
+    "MD013",  # line length — too strict for prose
+    "MD033",  # inline HTML — needed for MDX and complex formatting
+    "MD041",  # first line heading — files with frontmatter/non-heading starts
+]
+exclude = [
+    ".venv",
+    "docs",                # Docusaurus MDX — prose linted by Vale, structure verified by the docs build
+    ".agents",             # vendored agent skills/commands (tracked via skills-lock.json)
+    ".specify",            # vendored spec-kit tooling (templates, extensions, integrations, workflows)
+    ".github/agents",      # vendored spec-kit agent definitions (verbatim from infrahub)
+]
 
 [build-system]
 requires = ["hatchling"]

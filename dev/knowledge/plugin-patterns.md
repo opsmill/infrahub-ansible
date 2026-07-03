@@ -172,6 +172,7 @@ class ActionModule(ActionBase):
 ```
 
 Key conventions:
+
 - Always check `HAS_INFRAHUBCLIENT` first
 - Call `super().run()` and delete `tmp`
 - Read credentials from args with environment variable fallback
@@ -212,6 +213,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 ```
 
 Required methods:
+
 - `verify_file(path)` — validate inventory file extension
 - `parse(inventory, loader, path, cache)` — main entry point
 - `main()` — business logic (client setup, data fetching, host creation)

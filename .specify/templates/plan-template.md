@@ -1,9 +1,10 @@
 # Implementation Plan: [FEATURE]
 
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
 ## Summary
 
@@ -11,23 +12,35 @@
 
 ## Technical Context
 
-**Language/Version**: Python >=3.10, <3.14
-**Primary Dependencies**: Ansible >=2.15, infrahub-sdk >=1.5, <2.0, Ruff
-**Storage**: N/A (Infrahub is the data store, accessed via infrahub-sdk)
-**Testing**: pytest (unit, mocked SDK), ansible-test (sanity), Ansible playbooks (integration), all via Docker
-**Target Platform**: Ansible controller (Linux/macOS)
-**Project Type**: Ansible collection plugin
-**Constraints**: Must pass ansible-test sanity, sync-only SDK usage, GPLv3 license, Ruff compliance
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+
+**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [ ] **Gate 1 — Ansible Collection Standards (Principle I)**: Does the feature include required boilerplate, docstrings, and doc fragments?
-- [ ] **Gate 2 — Plugin Pattern (Principle II)**: Does the feature follow one of the two established plugin patterns (module_utils or action plugin)?
-- [ ] **Gate 3 — Idempotency (Principle III)**: Is idempotency addressed? (state management, check_mode, diff support)
-- [ ] **Gate 4 — SDK Abstraction (Principle IV)**: Do all API calls go through InfrahubClientWrapper with conditional imports and exception handling?
-- [ ] **Gate 5 — Test Coverage (Principle V)**: Are all three test tiers planned (sanity, unit, integration)?
+[Gates determined based on constitution file]
 
 ## Project Structure
 
@@ -35,35 +48,60 @@
 
 ```text
 specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+├── plan.md              # This file (/speckit-plan command output)
+├── research.md          # Phase 0 output (/speckit-plan command)
+├── data-model.md        # Phase 1 output (/speckit-plan command)
+├── quickstart.md        # Phase 1 output (/speckit-plan command)
+├── contracts/           # Phase 1 output (/speckit-plan command)
+└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 
-### Source Code (Ansible collection layout)
+### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
-plugins/
-  modules/<name>.py          # Module stub (DOCUMENTATION/EXAMPLES/RETURN + argument spec)
-  action/<name>.py           # Action plugin (if action plugin pattern)
-  module_utils/<name>.py     # Module utils class (if module_utils pattern)
-  doc_fragments/fragments.py # Update if new shared options needed
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+src/
+├── models/
+├── services/
+├── cli/
+└── lib/
 
 tests/
-  unit/plugins/
-    modules/test_<name>.py       # Unit tests for module
-    module_utils/test_<name>.py  # Unit tests for module utils
-  integration/targets/<name>/
-    tasks/main.yml               # Integration test playbook
+├── contract/
+├── integration/
+└── unit/
 
-docs/
-  docs/references/plugins/       # Generated MDX (invoke generate-doc)
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
+
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-The layout is fixed by Ansible collection conventions — no structural choices needed.
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Complexity Tracking
 
@@ -71,4 +109,5 @@ The layout is fixed by Ansible collection conventions — no structural choices 
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., Custom pattern] | [current need] | [why standard pattern insufficient] |
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |

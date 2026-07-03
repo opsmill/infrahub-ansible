@@ -31,6 +31,7 @@ select = ["ALL"]
 All rules are enabled with preview mode. Specific categories and rules are then ignored:
 
 **Permanently ignored categories:**
+
 - `COM812` — trailing comma (conflicts with formatter)
 - `CPY` — copyright notices (handled manually)
 - `D` — docstring conventions (pydocstyle)
@@ -39,9 +40,11 @@ All rules are enabled with preview mode. Specific categories and rules are then 
 - `FBT` — boolean trap
 
 **Ignored for investigation:**
+
 - `PT` (pytest style), `PGH` (pygrep-hooks), `ERA` (eradicate), `SLF001` (private member access), `EM` (error messages), `TRY` (tryceratops), `TD`/`FIX` (todos), `TID` (tidy imports), `G` (logging format), `FLY` (flynt), `RSE` (raise), `BLE` (blind exception), `A` (builtins shadowing)
 
 **Ignored for later reactivation:**
+
 - `B904`, `C408`, `E402`, `INP001`, `N806`, `PLC0415`, `PLR0912`, `PLR6201`, `PLR6301`, `PLR1702`, `PLR0913`, `RET504`
 
 ### Per-File Ignores
@@ -110,7 +113,7 @@ ruff check --fix .
 
 - **yamllint** — YAML formatting (config: `.yamllint.yml`)
 - **ansible-lint** — Ansible-specific linting (config: `.ansible-lint`)
-- **markdownlint** — Markdown formatting (config: `.markdownlint.yml`)
+- **rumdl** — Markdown formatting (config: `[tool.rumdl]` in `pyproject.toml`)
 - **Vale** — Documentation prose style (config: `.vale.ini`)
 
 ## Python Version
