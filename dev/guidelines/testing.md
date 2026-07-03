@@ -58,6 +58,7 @@ The `Dockerfile` uses multi-stage builds:
 ## Sanity Tests
 
 Sanity tests use `ansible-test sanity` which checks:
+
 - Module documentation format
 - Python import correctness
 - Required boilerplate (`__metaclass__ = type`, `__future__` imports)
@@ -77,7 +78,7 @@ RUN ansible-test sanity $ANSIBLE_SANITY_ARGS \
 
 ### Directory Structure
 
-```
+```text
 tests/
   unit/
     plugins/
@@ -92,7 +93,6 @@ tests/
 ```toml
 # pyproject.toml
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
 ```
@@ -154,7 +154,7 @@ Integration tests require a running Infrahub instance. They use the `integration
 
 ### Directory Structure
 
-```
+```text
 tests/
   integration/
     targets/

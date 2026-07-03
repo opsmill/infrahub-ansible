@@ -1,0 +1,87 @@
+---
+# yamllint disable rule:truthy rule:line-length
+name: "Update Infrahub Version"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Infrahub version to test"
+        required: true
+      run:
+        description: "Whether to run integration tests"
+        required: false
+        type: boolean
+        default: true
+
+  repository_dispatch:
+    types: [trigger-infrahub-update]
+
+jobs:
+  update-dependencies:
+    strategy:
+      matrix:
+        branch-name:
+          - develop
+
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: update-infrahub-${{ github.event_name == 'repository_dispatch' && github.event.client_payload.version || github.event.inputs.version }}-${{ matrix.branch-name }}
+      cancel-in-progress: false
+
+    env:
+      INFRAHUB_VERSION: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.version || github.event.inputs.version }}
+      BRANCH_NAME: ${{ matrix.branch-name }}-${{ github.event_name == 'repository_dispatch' && github.event.client_payload.version || github.event.inputs.version }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: |
+          pip install uv
+          uv sync
+
+      # infrahub-testcontainers lives in this repo's `integration` dependency group
+      # (kept separate from `dev` due to a cachetools transitive-pin conflict).
+      - name: Update testcontainers to workflow version ${{ env.INFRAHUB_VERSION }}
+        run: |
+          uv add --group integration infrahub-testcontainers==${INFRAHUB_VERSION}
+
+      - name: Prepare the branch for the update
+        id: prepare-branch
+        run: |
+          echo "Checking if branch ${{ env.BRANCH_NAME }} exists..."
+          BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.BRANCH_NAME }} | wc -l)
+          echo "BRANCH_EXISTS=$BRANCH_EXISTS" >> $GITHUB_ENV
+
+      - name: Commit and push changes
+        uses: github-actions-x/commit@v2.9
+        with:
+          github-token: ${{ secrets.GH_UPDATE_PACKAGE_OTTO }}
+          push-branch: ${{ env.BRANCH_NAME }}
+          commit-message: "chore: update Infrahub to version ${{ env.INFRAHUB_VERSION }}"
+          files: |
+            pyproject.toml
+            uv.lock
+          name: opsmill-bot
+          email: github-bot@opsmill.com
+          rebase: ${{ env.BRANCH_EXISTS == 1 }}
+
+      - name: Create a pull request
+        run: |
+          echo ${{ secrets.GH_UPDATE_PACKAGE_OTTO }} | gh auth login --with-token
+          # Skip create if a PR already exists for this head branch (re-runs against the same version).
+          if [ -n "$(gh pr list --head "${{ env.BRANCH_NAME }}" --state open --json number --jq '.[0].number')" ]; then
+            echo "PR for ${{ env.BRANCH_NAME }} already open, skipping create"
+            exit 0
+          fi
+          gh pr create \
+            --title "update Infrahub to version ${{ env.INFRAHUB_VERSION }} against ${{ matrix.branch-name }}" \
+            --body "This PR updates Infrahub to version ${{ env.INFRAHUB_VERSION }}." \
+            --base ${{ matrix.branch-name }} \
+            --head ${{ env.BRANCH_NAME }}

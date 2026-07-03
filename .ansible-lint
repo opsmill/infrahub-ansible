@@ -7,6 +7,8 @@ exclude_paths:
   - .github/
   - tests/
   - .claude/
+  - .specify/ # vendored spec-kit tooling — not collection ansible content
+  - .agents/ # vendored agent skills/commands
   - docs/node_modules/
   - "**/node_modules/"
 

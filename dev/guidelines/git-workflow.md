@@ -54,6 +54,7 @@ The built artifact goes to `build/` or `dist/`.
 ## Commit Messages
 
 Follow conventional commit style where practical:
+
 - `feat:` for new features
 - `fix:` for bug fixes
 - `docs:` for documentation changes
@@ -63,6 +64,7 @@ Follow conventional commit style where practical:
 ## What Gets Published
 
 The `galaxy.yml` `build_ignore` list excludes from the published collection:
+
 - `venv`, `ansible_collections`
 - `tests/output`
 - `.pytest_cache`, `.vscode`

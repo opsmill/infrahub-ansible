@@ -12,6 +12,7 @@ A new module typically involves creating or modifying files in up to 4 areas:
 4. **Tests** — `tests/unit/` and/or `tests/integration/`
 
 Choose your pattern based on the module's needs:
+
 - **Action plugin pattern** — for modules that make API calls directly (like `artifact_fetch`, `artifact_generate`, `query_graphql`)
 - **Module utils pattern** — for modules with state management and idempotency (like `node`, `branch`)
 
