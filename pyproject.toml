@@ -266,7 +266,8 @@ exclude = [
     ".venv",
     "docs",                # Docusaurus MDX — prose linted by Vale, structure verified by the docs build
     ".agents",             # vendored agent skills/commands (tracked via skills-lock.json)
-    ".specify/templates",  # vendored spec-kit content
+    ".specify",            # vendored spec-kit tooling (templates, extensions, integrations, workflows)
+    ".github/agents",      # vendored spec-kit agent definitions (verbatim from infrahub)
 ]
 
 [build-system]

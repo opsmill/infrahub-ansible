@@ -34,7 +34,8 @@ disables a few:
   non-heading starts.
 
 Vendored and generated trees are excluded: `docs/` (Vale-owned MDX), `.agents/`
-(vendored agent skills/commands), and `.specify/templates`.
+(vendored agent skills/commands), `.specify/` (vendored spec-kit tooling), and
+`.github/agents/` (vendored spec-kit agent definitions).
 
 Markdown that ships to the docs site (`.mdx`) follows the same rules plus the
 Vale `Infrahub` style; see [documentation.md](documentation.md) for the docs
