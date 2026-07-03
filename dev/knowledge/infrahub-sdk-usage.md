@@ -236,6 +236,7 @@ def some_method(self):
 ```
 
 Exception mapping:
+
 | SDK Exception | Handling |
 |--------------|----------|
 | `GraphQLError` | Extract error messages, raise/display |

@@ -77,9 +77,9 @@ vale docs/
 
 CI runs Vale automatically on doc changes.
 
-### Markdownlint
+### Rumdl
 
-Configuration: `.markdownlint.yml` (repo root)
+Configuration: `[tool.rumdl]` in `pyproject.toml`
 
 ## Building Locally
 

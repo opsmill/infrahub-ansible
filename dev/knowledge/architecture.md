@@ -4,7 +4,7 @@ The `opsmill.infrahub` Ansible collection provides modules, plugins, and invento
 
 ## Collection Layout
 
-```
+```text
 plugins/
   modules/          # Ansible modules (user-facing interface)
   action/           # Action plugins (server-side execution logic)
@@ -29,6 +29,7 @@ Modules are the user-facing interface — what users call in playbooks via `opsm
 - Delegates to either an action plugin or a `module_utils` class for actual logic
 
 Current modules:
+
 | Module | Purpose |
 |--------|---------|
 | `node` | Create/update/delete any Infrahub node Kind |
@@ -81,7 +82,7 @@ Shared utilities — the core logic layer:
 
 ### Module → module_utils path (node, branch)
 
-```
+```text
 Playbook task
   → plugins/modules/node.py (stub: builds AnsibleModule, calls NodeModule.run())
     → plugins/module_utils/node.py (NodeModule.run())
@@ -92,7 +93,7 @@ Playbook task
 
 ### Module → action plugin path (query_graphql, artifact_fetch, artifact_generate)
 
-```
+```text
 Playbook task
   → plugins/modules/artifact_fetch.py (stub: defines AnsibleModule for docs/validation)
   → plugins/action/artifact_fetch.py (ActionModule.run() — actual logic)
@@ -101,7 +102,7 @@ Playbook task
 
 ### Inventory plugin path
 
-```
+```text
 Inventory file (*.infrahub.yml)
   → plugins/inventory/inventory.py (InventoryModule.parse())
     → InfrahubclientWrapper + InfrahubNodesProcessor
@@ -114,6 +115,7 @@ Inventory file (*.infrahub.yml)
 ### InfrahubclientWrapper
 
 Wraps `InfrahubClientSync` from the `infrahub-sdk` package. Provides methods for:
+
 - Node CRUD (`fetch_single_node`, `create_node`, `save_node`, `delete_node`)
 - Schema operations (`fetch_single_schema`, `fetch_schemas`)
 - Branch management (`fetch_branch`, `create_branch`, `delete_branch`)
@@ -123,6 +125,7 @@ Wraps `InfrahubClientSync` from the `infrahub-sdk` package. Provides methods for
 ### InfrahubModule
 
 Base class for modules that use the module_utils path. Provides:
+
 - Idempotent state management (`_ensure_object_exists`, `_ensure_object_absent`)
 - Diff tracking for `--diff` mode
 - HFID (Human-Friendly ID) normalization

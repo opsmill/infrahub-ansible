@@ -82,7 +82,7 @@ Three test tiers ensure collection quality:
 - **infrahub-sdk**: >=1.5, <2.0 (with `[all]` extras for sync support)
 - **License**: GPLv3 — copyright header required on every Python file
 - **Linting**: Ruff with `select = ["ALL"]`, line-length 120 (hard limit 150), double quotes, spaces, preview mode enabled
-- **Additional linters**: yamllint, ansible-lint, markdownlint, Vale
+- **Additional linters**: yamllint, ansible-lint, rumdl, Vale
 - **Dependencies**: Managed via uv (`pyproject.toml`)
 
 ## Development Workflow

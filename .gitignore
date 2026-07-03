@@ -20,3 +20,16 @@ docs/_build/*
 
 # https://github.com/ansible/ansible/issues/68499
 # ansible_collections/
+
+# Secrets (never commit)
+.env
+.env.local
+*.pem
+*.key
+credentials.json
+secrets.yaml
+
+# Node / docs build
+**/node_modules/
+docs/.docusaurus/
+docs/build/

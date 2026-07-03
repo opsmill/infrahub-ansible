@@ -36,6 +36,7 @@ RETURN = """..."""         # YAML — return value documentation
 ```
 
 Actual logic lives in either:
+
 - An **action plugin** in `action/` (same filename) — for API-call-only modules
 - A **module_utils class** in `module_utils/` — for state management modules
 
@@ -69,6 +70,7 @@ except ImportError:
 ```
 
 Check at runtime before using:
+
 - In action plugins: `if not HAS_INFRAHUBCLIENT: raise AnsibleError(...)`
 - In modules: `if not HAS_INFRAHUBCLIENT: module.fail_json(...)`
 

@@ -8,6 +8,7 @@ ignore:
   - docs/node_modules/**
   - .specify/**  # vendored spec-kit tooling — own formatting, not collection YAML
   - .agents/**   # vendored agent skills/commands
+  - docs/pnpm-lock.yaml
 
 rules:
   braces:
@@ -24,3 +25,6 @@ rules:
   octal-values:
     forbid-implicit-octal: true
     forbid-explicit-octal: true
+  truthy:
+    # Avoid false positives on GitHub Actions `on:` keys
+    check-keys: false
