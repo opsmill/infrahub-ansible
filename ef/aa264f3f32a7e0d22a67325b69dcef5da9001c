@@ -1,0 +1,36 @@
+.github/file-filters.yml
+  s_e4ff8b11ba008f::t_f094fcf7f888ec 25
+docs/pnpm-workspace.yaml
+  s_e4ff8b11ba008f::t_436bb104b156e2 26
+  s_e4ff8b11ba008f::t_5898bd18ca6cdf 1-25,27
+.github/build-docs.sh
+  s_e4ff8b11ba008f::t_3616f318328df6 3
+.yamllint.yml
+  s_e4ff8b11ba008f::t_c5ae3910b8ba43 11
+.github/workflows/workflow-changelog-and-docs.yml
+  s_e4ff8b11ba008f::t_6cebc569e8d164 34-38,43-44,47
+.gitignore
+  s_e4ff8b11ba008f::t_28a3f7551d2daa 31-35
+docs/package.json
+  s_e4ff8b11ba008f::t_c148fe1177e9d6 5
+.github/workflows/workflow-linter.yml
+  s_e4ff8b11ba008f::t_125e1c5599120c 119-122,127-128,130
+docs/pnpm-lock.yaml
+  s_e4ff8b11ba008f::t_2bbc9bb7bb19bb 1-11895
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "efaa264f3f32a7e0d22a67325b69dcef5da9001c",
+  "prompts": {},
+  "sessions": {
+    "s_e4ff8b11ba008f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "677aae3b-c4ba-4bfb-a1d4-36b107bf276d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
