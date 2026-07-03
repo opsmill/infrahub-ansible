@@ -1,0 +1,19 @@
+pyproject.toml
+  s_ab9946ebf2d41a::t_d026078fd6fbca 269-270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "d1cca71a0a09d10be87f3318f727e112db415f3b",
+  "prompts": {},
+  "sessions": {
+    "s_ab9946ebf2d41a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aef1f010-5798-4b84-a980-39b19b4ccddd",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
