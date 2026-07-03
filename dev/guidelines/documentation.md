@@ -147,7 +147,7 @@ CI runs Vale automatically on documentation changes (`.github/workflows/workflow
 
 ## Markdown Linting
 
-Configuration in `.markdownlint.yml`. Ensures consistent markdown formatting.
+Configuration in `.markdownlint.yaml`. Ensures consistent markdown formatting.
 
 ## What to Document
 
