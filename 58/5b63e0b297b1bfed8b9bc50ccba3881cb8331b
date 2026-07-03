@@ -37,6 +37,13 @@ dev/guides/creating-a-module.md
   s_e4ff8b11ba008f::t_0b46bfac53bd44 15
 uv.lock
   s_e4ff8b11ba008f::t_d235d474076a69 948,982-983,2569-2604
+dev/guidelines/markdown.md
+  s_ab9946ebf2d41a::t_56f973fb18c00c 16-18
+  s_ab9946ebf2d41a::t_2fff7e0524e03f 28-29,33-37
+dev/constitution.md
+  s_ab9946ebf2d41a::t_e8c03977752a2a 85
+dev/README.md
+  s_ab9946ebf2d41a::t_d1bed51f71c1a4 42
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -44,6 +51,14 @@ uv.lock
   "base_commit_sha": "585b63e0b297b1bfed8b9bc50ccba3881cb8331b",
   "prompts": {},
   "sessions": {
+    "s_ab9946ebf2d41a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aef1f010-5798-4b84-a980-39b19b4ccddd",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    },
     "s_e4ff8b11ba008f": {
       "agent_id": {
         "tool": "claude",
