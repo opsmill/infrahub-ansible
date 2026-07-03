@@ -1,50 +1,50 @@
 # [PROJECT_NAME] Constitution
-<!-- Example: opsmill.infrahub Ansible Collection Constitution -->
+<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
 
 ## Core Principles
 
 ### [PRINCIPLE_1_NAME]
-<!-- Example: I. Ansible Collection Standards -->
+<!-- Example: I. Library-First -->
 [PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every file requires copyright header, __future__ imports, __metaclass__ = type boilerplate; Modules must define DOCUMENTATION, EXAMPLES, RETURN docstrings; Doc fragments for shared options; ansible-test sanity must pass -->
+<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
 
 ### [PRINCIPLE_2_NAME]
-<!-- Example: II. Two Plugin Patterns -->
+<!-- Example: II. CLI Interface -->
 [PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Module-utils pattern for stateful CRUD (node, branch); Action plugin pattern for controller-side API calls (query_graphql, artifacts); Decision criteria documented -->
+<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
 
 ### [PRINCIPLE_3_NAME]
-<!-- Example: III. Idempotency and State Management -->
+<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
 [PRINCIPLE_3_DESCRIPTION]
-<!-- Example: Fetch-compare-act cycle; _ensure_object_exists/_ensure_object_absent; check_mode support; --diff output; HFID normalization; changed: true only on actual mutations -->
+<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
 
 ### [PRINCIPLE_4_NAME]
-<!-- Example: IV. SDK Abstraction Layer -->
+<!-- Example: IV. Integration Testing -->
 [PRINCIPLE_4_DESCRIPTION]
-<!-- Example: All API calls through InfrahubclientWrapper; Conditional HAS_INFRAHUBCLIENT imports; Sync-only client; handle_infrahub_exceptions_decorator; Environment variable fallbacks -->
+<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
 
 ### [PRINCIPLE_5_NAME]
-<!-- Example: V. Test Coverage and Quality Gates -->
+<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
 [PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Three test tiers: sanity (ansible-test), unit (pytest with mocked SDK), integration (playbooks against live Infrahub); Docker pipeline; CI on every PR -->
+<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
 ## [SECTION_2_NAME]
-<!-- Example: Constraints and Requirements -->
+<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
 
 [SECTION_2_CONTENT]
-<!-- Example: Python >=3.10 <3.14; Ansible >=2.15; infrahub-sdk >=1.5 <2.0; GPLv3 license; Ruff with select=ALL; Poetry for dependencies -->
+<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
 
 ## [SECTION_3_NAME]
-<!-- Example: Development Workflow -->
+<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
 
 [SECTION_3_CONTENT]
-<!-- Example: Branch model (develop/stable); Conventional commits (feat:, fix:, docs:); invoke commands for lint, test, build, docs; Docker-based test pipeline; Module creation per dev/guides/ -->
+<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
 
 ## Governance
-<!-- Example: Constitution supersedes ad-hoc decisions; All PRs must verify compliance; Amendments require doc updates; Use creating-a-module.md as runtime guide -->
+<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
 [GOVERNANCE_RULES]
-<!-- Example: Constitution-first development; PR compliance checks; Module creation guide as runtime reference; Complexity must be justified -->
+<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
 
 **Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 1.0.0 | Ratified: 2026-02-25 | Last Amended: 2026-02-25 -->
+<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
