@@ -123,7 +123,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22  # pnpm 11 requires Node >= 22.13
           cache: "pnpm"
           cache-dependency-path: docs/pnpm-lock.yaml
       - name: "Install dependencies"
