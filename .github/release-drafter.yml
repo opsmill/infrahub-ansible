@@ -22,7 +22,7 @@ categories:
       - "type/deprecated"
 
   - title: "📖 Documentation Change"
-    label:
+    labels:
       - "type/documentation"
 
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
