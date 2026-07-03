@@ -1,0 +1,19 @@
+.github/release-drafter.yml
+  s_e924407ff8b48c::t_25a8229cb62c02 25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "1a4650fc03e54e08f8c62c7d9badaa4393ebed1e",
+  "prompts": {},
+  "sessions": {
+    "s_e924407ff8b48c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9dc75d7d-dcbc-44ea-b5f9-dd5fa97f9cee",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}
