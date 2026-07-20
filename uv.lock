@@ -41,8 +41,7 @@ name = "ansible-compat"
 version = "26.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ansible-core", version = "2.19.9", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra == 'group-24-infrahub-ansible-modules-dev') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "ansible-core", version = "2.20.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra == 'group-24-infrahub-ansible-modules-dev') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
+    { name = "ansible-core" },
     { name = "jsonschema" },
     { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" } },
     { name = "pyyaml" },
@@ -55,48 +54,19 @@ wheels = [
 
 [[package]]
 name = "ansible-core"
-version = "2.19.9"
+version = "2.19.11rc1"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version < '3.12'",
-]
 dependencies = [
-    { name = "cryptography", marker = "python_full_version < '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "jinja2", marker = "python_full_version < '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra == 'group-24-infrahub-ansible-modules-integration') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra == 'group-24-infrahub-ansible-modules-dev') or (python_full_version < '3.12' and extra != 'group-24-infrahub-ansible-modules-integration') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "pyyaml", marker = "python_full_version < '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "resolvelib", marker = "python_full_version < '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
+    { name = "cryptography" },
+    { name = "jinja2" },
+    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-integration'" },
+    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-dev' or extra != 'group-24-infrahub-ansible-modules-integration'" },
+    { name = "pyyaml" },
+    { name = "resolvelib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/26/5b/161275ff5fa673dfc1329ed19a44331a4f491166a9f0cb907b44037ad72e/ansible_core-2.19.9.tar.gz", hash = "sha256:74107de13d188ff579fb215bc3eb875c9198803215d6378ed588c7f35aba12f5", size = 3431475, upload-time = "2026-04-21T00:47:09.194Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/24/f3/43f03f2a89f1dce857ec12b33b66d47c44987ddb31c850d356cbc2a96520/ansible_core-2.19.11rc1.tar.gz", hash = "sha256:5549e50993fde013dcbb8b37bed6987edc345beee9e22701fafb4861acf5c2b5", size = 3434622, upload-time = "2026-06-11T19:32:16.172Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/b9/f2c07e6cdba6a5882342d666ceea4eeeb6fea20ec325fac68c27bfcea722/ansible_core-2.19.9-py3-none-any.whl", hash = "sha256:18de80e3ea5a89d2ea84e4d4a3c6d7c121ea62fc3af2877ba083784e3d90b419", size = 2416269, upload-time = "2026-04-21T00:47:06.777Z" },
-]
-
-[[package]]
-name = "ansible-core"
-version = "2.20.5"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.12.*' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version >= '3.14' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.13.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.12.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.12.*' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-]
-dependencies = [
-    { name = "cryptography", marker = "python_full_version >= '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "jinja2", marker = "python_full_version >= '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra == 'group-24-infrahub-ansible-modules-integration') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra == 'group-24-infrahub-ansible-modules-dev') or (python_full_version >= '3.12' and extra != 'group-24-infrahub-ansible-modules-integration') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "pyyaml", marker = "python_full_version >= '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "resolvelib", marker = "python_full_version >= '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/ec/690cc73e38c3546eabc8ef4118e0d7be1758a598bc23eed3e24ca1f346a7/ansible_core-2.20.5.tar.gz", hash = "sha256:82e3049d95e6e02e5d20d4a5a8e10533a55e0cc52e878e4cf77166c45410f16f", size = 3339511, upload-time = "2026-04-21T00:48:27.175Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/e1/4454505e725b84ae670229565dfc20c4075480199647bf4874cf337c560e/ansible_core-2.20.5-py3-none-any.whl", hash = "sha256:ff6ff15c6a37fda07dc7400207e17e93727b24173ca48c068b3311a50d75ecc3", size = 2416843, upload-time = "2026-04-21T00:48:25.413Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/f7/8c7c18786082eba44c07127c55ab590efcb48f541572894a8b5ca57b5f57/ansible_core-2.19.11rc1-py3-none-any.whl", hash = "sha256:58223671c46c63d28e33bd538767d0975a1d2d63623752c26a264bcfb1494484", size = 2426272, upload-time = "2026-06-11T19:32:14.398Z" },
 ]
 
 [[package]]
@@ -105,8 +75,7 @@ version = "26.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ansible-compat" },
-    { name = "ansible-core", version = "2.19.9", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra == 'group-24-infrahub-ansible-modules-dev') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "ansible-core", version = "2.20.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra == 'group-24-infrahub-ansible-modules-dev') or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
+    { name = "ansible-core" },
     { name = "black" },
     { name = "cffi" },
     { name = "cryptography" },
@@ -919,8 +888,7 @@ name = "infrahub-ansible-modules"
 version = "1.8.3"
 source = { editable = "." }
 dependencies = [
-    { name = "ansible-core", version = "2.19.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
-    { name = "ansible-core", version = "2.20.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
+    { name = "ansible-core" },
     { name = "filelock" },
     { name = "infrahub-sdk", extra = ["all"] },
     { name = "jinja2" },
@@ -957,7 +925,7 @@ integration = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ansible-core", specifier = ">=2.18" },
+    { name = "ansible-core", specifier = ">=2.19.11rc1" },
     { name = "filelock", specifier = ">=3.25.2" },
     { name = "infrahub-sdk", extras = ["all"], specifier = ">=1.19.0,<2.0" },
     { name = "jinja2", specifier = ">=3.1.6" },
