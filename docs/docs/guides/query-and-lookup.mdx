@@ -14,6 +14,45 @@ The **OpsMill Infrahub Ansible Collection** provides two ways to interact with I
 * [**Query Plugin**](../references/plugins/query_graphql_module): The `opsmill.infrahub.query_graphql` module allows you to send a structured GraphQL query and dynamically process the returned results. This method is used as an action plugin within your playbook.
 * [**Lookup Plugin**](../references/plugins/lookup_lookup): The `opsmill.infrahub.lookup` plugin enables you to retrieve GraphQL data using a query and integrate the results into your playbook (using the lookup plugin syntax).
 
+## Configuration
+
+Before using the Infrahub plugins, you need to configure the connection to your Infrahub instance. Both plugins require:
+
+- **Infrahub API endpoint**: The URL of your Infrahub instance
+- **API token**: Authentication token to access the Infrahub API
+
+You can configure these settings using environment variables or by passing them directly in your playbook.
+
+### Environment Variables (Recommended)
+
+Set these environment variables before running your playbooks:
+
+```bash
+export INFRAHUB_ADDRESS="http://localhost:8000"
+export INFRAHUB_API_TOKEN="your-api-token-here"
+```
+
+### Playbook Configuration
+
+Alternatively, you can set these values directly in your playbook using the `environment` directive or module parameters:
+
+```yaml
+- name: Set environment variables for Infrahub
+  environment:
+    INFRAHUB_ADDRESS: "http://localhost:8000"
+    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
+```
+
+Or pass them directly to the modules:
+
+```yaml
+- name: Query with direct parameters
+  opsmill.infrahub.query_graphql:
+    api_endpoint: "http://localhost:8000"
+    token: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
+    query: "{{ query_dict }}"
+```
+
 ## Usage
 
 <Tabs>
@@ -23,6 +62,9 @@ The **OpsMill Infrahub Ansible Collection** provides two ways to interact with I
 - name: Infrahub action plugin
   gather_facts: false
   hosts: localhost
+  environment:
+    INFRAHUB_ADDRESS: "http://localhost:8000"
+    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
 
   tasks:
     - name: SET FACTS TO SEND TO GRAPHQL ENDPOINT
@@ -353,6 +395,9 @@ This example retrieves a list of all locations (`LocationSite`) from Infrahub an
 - name: Infrahub lookup
   gather_facts: false
   hosts: localhost
+  environment:
+    INFRAHUB_ADDRESS: "http://localhost:8000"
+    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
 
   tasks:
     - name: SET FACT OF STRING

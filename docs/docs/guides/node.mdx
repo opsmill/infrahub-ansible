@@ -16,6 +16,47 @@ Infrahub provides two methods for creating nodes using GraphQL:
 
 `opsmill.infrahub.node` allowed a better control in your playbook as the module support both Ansible diff and check options.
 
+## Configuration
+
+Before using the Infrahub node modules, you need to configure the connection to your Infrahub instance. All node operations require:
+
+- **Infrahub API endpoint**: The URL of your Infrahub instance
+- **API token**: Authentication token to access the Infrahub API
+
+You can configure these settings using environment variables or by passing them directly in your playbook.
+
+### Environment Variables (Recommended)
+
+Set these environment variables before running your playbooks:
+
+```bash
+export INFRAHUB_ADDRESS="http://localhost:8000"
+export INFRAHUB_API_TOKEN="your-api-token-here"
+```
+
+### Playbook Configuration
+
+Alternatively, you can set these values directly in your playbook using the `environment` directive or module parameters:
+
+```yaml
+- name: Set environment variables for Infrahub
+  environment:
+    INFRAHUB_ADDRESS: "http://localhost:8000"
+    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
+```
+
+Or pass them directly to the modules:
+
+```yaml
+- name: Create node with direct parameters
+  opsmill.infrahub.node:
+    api_endpoint: "http://localhost:8000"
+    token: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
+    kind: "InfraDevice"
+    data:
+      name: "device1"
+```
+
 ## Usage
 
 ### Creating a node
@@ -33,6 +74,9 @@ This example demonstrates how to create various nodes (an InfraDevice, a VLAN, a
 - name: Create InfraDevice examples
   gather_facts: false
   hosts: localhost
+  environment:
+    INFRAHUB_ADDRESS: "http://localhost:8000"
+    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
 
   tasks:
     - name: Create a InfraDevice 'atl1-sw1'
@@ -96,6 +140,9 @@ In this example, we create BuiltinTags using a GraphQL mutation via the Query Pl
 - name: Create BuiltinTag using Query module
   gather_facts: false
   hosts: localhost
+  environment:
+    INFRAHUB_ADDRESS: "http://localhost:8000"
+    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
   vars:
     infrahub_tags:
       - name: my-tag10
@@ -142,6 +189,9 @@ To delete a node, set the `state` parameter to absent. The module will remove th
 - name: Delete tag 'tag1'
   hosts: localhost
   gather_facts: false
+  environment:
+    INFRAHUB_ADDRESS: "http://localhost:8000"
+    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
 
   tasks:
     - name: Delete tag1
