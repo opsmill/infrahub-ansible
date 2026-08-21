@@ -1,0 +1,29 @@
+pyproject.toml
+  s_16fa9f57dbc6ab::t_a268f71d4aef9b 135-144
+dev/guidelines/testing.md
+  s_16fa9f57dbc6ab::t_6edfc5cb76e2cc 107,129
+dev/knowledge/infrahub-sdk-usage.md
+  s_16fa9f57dbc6ab::t_77134d4bc15253 145
+dev/knowledge/plugin-patterns.md
+  s_16fa9f57dbc6ab::t_92910b3dea7454 133,149,192
+plugins/AGENTS.md
+  s_16fa9f57dbc6ab::t_90fa9d732c1198 34-35,66
+uv.lock
+  s_16fa9f57dbc6ab::t_99ba21b3eaa384 950,2537-2557
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "6468a7dd407c1c2bb62d31a6bc3bd32fbab3e73c",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
