@@ -1,0 +1,21 @@
+dev/knowledge/processors-and-arg-spec.md
+  s_16fa9f57dbc6ab::t_dbcfa5da822f6e 68-71,76-91
+dev/knowledge/inventory-and-lookup.md
+  s_16fa9f57dbc6ab::t_8250c87b28ccda 42-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "4a4809ad31c84d423bb1fca3e606bfd9e0330348",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
