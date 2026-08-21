@@ -712,6 +712,12 @@ if HAS_INFRAHUBCLIENT:
             if not node_attr.initialized:
                 node_attr.fetch()
 
+            if not has_nested:
+                # The result is the peer ids, which the relationship already carries.
+                # Resolving each peer through the store (and fetching it when the store
+                # misses) would spend a round-trip per peer to learn an id we hold.
+                return [peer.id for peer in node_attr.peers if peer.id]
+
             for peer in node_attr.peers:
                 related_node = store.get(key=peer.id, raise_when_missing=False)
                 if not related_node:
@@ -721,20 +727,17 @@ if HAS_INFRAHUBCLIENT:
                 if not related_node or not hasattr(related_node._schema, "attribute_names"):
                     continue
 
-                if has_nested:
-                    # include_id=True already prepends {"id": related_node.id}, matching
-                    # _resolve_one_relationship — no need to build/merge the dict by hand.
-                    nested_result = self.resolve_node_mapping(
-                        node=related_node,
-                        attrs=nested_attrs,
-                        schemas=schemas,
-                        include_id=True,
-                        refill=refill,
-                    )
-                    if nested_result:
-                        peers.append(nested_result)
-                else:
-                    peers.append(related_node.id)
+                # include_id=True already prepends {"id": related_node.id}, matching
+                # _resolve_one_relationship — no need to build/merge the dict by hand.
+                nested_result = self.resolve_node_mapping(
+                    node=related_node,
+                    attrs=nested_attrs,
+                    schemas=schemas,
+                    include_id=True,
+                    refill=refill,
+                )
+                if nested_result:
+                    peers.append(nested_result)
 
             return peers
 
@@ -750,6 +753,12 @@ if HAS_INFRAHUBCLIENT:
             if not (node_attr.id and node_attr.schema.peer):
                 return None
 
+            if not has_nested:
+                # The result is the peer id, which the relationship already carries.
+                # Resolving the peer (and fetching it when the store misses) would spend
+                # a round-trip per host node to learn an id we hold.
+                return node_attr.id
+
             store = self.client.client.store
             related_node = store.get(key=node_attr.id, raise_when_missing=False)
             if not related_node:
@@ -759,15 +768,13 @@ if HAS_INFRAHUBCLIENT:
             if not related_node:
                 return None
 
-            if has_nested:
-                return self.resolve_node_mapping(
-                    node=related_node,
-                    attrs=nested_attrs,
-                    schemas=schemas,
-                    include_id=True,
-                    refill=refill,
-                )
-            return related_node.id
+            return self.resolve_node_mapping(
+                node=related_node,
+                attrs=nested_attrs,
+                schemas=schemas,
+                include_id=True,
+                refill=refill,
+            )
 
         def resolve_node_mapping(
             self,
@@ -919,19 +926,26 @@ if HAS_INFRAHUBCLIENT:
             warmer = PeerWarmer(
                 fetch=self.client.fetch_nodes,
                 store=self.client.client.store,
-                page_size=self.client.client.pagination_size,
+                # One id short of a full page. The SDK's non-parallel pager only stops
+                # once `count - (offset + pagination_size)` goes negative, so a chunk of
+                # exactly `pagination_size` costs a second, empty round-trip.
+                page_size=max(1, self.client.client.pagination_size - 1),
                 on_error=lambda kind, exc: self._handle_display(
                     exception=exc,
                     message=f"Failed to fetch peers for kind '{kind}'",
                     level="WARNING",
                 ),
+                order=Order(disable=True),
             )
             self._warm_peers(warmer=warmer, fetched=fetched)
 
             # `refill` collects nodes whose attributes the query never carried rather than
             # refetching them one by one. Anything it finds is loaded in one batched pass,
-            # after which a second resolve reads the refreshed nodes back.
-            refill = RefillLedger(projections=fetched.projections)
+            # after which a second resolve reads the refreshed nodes back. Peers the
+            # warmer already loaded in full are exempt: a value still empty after a
+            # complete fetch is a genuine null, and queueing it would buy a redundant
+            # refetch plus a second full resolution pass on every run.
+            refill = RefillLedger(projections=fetched.projections, already_loaded=warmer.loaded)
             host_node_attributes = self._resolve_hosts(fetched=fetched, include_id=include_id, refill=refill)
 
             if refill:
@@ -960,7 +974,19 @@ if HAS_INFRAHUBCLIENT:
             order = Order(disable=True)
 
             for node_kind in nodes:
-                fetched.schemas[node_kind] = self.client.fetch_single_schema(kind=node_kind)
+                node_schema = self.client.fetch_single_schema(kind=node_kind)
+                if node_schema is None:
+                    # The wrapper's exception decorator turns a SchemaNotFoundError into
+                    # a warning and a None return, so an unknown kind (a typo, or a kind
+                    # that does not exist on this branch) lands here. Skip it the way a
+                    # failed fetch is skipped -- reading attribute_names off None would
+                    # abort the whole inventory over one bad entry.
+                    self._handle_display(
+                        message=f"No schema found for kind '{node_kind}', skipping it",
+                        level="WARNING",
+                    )
+                    continue
+                fetched.schemas[node_kind] = node_schema
                 node_options = nodes.get(node_kind) or {}
                 exclude = node_options.get("exclude", None)
 
@@ -1016,10 +1042,10 @@ if HAS_INFRAHUBCLIENT:
                 message=f"Loading referenced peers: {dict.fromkeys(referenced)}",
                 level="DEBUG",
             )
+            # No schema fetch for the peer kinds: `resolve_node_mapping` reads a node's
+            # own `_schema`, never the `schemas` mapping it is handed, so loading them
+            # here would be a round-trip nothing reads back.
             warmer.warm(referenced)
-            for related_kind in referenced:
-                if related_kind not in fetched.schemas:
-                    fetched.schemas[related_kind] = self.client.fetch_single_schema(kind=related_kind)
 
         def _resolve_hosts(
             self,

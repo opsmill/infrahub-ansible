@@ -40,7 +40,12 @@ class RefillLedger:
     the second is worth a second request, and the projection is what tells them apart.
     """
 
-    def __init__(self, projections: dict[str, Any] | None = None, enabled: bool = True) -> None:
+    def __init__(
+        self,
+        projections: dict[str, Any] | None = None,
+        enabled: bool = True,
+        already_loaded: set[str] | None = None,
+    ) -> None:
         """
         Parameters:
             projections: node kind to its ``NodeProjection``. A kind with no entry is
@@ -48,9 +53,16 @@ class RefillLedger:
                 one extra batched request, never a missing value.
             enabled: when False nothing is recorded, for a pass that must not queue
                 any more work.
+            already_loaded: ids ``PeerWarmer`` has already fetched in full this run.
+                Those were queried on their concrete kind with nothing excluded, so an
+                attribute that is still empty is a genuine null and refetching it would
+                return the same null -- at the cost of a second full resolution pass.
+                Peers have no projection of their own, so without this every falsy peer
+                attribute would queue a refill on every single run.
         """
         self.projections = projections or {}
         self.enabled = enabled
+        self.already_loaded = already_loaded if already_loaded is not None else set()
         self.pending: dict[str, set[str]] = {}
 
     @classmethod
@@ -61,6 +73,10 @@ class RefillLedger:
     def record(self, node: Any, root_attr: str) -> None:
         """Note that ``root_attr`` came back empty on ``node``, if that is worth a reload."""
         if not self.enabled or not node.id:
+            return
+
+        if node.id in self.already_loaded:
+            # Fetched in full already: the null is the answer.
             return
 
         projection = self.projections.get(node._schema.kind)
@@ -83,6 +99,7 @@ class PeerWarmer:
         store: Any,
         page_size: int = DEFAULT_PAGE_SIZE,
         on_error: Callable[[str, Exception], None] | None = None,
+        order: Any = None,
     ) -> None:
         """
         Parameters:
@@ -90,11 +107,19 @@ class PeerWarmer:
             store: the SDK node store, used to skip peers already held in full.
             page_size: how many ids to request per round-trip.
             on_error: called with (kind, exception) when a kind fails to load.
+            order: the SDK ``Order`` to query peers with. Ordering is server-side work
+                nobody here needs, so the caller passes ``Order(disable=True)`` for the
+                same reason the host query does. Kept untyped so this module stays
+                importable without the SDK.
         """
         self.fetch = fetch
         self.store = store
         self.page_size = page_size or DEFAULT_PAGE_SIZE
         self.on_error = on_error
+        self.order = order
+        # Ids fetched in full this run, so a ``RefillLedger`` can tell a genuine null
+        # from an attribute the query never carried.
+        self.loaded: set[str] = set()
 
     @staticmethod
     def _nested_roots(attrs: list[str]) -> dict[str, tuple[str, ...]]:
@@ -113,7 +138,7 @@ class PeerWarmer:
         return {root: tuple(sorted(wanted)) for root, wanted in nested.items()}
 
     def _is_satisfied(self, node_id: str, wanted: tuple[str, ...]) -> bool:
-        """Whether the stored peer already carries every attribute about to be read."""
+        """Whether the stored peer already carries everything about to be read off it."""
         peer = self.store.get(key=node_id, raise_when_missing=False)
         if peer is None:
             return False
@@ -122,11 +147,20 @@ class PeerWarmer:
         attribute_names = getattr(schema, "attribute_names", None)
         if attribute_names is None:
             return False
+        relationship_names = getattr(schema, "relationship_names", None) or ()
 
         for name in wanted:
+            if name in relationship_names:
+                # A depth-2 path (``site.region.name``): the peer's own relationships
+                # only come back populated when the peer itself is queried with
+                # ``prefetch_relationships=True``, which is what ``warm`` does. The
+                # inline payload the host query carries never goes that deep, so
+                # calling this satisfied leaves resolution to fetch one region per
+                # site -- the per-peer round-trip this module exists to avoid.
+                return False
             if name not in attribute_names:
-                # A relationship or a special property; resolution handles those
-                # without needing an attribute value here.
+                # A special node property (display_label, hfid); resolution handles
+                # those without needing an attribute value here.
                 continue
             attr = getattr(peer, name, None)
             if attr is None or getattr(attr, "value", None) in (None, ""):
@@ -211,13 +245,19 @@ class PeerWarmer:
                 try:
                     # One page per call, so `parallel` (which spends a round-trip on a
                     # count first) would only add latency here.
-                    self.fetch(
+                    loaded = self.fetch(
                         kind=kind,
                         filters={"ids": chunk},
                         prefetch_relationships=True,
                         parallel=False,
+                        order=self.order,
                     )
                     calls += 1
+                    if loaded is not None:
+                        # `fetch` returns None when the wrapper's exception decorator
+                        # swallowed the failure, and a chunk that never arrived must not
+                        # count as loaded -- that is exactly what a refill is for.
+                        self.loaded.update(chunk)
                 except Exception as exc:
                     if self.on_error:
                         self.on_error(kind, exc)

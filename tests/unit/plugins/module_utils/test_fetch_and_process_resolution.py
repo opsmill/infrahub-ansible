@@ -110,3 +110,21 @@ def test_bare_relationship_needs_no_peer_load(mocker):
     processor.fetch_and_process(nodes={"KindA": {}})
 
     assert [c for c in wrapper.fetch_nodes.call_args_list if c.kwargs.get("kind") == "LocationSite"] == []
+
+
+def test_a_kind_with_no_schema_is_skipped_not_fatal(mocker):
+    """An unknown kind must not abort the whole inventory.
+
+    The wrapper's exception decorator turns a SchemaNotFoundError into a warning and a
+    ``None`` return, so a typo (or a kind that does not exist on this branch) reaches
+    the projection step as ``schema=None``.
+    """
+    wrapper = mocker.MagicMock()
+    wrapper.fetch_single_schema.side_effect = lambda kind, **kw: None
+    wrapper.fetch_nodes.side_effect = lambda kind, **kw: None
+    wrapper.client.store.get.return_value = None
+    wrapper.client.pagination_size = 50
+
+    processor = iu.InfrahubNodesProcessor(client=wrapper)
+
+    assert processor.fetch_and_process(nodes={"NoSuchKind": {}}) is None

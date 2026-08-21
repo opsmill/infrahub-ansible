@@ -167,3 +167,58 @@ def test_disabled_ledger_records_nothing():
     ledger.record(FakeNode("KindA", "a1"), "name")
 
     assert ledger.pending == {}
+
+
+def test_collect_warms_a_peer_a_depth_two_path_reads_through():
+    """``site.region.name``: the peer's own relationships only arrive when it is warmed.
+
+    The inline payload the host query carries stops one level down, so calling the
+    peer satisfied here leaves resolution fetching one region per site -- the
+    per-peer round-trip this module exists to avoid.
+    """
+    stored = SimpleNamespace(
+        _schema=SimpleNamespace(attribute_names=["name"], relationship_names=["region"]),
+        name=SimpleNamespace(value="London"),
+        region=SimpleNamespace(id="r1", typename="LocationRegion"),
+    )
+    node = FakeNode("KindA", "a1", site=FakePeer("s1", "LocationSite"))
+
+    referenced = _warmer(store_get=lambda key, raise_when_missing=True: stored).collect(
+        [node], {"KindA": ["site.region.name"]}
+    )
+
+    assert referenced == {"LocationSite": {"s1"}}
+
+
+def test_warm_passes_the_order_it_was_given():
+    """Ordering is server-side work nobody here needs, exactly as for the host query."""
+    fetch = RecordingFetch()
+    warmer = PeerWarmer(fetch=fetch, store=SimpleNamespace(get=lambda **kw: None), order="ORDER")
+
+    warmer.warm({"LocationSite": {"s1"}})
+
+    assert fetch.calls[0]["order"] == "ORDER"
+
+
+def test_warm_records_the_ids_it_loaded():
+    warmer = _warmer()
+
+    warmer.warm({"LocationSite": {"s1", "s2"}})
+
+    assert warmer.loaded == {"s1", "s2"}
+
+
+def test_ledger_ignores_a_peer_the_warmer_already_loaded_in_full():
+    """A value still empty after a complete fetch is a genuine null.
+
+    Peers carry no projection, so without this every falsy peer attribute would queue
+    a refill -- a redundant refetch plus a second full resolution pass, every run.
+    """
+    warmer = _warmer()
+    warmer.warm({"LocationSite": {"s1"}})
+    ledger = RefillLedger(projections={}, already_loaded=warmer.loaded)
+
+    ledger.record(FakeNode("LocationSite", "s1"), "description")
+
+    assert ledger.pending == {}
+    assert not ledger
