@@ -1,0 +1,20 @@
+plugins/module_utils/peers.py
+  s_16fa9f57dbc6ab::t_55e396972274c9 100,104-105,107,112-113,115
+  s_16fa9f57dbc6ab::t_5b55b1034e01b3 146-149,151-155,158-159,162,170,172-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "1a58c8cd6435336cba6905a397314b54d4c5ba56",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
