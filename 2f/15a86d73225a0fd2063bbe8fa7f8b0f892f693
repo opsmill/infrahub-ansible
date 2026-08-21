@@ -1,0 +1,55 @@
+plugins/module_utils/peers.py
+  s_16fa9f57dbc6ab::t_941bf2be138ed8 26-29
+  s_16fa9f57dbc6ab::t_f7a87fca4a7594 108-111,129,150
+  s_16fa9f57dbc6ab::t_bc6494dc867708 23-25
+  s_16fa9f57dbc6ab::t_f5bc108a770122 30-32,105-107
+  s_16fa9f57dbc6ab::t_0c624294e2b47f 112-114,126-128
+  s_16fa9f57dbc6ab::t_b9466e36c753d7 130-132,147-149
+  s_16fa9f57dbc6ab::t_7cdb390763b5af 151-153
+  s_16fa9f57dbc6ab::t_53c2963e71c673 1-22,33-104,115-125,133-146,154-209
+tests/unit/plugins/module_utils/test_peers.py
+  s_16fa9f57dbc6ab::t_68bd4ccb9eafe0 1-169
+plugins/inventory/inventory.py
+  s_16fa9f57dbc6ab::t_8b8afa65c3ad93 40,179,193-196,262-283,300,317,396-400
+tests/unit/plugins/module_utils/test_projection.py
+  s_16fa9f57dbc6ab::t_714d12a6816958 1-101
+plugins/module_utils/infrahub_utils.py
+  s_16fa9f57dbc6ab::t_c6c2b4e148944f 909-942,944-955,957-960,968-969,978,992-994,996,998-999,1001-1011,1013,1015-1039,1041-1043,1052,1054
+  s_16fa9f57dbc6ab::t_8b8afa65c3ad93 14-15,336,349-350,364,376,664-669,671-682,686-690,697-702,727-731,741-746,763-767,772-777,787-789,822,828,832,961-967,970,972,976-977,1012,1014,1045
+  s_16fa9f57dbc6ab::t_61e04945d73f17 943,971
+  s_16fa9f57dbc6ab::t_941bf2be138ed8 10,841-847
+  s_16fa9f57dbc6ab::t_2fd55a30cf9f8c 848
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_16fa9f57dbc6ab::t_c3ca513037bf15 3-5,17-18,21-22,26-27,30-31,37,40-42,44-46,49,72-78,80-81,83,88-112
+  s_16fa9f57dbc6ab::t_0cbcf2b621ec3f 11,16,19-20
+tests/unit/plugins/inventory/test_inventory_cache_key.py
+  s_16fa9f57dbc6ab::t_4de2d0c3faf1a8 1-59
+plugins/module_utils/projection.py
+  s_c6f346a2001a0e::t_4c135e9e9c10e1 1-118
+docs/docs/references/plugins/inventory_inventory.mdx
+  s_16fa9f57dbc6ab::t_557bf09a1092e1 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "2f15a86d73225a0fd2063bbe8fa7f8b0f892f693",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    },
+    "s_c6f346a2001a0e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c633b87b-9c13-445d-b44a-c048ba2fb1c6",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
