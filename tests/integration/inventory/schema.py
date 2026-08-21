@@ -7,13 +7,22 @@ Models a small "hosts in sites in regions" topology that exercises the inventory
 plugin's features: simple attributes, one-cardinality relationships (``site``,
 ``primary_address``), a depth-2 path (``site.region.name``) and a many-cardinality
 relationship (``tags`` -> BuiltinTag).
+
+``Host.site`` deliberately declares its peer as the ``TestingLocation`` *generic*,
+which exposes only ``shortname``, while ``name`` and ``region`` live on the
+concrete ``TestingSite``. That mirrors how real schemas are shaped (a device's
+``location`` declaring a location generic) and it is the case that breaks: the SDK
+builds a relationship's inline payload from the *declared* peer schema, so a peer
+reached this way arrives without the concrete kind's attributes. Every
+``site.name`` assertion in this suite therefore also proves the plugin recovers
+them.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from infrahub_sdk.schema.main import AttributeKind, NodeSchema, RelationshipKind, SchemaRoot
+from infrahub_sdk.schema.main import AttributeKind, GenericSchema, NodeSchema, RelationshipKind, SchemaRoot
 from infrahub_sdk.schema.main import AttributeSchema as Attr
 from infrahub_sdk.schema.main import RelationshipSchema as Rel
 
@@ -22,6 +31,7 @@ if TYPE_CHECKING:
 
 NAMESPACE = "Testing"
 HOST = f"{NAMESPACE}Host"
+LOCATION = f"{NAMESPACE}Location"
 SITE = f"{NAMESPACE}Site"
 REGION = f"{NAMESPACE}Region"
 ADDRESS = f"{NAMESPACE}IPAddress"
@@ -37,9 +47,17 @@ def build_schema() -> SchemaRoot:
         display_labels=["name__value"],
         attributes=[Attr(name="name", kind=AttributeKind.TEXT, unique=True)],
     )
+    location = GenericSchema(
+        name="Location",
+        namespace=NAMESPACE,
+        # Deliberately narrower than TestingSite: no `name`, no `region`. A peer
+        # reached through this generic arrives carrying only `shortname`.
+        attributes=[Attr(name="shortname", kind=AttributeKind.TEXT, optional=True)],
+    )
     site = NodeSchema(
         name="Site",
         namespace=NAMESPACE,
+        inherit_from=[LOCATION],
         default_filter="name__value",
         human_friendly_id=["name__value"],
         display_labels=["name__value"],
@@ -68,7 +86,10 @@ def build_schema() -> SchemaRoot:
             Attr(name="platform", kind=AttributeKind.TEXT, optional=True),
         ],
         relationships=[
-            Rel(name="site", peer=SITE, kind=RelationshipKind.ATTRIBUTE, cardinality="one", optional=False),
+            # Declared against the generic, not TestingSite: the SDK projects a
+            # relationship's inline payload off the *declared* peer, so `name` and
+            # `region` do not come back with the host query and have to be recovered.
+            Rel(name="site", peer=LOCATION, kind=RelationshipKind.ATTRIBUTE, cardinality="one", optional=False),
             Rel(
                 name="primary_address",
                 peer=ADDRESS,
@@ -79,7 +100,7 @@ def build_schema() -> SchemaRoot:
             Rel(name="tags", peer=BUILTIN_TAG, kind=RelationshipKind.ATTRIBUTE, cardinality="many", optional=True),
         ],
     )
-    return SchemaRoot(version="1.0", nodes=[region, site, address, host])
+    return SchemaRoot(version="1.0", generics=[location], nodes=[region, site, address, host])
 
 
 # (host, role, platform, site, region, address, [tags])

@@ -974,13 +974,17 @@ if HAS_INFRAHUBCLIENT:
             order = Order(disable=True)
 
             for node_kind in nodes:
-                node_schema = self.client.fetch_single_schema(kind=node_kind)
+                # `raise_when_missing=False` makes an unknown kind return None here
+                # regardless of whether the wrapper's exception decorator is installed.
+                # Relying on the decorator alone is not enough: it is attached in
+                # __init__, so any caller that builds the wrapper another way gets the
+                # raw SchemaNotFoundError instead.
+                node_schema = self.client.fetch_single_schema(kind=node_kind, raise_when_missing=False)
                 if node_schema is None:
-                    # The wrapper's exception decorator turns a SchemaNotFoundError into
-                    # a warning and a None return, so an unknown kind (a typo, or a kind
-                    # that does not exist on this branch) lands here. Skip it the way a
-                    # failed fetch is skipped -- reading attribute_names off None would
-                    # abort the whole inventory over one bad entry.
+                    # An unknown kind -- a typo, or a kind that does not exist on this
+                    # branch. Skip it the way a failed fetch is skipped: reading
+                    # attribute_names off None would abort the whole inventory over one
+                    # bad entry.
                     self._handle_display(
                         message=f"No schema found for kind '{node_kind}', skipping it",
                         level="WARNING",

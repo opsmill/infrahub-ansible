@@ -91,6 +91,33 @@ class TestInventoryIntegration(TestInfrahubDockerClient):
         assert groups["region_amer"] == {"host-c", "host-d"}
         assert groups["edge_devices"] == {"host-a", "host-c"}
 
+    def test_cli_resolves_attributes_behind_a_generic_peer(self, infrahub_port, dataset):
+        """``site.name`` has to survive the relationship declaring a generic peer.
+
+        ``Host.site`` points at the ``TestingLocation`` generic, which exposes only
+        ``shortname``; ``name`` and ``region`` belong to the concrete ``TestingSite``.
+        The SDK builds a relationship's inline payload from the declared peer schema,
+        so both arrive empty and the plugin has to go and get them. This is the shape
+        real schemas use, and the failure it guards against is host variables coming
+        back null.
+
+        Scope, measured by mutation: this asserts the values *resolve*, not what they
+        cost. Disabling peer warming entirely still passes here, because the refill
+        fallback recovers them -- at 4x the requests. The request budget for this shape
+        lives in the processor suite
+        (``test_generic_peer_attribute_resolves_and_stays_bounded``), which can count
+        round-trips; this path runs ``ansible-inventory`` as a subprocess and cannot.
+        """
+        hosts, _groups, hostvars = self._run_cli(infrahub_port, "nested.yml")
+        assert hosts == ALL_HOSTS
+
+        # Straight off the concrete kind, reached through the generic relationship.
+        assert hostvars["host-a"]["site"]["name"] == "paris"
+        assert hostvars["host-c"]["site"]["name"] == "denver"
+        # And a depth-2 path whose first hop is that same generic relationship.
+        assert hostvars["host-a"]["site"]["region"]["name"] == "emea"
+        assert hostvars["host-c"]["site"]["region"]["name"] == "amer"
+
     def test_parse_api_nested_compose(self, infrahub_port, dataset):
         # parse() drives the real fetch (depth-2 site.region.name) and composes vars.
         env = {"INFRAHUB_ADDRESS": f"http://localhost:{infrahub_port}", "INFRAHUB_API_TOKEN": ADMIN_TOKEN}

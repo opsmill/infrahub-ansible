@@ -59,6 +59,14 @@ def count_graphql(client: InfrahubClientSync):
         client.execute_graphql = original
 
 
+def _over_budget(actual: int, budget: int) -> str:
+    return (
+        f"{actual} GraphQL round-trips, budget {budget}. These budgets are measured, not\n"
+        f"aspirational: a rise means a fetch went back to costing one request per node or\n"
+        f"per peer. Re-measure before widening one."
+    )
+
+
 def _report(label: str, trackers: Counter[str]) -> None:
     total = sum(trackers.values())
     print(f"\n=== MEASURE [{label}] total_round_trips={total} ===")
@@ -106,10 +114,11 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         return result, sum(trackers.values())
 
     def test_depth1_many_animals(self, infrahub_port, seeded):
-        result, _count = self._measure(
+        result, count = self._measure(
             infrahub_port, "S3 depth1 animals.name", {TESTING_PERSON: {"include": ["name", "animals.name"]}}
         )
         assert result and len(result) == seeded["people"]
+        assert count <= 2, _over_budget(count, 2)
         sample = next(iter(result.values()))
         print(f"    sample person resolved: {sample}")
         # Content must actually be resolved, not just fast-and-empty.
@@ -118,20 +127,22 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         assert all(a.get("name") for a in animals)
 
     def test_depth1_many_tags(self, infrahub_port, seeded):
-        result, _count = self._measure(
+        result, count = self._measure(
             infrahub_port, "S3 depth1 tags.name", {TESTING_PERSON: {"include": ["name", "tags.name"]}}
         )
         assert result and len(result) == seeded["people"]
+        assert count <= 2, _over_budget(count, 2)
         sample = next(iter(result.values()))
         tags = sample.get("tags")
         assert tags and len(tags) == seeded["tags"]
         assert all(t.get("name") for t in tags)
 
     def test_depth2_nested(self, infrahub_port, seeded):
-        result, _count = self._measure(
+        result, count = self._measure(
             infrahub_port, "S2 depth2 animals.owner.name", {TESTING_PERSON: {"include": ["name", "animals.owner.name"]}}
         )
         assert result and len(result) == seeded["people"]
+        assert count <= 3, _over_budget(count, 3)
         sample = next(iter(result.values()))
         print(f"    sample person (depth2) resolved: {sample}")
         animals = sample.get("animals")
@@ -140,19 +151,53 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         assert all(a.get("owner", {}).get("name") for a in animals)
 
     def test_combined(self, infrahub_port, seeded):
-        result, _count = self._measure(
+        result, count = self._measure(
             infrahub_port,
             "combined animals.name+tags.name+animals.owner.name",
             {TESTING_PERSON: {"include": ["name", "animals.name", "tags.name", "animals.owner.name"]}},
         )
         assert result and len(result) == seeded["people"]
+        assert count <= 3, _over_budget(count, 3)
+
+    def test_generic_peer_attribute_resolves_and_stays_bounded(self, infrahub_port, seeded):
+        """A nested attribute the *declared* peer schema does not expose.
+
+        ``Person.animals`` declares its peer as the ``TestingAnimal`` generic, which
+        carries only ``name`` and ``weight``. ``breed`` lives on the concrete
+        ``TestingCat``. The SDK builds a relationship's inline payload from the
+        declared peer schema, so ``breed`` is never requested and the peers arrive
+        without it -- and no amount of retrying the host query changes that.
+
+        This is the single most common shape in real schemas (a device's
+        ``location`` declaring a location generic, an address's ``interface``
+        declaring an interface generic) and every performance defect found in this
+        area has been some version of it. It has to resolve, and it has to do so
+        without falling back to one request per peer.
+        """
+        result, count = self._measure(
+            infrahub_port,
+            "generic peer animals.breed",
+            {TESTING_PERSON: {"include": ["name", "animals.breed"]}},
+        )
+        assert result and len(result) == seeded["people"]
+
+        sample = next(iter(result.values()))
+        animals = sample.get("animals")
+        assert animals and len(animals) == self.CATS_PER_PERSON
+        # The point of the test: an attribute absent from the generic still arrives.
+        assert all(a.get("breed") == "Bengal" for a in animals), (
+            f"breed did not resolve through the generic peer: {animals}"
+        )
+        # ...and it cost a bounded number of requests, not one per peer.
+        assert count <= 3, _over_budget(count, 3)
 
     def test_inherited_attr_cats(self, infrahub_port, seeded):
         # `name` is inherited from the Animal generic -> exercises _resolve_schema_attribute.
-        result, _count = self._measure(
+        result, count = self._measure(
             infrahub_port, "S4 inherited cat.name+breed", {TESTING_CAT: {"include": ["name", "breed"]}}
         )
         assert result and len(result) == seeded["cats"]
+        assert count <= 2, _over_budget(count, 2)
         # Show whether inherited `name` actually resolved (S4: does the refetch even fire?).
         sample = next(iter(result.values()))
         print(f"    sample cat resolved: {sample}")
