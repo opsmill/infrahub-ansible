@@ -97,21 +97,22 @@ class PeerWarmer:
         self.on_error = on_error
 
     @staticmethod
-    def _nested_roots(attrs: list[str]) -> dict[str, list[str]]:
+    def _nested_roots(attrs: list[str]) -> dict[str, tuple[str, ...]]:
         """Map each root that carries a dotted path to the first segment of each path.
 
         Roots without a dotted path resolve to a bare peer id, which needs no peer
-        attributes and therefore no warming.
+        attributes and therefore no warming. The wanted names come back as a sorted
+        tuple so they can key the verdict cache in ``collect``.
         """
-        nested: dict[str, list[str]] = {}
+        nested: dict[str, set[str]] = {}
         for attr in attrs:
             if "." not in attr:
                 continue
             root, rest = attr.split(".", 1)
-            nested.setdefault(root, []).append(rest.split(".", 1)[0])
-        return nested
+            nested.setdefault(root, set()).add(rest.split(".", 1)[0])
+        return {root: tuple(sorted(wanted)) for root, wanted in nested.items()}
 
-    def _is_satisfied(self, node_id: str, wanted: list[str]) -> bool:
+    def _is_satisfied(self, node_id: str, wanted: tuple[str, ...]) -> bool:
         """Whether the stored peer already carries every attribute about to be read."""
         peer = self.store.get(key=node_id, raise_when_missing=False)
         if peer is None:
@@ -142,14 +143,23 @@ class PeerWarmer:
         Returns:
             dict[str, set[str]]: concrete peer kind to the ids to fetch.
         """
+        # The dotted paths depend on the kind, not the node, so parse them once per
+        # kind instead of once per node.
+        nested_by_kind = {kind: self._nested_roots(attrs) for kind, attrs in attrs_by_kind.items()}
+
         referenced: dict[str, set[str]] = {}
+        # One peer is typically referenced by many hosts (600 devices sharing 130
+        # sites), so remember each verdict rather than reading the store once per
+        # reference. Keyed by the wanted names too, since two host kinds can ask for
+        # different attributes through the same relationship name.
+        verdicts: dict[tuple[str, tuple[str, ...]], bool] = {}
 
         for node in nodes:
-            attrs = attrs_by_kind.get(node._schema.kind)
-            if not attrs:
+            nested = nested_by_kind.get(node._schema.kind)
+            if not nested:
                 continue
 
-            for root, wanted in self._nested_roots(attrs).items():
+            for root, wanted in nested.items():
                 node_attr = getattr(node, root, None)
                 if node_attr is None:
                     continue
@@ -157,9 +167,14 @@ class PeerWarmer:
                 for peer in self._peers_of(node_attr):
                     peer_id = getattr(peer, "id", None)
                     kind = getattr(peer, "typename", None)
-                    if not peer_id or not kind or self._is_satisfied(peer_id, wanted):
+                    if not peer_id or not kind:
                         continue
-                    referenced.setdefault(kind, set()).add(peer_id)
+
+                    key = (peer_id, wanted)
+                    if key not in verdicts:
+                        verdicts[key] = not self._is_satisfied(peer_id, wanted)
+                    if verdicts[key]:
+                        referenced.setdefault(kind, set()).add(peer_id)
 
         return referenced
 
