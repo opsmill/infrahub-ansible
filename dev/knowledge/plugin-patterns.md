@@ -130,7 +130,6 @@ def main():
     node_module = NodeModule(module=module)
     node_module.run()
 
-
 if __name__ == "__main__":  # pragma: no cover
     main()
 ```
@@ -145,7 +144,6 @@ Action plugins in `plugins/action/` inherit from `ActionBase`:
 from ansible.plugins.action import ActionBase
 from ansible.utils.display import Display
 from ansible.errors import AnsibleError
-
 
 class ActionModule(ActionBase):
     def run(self, tmp: Any | None = None, task_vars: Any | None = None) -> dict:
@@ -189,7 +187,6 @@ All files that use `infrahub-sdk` must use conditional imports:
 try:
     from infrahub_sdk import Config, InfrahubClientSync
     from infrahub_sdk.exceptions import BranchNotFoundError, SchemaNotFoundError
-
     # ... other imports ...
     HAS_INFRAHUBCLIENT = True
 except ImportError:

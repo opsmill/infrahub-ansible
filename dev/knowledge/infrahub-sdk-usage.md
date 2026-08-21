@@ -142,7 +142,6 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     INFRAHUB_ARG_SPEC,
 )
 
-
 class NodeModule(InfrahubModule):
     def run(self):
         kind = self.data.get("kind")

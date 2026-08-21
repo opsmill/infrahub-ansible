@@ -31,8 +31,8 @@ Modules in `modules/` are stubs. They define three docstrings and create an `Ans
 
 ```python
 DOCUMENTATION = """..."""  # YAML — module name, options, descriptions
-EXAMPLES = """..."""  # YAML — playbook examples
-RETURN = """..."""  # YAML — return value documentation
+EXAMPLES = """..."""       # YAML — playbook examples
+RETURN = """..."""         # YAML — return value documentation
 ```
 
 Actual logic lives in either:
@@ -63,7 +63,6 @@ All files using `infrahub-sdk` must guard imports:
 ```python
 try:
     from infrahub_sdk import InfrahubClientSync
-
     # ... other SDK imports ...
     HAS_INFRAHUBCLIENT = True
 except ImportError:
