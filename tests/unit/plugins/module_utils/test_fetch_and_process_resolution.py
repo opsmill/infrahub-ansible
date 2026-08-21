@@ -10,6 +10,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import NamedTuple
 
+import pytest
 from ansible_collections.opsmill.infrahub.plugins.module_utils import infrahub_utils as iu
 
 
@@ -101,6 +102,56 @@ def test_peers_are_loaded_by_id_not_by_kind(mocker):
     assert unbounded == []
 
 
+def test_all_kinds_failing_raises_instead_of_returning_empty(mocker):
+    """An empty result caused by a failure must not look like an empty inventory.
+
+    Returning ``None`` here is indistinguishable from "the query matched nothing",
+    so a transient API error would hand Ansible zero hosts and the play would
+    quietly no-op -- which reads as success.
+    """
+    processor, wrapper = _make_processor(mocker, {})
+    wrapper.fetch_nodes.side_effect = RuntimeError("infrahub unreachable")
+
+    with pytest.raises(RuntimeError, match="No nodes could be fetched"):
+        processor.fetch_and_process(nodes={"KindA": {}})
+
+
+def test_failure_detail_names_every_broken_kind(mocker):
+    processor, wrapper = _make_processor(mocker, {})
+    wrapper.fetch_nodes.side_effect = RuntimeError("boom")
+
+    with pytest.raises(RuntimeError) as excinfo:
+        processor.fetch_and_process(nodes={"KindA": {}, "KindB": {}})
+
+    assert "KindA: boom" in str(excinfo.value)
+    assert "KindB: boom" in str(excinfo.value)
+
+
+def test_genuinely_empty_result_still_returns_none(mocker):
+    """No failures, no nodes: the kinds answered and the answer was empty."""
+    processor, _wrapper = _make_processor(mocker, {})
+
+    assert processor.fetch_and_process(nodes={"KindA": {}}) is None
+
+
+def test_a_partial_failure_still_returns_what_worked(mocker):
+    """One broken kind must not discard the kinds that answered."""
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
+    processor, wrapper = _make_processor(mocker, nodes_by_kind)
+
+    def fetch(kind, **kwargs):
+        if kind == "KindB":
+            raise RuntimeError("boom")
+        return list(nodes_by_kind.get(kind, []))
+
+    wrapper.fetch_nodes.side_effect = fetch
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "a1"})
+
+    result = processor.fetch_and_process(nodes={"KindA": {}, "KindB": {}})
+
+    assert result == {"a1": {"id": "a1"}}
+
+
 def test_bare_relationship_needs_no_peer_load(mocker):
     """A relationship requested without a dotted path resolves to an id, so no peer is loaded."""
     nodes_by_kind = {"KindA": [FakeNode("KindA", "a1", peer=FakePeer("site-1", "LocationSite"))]}
@@ -112,12 +163,29 @@ def test_bare_relationship_needs_no_peer_load(mocker):
     assert [c for c in wrapper.fetch_nodes.call_args_list if c.kwargs.get("kind") == "LocationSite"] == []
 
 
-def test_a_kind_with_no_schema_is_skipped_not_fatal(mocker):
-    """An unknown kind must not abort the whole inventory.
+def test_a_kind_with_no_schema_does_not_take_the_others_with_it(mocker):
+    """An unknown kind must not abort the kinds that do resolve.
 
-    The wrapper's exception decorator turns a SchemaNotFoundError into a warning and a
-    ``None`` return, so a typo (or a kind that does not exist on this branch) reaches
-    the projection step as ``schema=None``.
+    A missing schema reaches the projection step as ``schema=None``; reading
+    ``attribute_names`` off it used to abort the whole inventory over one typo.
+    """
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
+    processor, wrapper = _make_processor(mocker, nodes_by_kind)
+    wrapper.fetch_single_schema.side_effect = lambda kind, **kw: (
+        None if kind == "NoSuchKind" else SimpleNamespace(kind=kind, attribute_names=["name"], relationship_names=[])
+    )
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "a1"})
+
+    result = processor.fetch_and_process(nodes={"NoSuchKind": {}, "KindA": {}})
+
+    assert result == {"a1": {"id": "a1"}}
+
+
+def test_a_kind_with_no_schema_alone_raises(mocker):
+    """With nothing else to fall back on, a bad kind is an error, not an empty inventory.
+
+    Silently returning nothing here is how a typo in ``nodes:`` becomes a play that
+    runs against zero hosts and reports success.
     """
     wrapper = mocker.MagicMock()
     wrapper.fetch_single_schema.side_effect = lambda kind, **kw: None
@@ -127,4 +195,5 @@ def test_a_kind_with_no_schema_is_skipped_not_fatal(mocker):
 
     processor = iu.InfrahubNodesProcessor(client=wrapper)
 
-    assert processor.fetch_and_process(nodes={"NoSuchKind": {}}) is None
+    with pytest.raises(RuntimeError, match="no schema found"):
+        processor.fetch_and_process(nodes={"NoSuchKind": {}})

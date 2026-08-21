@@ -858,6 +858,9 @@ if HAS_INFRAHUBCLIENT:
         schemas: dict[str, Any] = field(default_factory=dict)
         attrs_by_kind: dict[str, list[str]] = field(default_factory=dict)
         projections: dict[str, NodeProjection] = field(default_factory=dict)
+        # Kinds that could not be fetched, and why. A kind that returned no nodes is
+        # not a failure -- it answered, the answer was empty.
+        failures: dict[str, str] = field(default_factory=dict)
 
     class InfrahubNodesProcessor(InfrahubBaseProcessor):
         @staticmethod
@@ -921,6 +924,14 @@ if HAS_INFRAHUBCLIENT:
 
             fetched = self._fetch_host_nodes(nodes=nodes, prefetch_relationships=prefetch_relationships)
             if not fetched.nodes:
+                if fetched.failures:
+                    # Nothing was fetched AND something went wrong. Returning an empty
+                    # result here is indistinguishable from "the query matched nothing",
+                    # so a transient API error would look like an empty inventory and a
+                    # playbook would quietly no-op against zero hosts. Fail loudly instead.
+                    detail = "; ".join(f"{kind}: {why}" for kind, why in sorted(fetched.failures.items()))
+                    raise RuntimeError(f"No nodes could be fetched. Failures -- {detail}")
+                # Every requested kind answered, and the answer was empty.
                 return None
 
             warmer = PeerWarmer(
@@ -989,6 +1000,7 @@ if HAS_INFRAHUBCLIENT:
                         message=f"No schema found for kind '{node_kind}', skipping it",
                         level="WARNING",
                     )
+                    fetched.failures[node_kind] = "no schema found"
                     continue
                 fetched.schemas[node_kind] = node_schema
                 node_options = nodes.get(node_kind) or {}
@@ -1021,6 +1033,7 @@ if HAS_INFRAHUBCLIENT:
                         message=f"Failed to fetch_nodes for kind '{node_kind}'",
                         level="WARNING",
                     )
+                    fetched.failures[node_kind] = str(exc) or type(exc).__name__
                     continue
 
                 if not nodes_from_kind:
