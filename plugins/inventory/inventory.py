@@ -279,7 +279,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             default=str,
         )
         digest = hashlib.sha256(request.encode()).hexdigest()[:16]
-        return self.get_cache_key(f"{self.api_endpoint}|{digest}")
+        cache_key: str = self.get_cache_key(f"{self.api_endpoint}|{digest}")
+        return cache_key
 
     def _fetch_from_cache(self) -> tuple[dict | None, bool]:
         """
