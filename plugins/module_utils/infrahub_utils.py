@@ -6,8 +6,9 @@ import base64
 import hashlib
 import traceback
 from copy import deepcopy
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any
 
 from ansible.module_utils.basic import env_fallback
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
@@ -838,13 +839,18 @@ if HAS_INFRAHUBCLIENT:
 
             return attribute_dict
 
-    class HostFetch(NamedTuple):
-        """Host nodes plus the schema and projection context needed to resolve them."""
+    @dataclass
+    class HostFetch:
+        """Host nodes plus the schema and projection context needed to resolve them.
 
-        nodes: list[InfrahubNodeSync]
-        schemas: dict[str, Any]
-        attrs_by_kind: dict[str, list[str]]
-        projections: dict[str, NodeProjection]
+        Filled in as each requested kind is fetched, so the collections are mutable
+        and start empty.
+        """
+
+        nodes: list[InfrahubNodeSync] = field(default_factory=list)
+        schemas: dict[str, Any] = field(default_factory=dict)
+        attrs_by_kind: dict[str, list[str]] = field(default_factory=dict)
+        projections: dict[str, NodeProjection] = field(default_factory=dict)
 
     class InfrahubNodesProcessor(InfrahubBaseProcessor):
         @staticmethod
@@ -950,7 +956,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 HostFetch: the host nodes plus the schema and projection context to resolve them.
             """
-            fetched = HostFetch(nodes=[], schemas={}, attrs_by_kind={}, projections={})
+            fetched = HostFetch()
             order = Order(disable=True)
 
             for node_kind in nodes:
