@@ -1,0 +1,22 @@
+.github/file-filters.yml
+  s_16fa9f57dbc6ab::t_b0cd36f36f3c88 12-16,19-20
+.github/workflows/workflow-linter.yml
+  s_16fa9f57dbc6ab::t_9f10278072c1af 111-114
+  s_16fa9f57dbc6ab::t_f132ac06fbf72e 140-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "8dc52349330c4a028f57c0e88e29b66028bc91ce",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
