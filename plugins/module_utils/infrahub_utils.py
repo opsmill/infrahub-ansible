@@ -7,10 +7,12 @@ import hashlib
 import traceback
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from ansible.module_utils.basic import env_fallback
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
+from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer, RefillLedger
+from ansible_collections.opsmill.infrahub.plugins.module_utils.projection import NodeProjection
 
 if TYPE_CHECKING:
     from ansible.module_utils.basic import AnsibleModule, Display
@@ -331,6 +333,7 @@ if HAS_INFRAHUBCLIENT:
             branch: str | None = None,
             prefetch_relationships: bool | None = True,
             order: Order | None = None,
+            parallel: bool = True,
         ) -> list[InfrahubNodeSync]:
             """
             Retrieve all nodes of a given kind
@@ -343,6 +346,8 @@ if HAS_INFRAHUBCLIENT:
                 branch (str, optional): Name of the branch to query from. Defaults to default_branch.
                 prefetch_relationships (bool, optional): Whether to prefetch relationships when fetching nodes. Defaults to True.
                 order (Order, optional): Ordering related options. Setting disable=True enhances performances.
+                parallel (bool, optional): Whether to page the query in parallel. Parallel mode spends an
+                    extra round-trip on a count first, so it is a loss when the result fits one page.
             Returns:
                 list[InfrahubNodeSync]: list of Nodes
             """
@@ -356,7 +361,7 @@ if HAS_INFRAHUBCLIENT:
                     exclude=exclude,
                     branch=branch,
                     prefetch_relationships=prefetch_relationships,
-                    parallel=True,
+                    parallel=parallel,
                     property=False,
                     order=order,
                 )
@@ -368,7 +373,7 @@ if HAS_INFRAHUBCLIENT:
                     exclude=exclude,
                     branch=branch,
                     prefetch_relationships=prefetch_relationships,
-                    parallel=True,
+                    parallel=parallel,
                     property=False,
                     order=order,
                     **filters,
@@ -656,25 +661,45 @@ if HAS_INFRAHUBCLIENT:
             return parsed
 
         def _resolve_schema_attribute(
-            self, node: InfrahubNodeSync, root_attr: str, node_attr: Any, refetch_cache: dict[str, Any]
+            self,
+            node: InfrahubNodeSync,
+            root_attr: str,
+            node_attr: Any,
+            refetch_cache: dict[str, Any],
+            refill: RefillLedger | None = None,
         ) -> str | None:
-            """Resolve a schema attribute value, handling inherited attributes.
+            """Resolve a schema attribute value, handling attributes the query never carried.
 
-            Inherited attributes are not populated in the store, so a falsy value
-            triggers a refetch of the full node. ``refetch_cache`` holds that node for
-            the duration of one ``resolve_node_mapping`` call, so a node with several
-            empty/inherited attributes is refetched once instead of once per attribute.
+            An attribute can come back empty for two different reasons: the server
+            answered null, or nobody asked for it. The second happens whenever the
+            node was built from a relationship payload projected off a *generic* peer
+            schema, which exposes fewer attributes than the concrete kind does.
+
+            When ``refill`` is given, this records the node instead of refetching it, so
+            the caller can load every affected node in one batched pass. Without it the
+            node is refetched here and cached for the rest of this
+            ``resolve_node_mapping`` call, so several empty attributes on one node cost
+            one request rather than one each.
             """
             if node_attr.value:
                 return str(node_attr.value)
-            # FIXME: If the attribute is inherited, it's not populated properly in store
+
+            if refill is not None:
+                refill.record(node, root_attr)
+                return node_attr.value
+
             if "node" not in refetch_cache:
                 refetch_cache["node"] = node._client.get(id=node.id, kind=node._schema.kind)
             tmp_attr = getattr(refetch_cache["node"], root_attr, None)
             return str(tmp_attr.value) if tmp_attr.value else tmp_attr.value
 
         def _resolve_many_relationship(
-            self, node_attr: RelationshipManagerSync, nested_attrs: list[str], has_nested: bool, schemas: dict[str, Any]
+            self,
+            node_attr: RelationshipManagerSync,
+            nested_attrs: list[str],
+            has_nested: bool,
+            schemas: dict[str, Any],
+            refill: RefillLedger | None = None,
         ) -> list[Any]:
             """Resolve a many-cardinality relationship (RelationshipManagerSync)."""
             store = self.client.client.store
@@ -699,7 +724,11 @@ if HAS_INFRAHUBCLIENT:
                     # include_id=True already prepends {"id": related_node.id}, matching
                     # _resolve_one_relationship — no need to build/merge the dict by hand.
                     nested_result = self.resolve_node_mapping(
-                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
+                        node=related_node,
+                        attrs=nested_attrs,
+                        schemas=schemas,
+                        include_id=True,
+                        refill=refill,
                     )
                     if nested_result:
                         peers.append(nested_result)
@@ -709,7 +738,12 @@ if HAS_INFRAHUBCLIENT:
             return peers
 
         def _resolve_one_relationship(
-            self, node_attr: RelatedNodeSync, nested_attrs: list[str], has_nested: bool, schemas: dict[str, Any]
+            self,
+            node_attr: RelatedNodeSync,
+            nested_attrs: list[str],
+            has_nested: bool,
+            schemas: dict[str, Any],
+            refill: RefillLedger | None = None,
         ) -> dict[str, Any] | str | None:
             """Resolve a one-cardinality relationship (RelatedNodeSync)."""
             if not (node_attr.id and node_attr.schema.peer):
@@ -726,12 +760,21 @@ if HAS_INFRAHUBCLIENT:
 
             if has_nested:
                 return self.resolve_node_mapping(
-                    node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
+                    node=related_node,
+                    attrs=nested_attrs,
+                    schemas=schemas,
+                    include_id=True,
+                    refill=refill,
                 )
             return related_node.id
 
         def resolve_node_mapping(
-            self, node: InfrahubNodeSync, attrs: list[str], schemas: dict[str, Any], include_id: bool = True
+            self,
+            node: InfrahubNodeSync,
+            attrs: list[str],
+            schemas: dict[str, Any],
+            include_id: bool = True,
+            refill: RefillLedger | None = None,
         ) -> dict[str, Any] | None:
             """
             Resolve the attributes and relationships of a given node based on a list of desired attributes.
@@ -741,6 +784,9 @@ if HAS_INFRAHUBCLIENT:
                 attrs (list[str]): A list of attribute names that should be fetched for the node.
                 schemas dict[str, Any]: A dictionary of Node Kind name, Any
                 include_id (bool): Whether to include the node ID in the result. Defaults to True.
+                refill (RefillLedger, optional): When given, nodes with an attribute the query
+                    never carried are recorded there instead of being refetched one at a time, so
+                    the caller can load them in a single batched pass.
 
             Returns:
                 dict[str, Any]: A dictionary mapping attribute/relationship names to their respective values.
@@ -773,17 +819,17 @@ if HAS_INFRAHUBCLIENT:
                 # Handle schema attributes
                 if root_attr in node_schema.attribute_names and has_simple and not has_nested:
                     attribute_dict[root_attr] = self._resolve_schema_attribute(
-                        node, root_attr, node_attr, refetch_cache
+                        node, root_attr, node_attr, refetch_cache, refill
                     )
 
                 # Handle relationships
                 elif root_attr in node_schema.relationship_names:
                     if isinstance(node_attr, RelationshipManagerSync):
-                        peers = self._resolve_many_relationship(node_attr, nested_attrs, has_nested, schemas)
+                        peers = self._resolve_many_relationship(node_attr, nested_attrs, has_nested, schemas, refill)
                         if peers:
                             attribute_dict[root_attr] = peers
                     elif isinstance(node_attr, RelatedNodeSync):
-                        result = self._resolve_one_relationship(node_attr, nested_attrs, has_nested, schemas)
+                        result = self._resolve_one_relationship(node_attr, nested_attrs, has_nested, schemas, refill)
                         if result is not None:
                             attribute_dict[root_attr] = result
 
@@ -791,6 +837,14 @@ if HAS_INFRAHUBCLIENT:
                 attribute_dict["id"] = node.id
 
             return attribute_dict
+
+    class HostFetch(NamedTuple):
+        """Host nodes plus the schema and projection context needed to resolve them."""
+
+        nodes: list[InfrahubNodeSync]
+        schemas: dict[str, Any]
+        attrs_by_kind: dict[str, list[str]]
+        projections: dict[str, NodeProjection]
 
     class InfrahubNodesProcessor(InfrahubBaseProcessor):
         @staticmethod
@@ -831,23 +885,6 @@ if HAS_INFRAHUBCLIENT:
                     attributes_by_kind.append(rel_name)
             return attributes_by_kind
 
-        @staticmethod
-        def get_related_nodes(
-            schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, attrs: list[str]
-        ) -> list[str]:
-            """
-            Build a list of Node Kind base on the relationships of a given schema
-
-            Parameters:
-                schema (NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI): The schema from which relationship are loaded
-                attrs list[str]: list of attributes to compare to the schema
-
-            Returns:
-                list[str]: The node kind of the related nodes
-            """
-            relationship_schemas = [schema.peer for schema in schema.relationships if schema.name in attrs]
-            return list(set(relationship_schemas))
-
         def fetch_and_process(
             self,
             nodes: dict[str, Any],
@@ -866,37 +903,79 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict[str, Any] | None: A dictionary with processed host node attributes, or None if no nodes were processed.
             """
-            all_nodes: list[InfrahubNodeSync] = []
-            schema_dict = {}
-            node_attributes_dict = {}
-            order = Order(disable=True)
-
             if not nodes:
                 return None
 
+            fetched = self._fetch_host_nodes(nodes=nodes, prefetch_relationships=prefetch_relationships)
+            if not fetched.nodes:
+                return None
+
+            warmer = PeerWarmer(
+                fetch=self.client.fetch_nodes,
+                store=self.client.client.store,
+                page_size=self.client.client.pagination_size,
+                on_error=lambda kind, exc: self._handle_display(
+                    exception=exc,
+                    message=f"Failed to fetch peers for kind '{kind}'",
+                    level="WARNING",
+                ),
+            )
+            self._warm_peers(warmer=warmer, fetched=fetched)
+
+            # `refill` collects nodes whose attributes the query never carried rather than
+            # refetching them one by one. Anything it finds is loaded in one batched pass,
+            # after which a second resolve reads the refreshed nodes back.
+            refill = RefillLedger(projections=fetched.projections)
+            host_node_attributes = self._resolve_hosts(fetched=fetched, include_id=include_id, refill=refill)
+
+            if refill:
+                self._handle_display(
+                    message=f"Refilling nodes with unqueried attributes: {dict.fromkeys(refill.pending)}",
+                    level="DEBUG",
+                )
+                warmer.warm(refill.pending)
+                host_node_attributes = self._resolve_hosts(
+                    fetched=fetched, include_id=include_id, refill=RefillLedger.disabled(), refreshed=True
+                )
+
+            return host_node_attributes
+
+        def _fetch_host_nodes(self, nodes: dict[str, Any], prefetch_relationships: bool | None) -> HostFetch:
+            """Fetch every requested kind, narrowed to what the user actually asked for.
+
+            Parameters:
+                nodes (dict[str, Any]): A dictionary of node kinds to fetch.
+                prefetch_relationships (bool, optional): Whether to prefetch relationships.
+
+            Returns:
+                HostFetch: the host nodes plus the schema and projection context to resolve them.
+            """
+            fetched = HostFetch(nodes=[], schemas={}, attrs_by_kind={}, projections={})
+            order = Order(disable=True)
+
             for node_kind in nodes:
-                schema_dict[node_kind] = self.client.fetch_single_schema(kind=node_kind)
-                node_options = nodes.get(node_kind, {})
-                if node_options:
-                    include = node_options.get("include", None)
-                    exclude = node_options.get("exclude", None)
-                    filters = node_options.get("filters", None)
-                else:
-                    include = None
-                    exclude = None
-                    filters = None
-                # The SDK only prefetches a relationship when its top-level field name is in
-                # `include`; a dotted path like "animals.name" doesn't match, so relationship
-                # membership isn't prefetched and each host node costs an extra round-trip to
-                # fetch it. Pass the flattened top-level names so membership comes back in the
-                # main query. `include` (with dotted paths) is still used for resolution below.
-                fetch_include = sorted({attr.split(".", 1)[0] for attr in include}) if include else include
+                fetched.schemas[node_kind] = self.client.fetch_single_schema(kind=node_kind)
+                node_options = nodes.get(node_kind) or {}
+                exclude = node_options.get("exclude", None)
+
+                # `include` is not a projection as far as the SDK is concerned: it only
+                # opts cardinality-many relationships into the query, and a dotted path
+                # matches nothing at all. NodeProjection turns the user's spec into the
+                # arguments that do narrow it -- the exclude complement plus the
+                # relationship opt-ins -- so an explicit request stops paying for the
+                # whole node on every page.
+                projection = NodeProjection.build(
+                    schema=fetched.schemas[node_kind],
+                    include=node_options.get("include", None),
+                    exclude=exclude,
+                    resolvable_attrs=self.get_attributes_for_schema(schema=fetched.schemas[node_kind], exclude=exclude),
+                )
                 try:
                     nodes_from_kind = self.client.fetch_nodes(
                         kind=node_kind,
-                        include=fetch_include,
-                        exclude=exclude,
-                        filters=filters,
+                        include=projection.include,
+                        exclude=projection.exclude,
+                        filters=node_options.get("filters", None),
                         prefetch_relationships=prefetch_relationships,
                         order=order,
                     )
@@ -910,67 +989,69 @@ if HAS_INFRAHUBCLIENT:
 
                 if not nodes_from_kind:
                     continue
-                node_attributes_dict[node_kind] = include or self.get_attributes_for_schema(
-                    schema=schema_dict[node_kind], exclude=exclude
-                )
-                all_nodes.extend(nodes_from_kind)
+                fetched.attrs_by_kind[node_kind] = projection.attrs
+                fetched.projections[node_kind] = projection
+                fetched.nodes.extend(nodes_from_kind)
 
-            if not all_nodes:
-                return None
+            return fetched
 
-            host_node_attributes = {}
+        def _warm_peers(self, warmer: PeerWarmer, fetched: HostFetch) -> None:
+            """Load the peers that nested paths are about to read.
 
-            # Phase 1: bulk-prefetch every related (peer) kind into the store, each kind
-            # at most once. Deduping across host kinds avoids re-fetching a peer kind that
-            # several host kinds point at, and pulling all of them before resolution means
-            # every host node below resolves against a fully-populated store.
-            prefetched_related: set[str] = set()
-            for node_kind, node_attributes in node_attributes_dict.items():
-                related_kinds = self.get_related_nodes(schema=schema_dict[node_kind], attrs=node_attributes)
-                self._handle_display(
-                    message=f"Prefetching schema for related nodes of kind '{node_kind}'",
-                    level="DEBUG",
-                )
-                for related_kind in related_kinds:
-                    if related_kind in prefetched_related:
-                        continue
-                    prefetched_related.add(related_kind)
-                    schema_dict[related_kind] = self.client.fetch_single_schema(kind=related_kind)
-                    self._handle_display(
-                        message=f"Prefetching related nodes for kind '{related_kind}'",
-                        level="DEBUG",
-                    )
-                    try:
-                        # prefetch_relationships=True so the peers' own relationships (depth-2,
-                        # e.g. animals.owner) come back populated, avoiding a per-peer round-trip
-                        # during nested resolution.
-                        self.client.fetch_nodes(kind=related_kind, prefetch_relationships=True, order=order)
-                    except Exception as exc:
-                        self._handle_display(
-                            exception=exc,
-                            message=f"Failed to fetch_nodes for kind '{related_kind}'",
-                            level="WARNING",
-                        )
-                        continue
+            Only ids the host nodes reference are fetched, and only where the inline peer
+            payload came back short, so this costs one request per page of peers rather
+            than one pass over every peer kind in the database.
+            """
+            referenced = warmer.collect(nodes=fetched.nodes, attrs_by_kind=fetched.attrs_by_kind)
+            if not referenced:
+                return
 
-            # Phase 2: resolve each host node exactly once (using its own kind's attributes).
-            # Previously this loop was nested inside the per-kind loop above, so every node
-            # was resolved once per requested kind (N x K) with all the fetches that implies.
-            for host_node in all_nodes:
+            self._handle_display(
+                message=f"Loading referenced peers: {dict.fromkeys(referenced)}",
+                level="DEBUG",
+            )
+            warmer.warm(referenced)
+            for related_kind in referenced:
+                if related_kind not in fetched.schemas:
+                    fetched.schemas[related_kind] = self.client.fetch_single_schema(kind=related_kind)
+
+        def _resolve_hosts(
+            self,
+            fetched: HostFetch,
+            include_id: bool,
+            refill: RefillLedger,
+            refreshed: bool = False,
+        ) -> dict[str, Any]:
+            """Resolve every host node exactly once against the warmed store.
+
+            Parameters:
+                fetched (HostFetch): the host nodes and their resolution context.
+                include_id (bool): Whether to include the node ID in each result.
+                refill (RefillLedger): where to record attributes the query never carried.
+                refreshed (bool): read each node back from the store first. A refill
+                    replaces the node in the store rather than mutating the instance in
+                    hand, so the second pass has to look it up again.
+            """
+            store = self.client.client.store
+            resolved: dict[str, Any] = {}
+
+            for host_node in fetched.nodes:
+                node = (store.get(key=host_node.id, raise_when_missing=False) or host_node) if refreshed else host_node
                 result = self.resolve_node_mapping(
-                    node=host_node,
-                    attrs=node_attributes_dict[host_node._schema.kind],
-                    schemas=schema_dict,
+                    node=node,
+                    attrs=fetched.attrs_by_kind[host_node._schema.kind],
+                    schemas=fetched.schemas,
                     include_id=include_id,
+                    refill=refill,
                 )
                 self._handle_display(
                     message=f"Resolved attributes for node '{get_node_identifier(host_node)}'",
                     level="DEBUG",
                 )
                 if result:
-                    host_node_attributes[str(host_node)] = result
+                    resolved[str(host_node)] = result
 
-            return host_node_attributes
+            return resolved
 
         @staticmethod
         def resolve_dotted_path(attributes: dict, path: str) -> str | None:
