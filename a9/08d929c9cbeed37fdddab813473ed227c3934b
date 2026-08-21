@@ -1,0 +1,35 @@
+tests/integration/processor/test_fetch_and_process_integration.py
+  s_16fa9f57dbc6ab::t_5e1c8ce1a4cca1 83-124,132-140
+  s_16fa9f57dbc6ab::t_891fe02d40e06b 125-131
+  s_16fa9f57dbc6ab::t_a021c42cdcacd2 20-22,42-62
+  s_16fa9f57dbc6ab::t_3610ba8cdac920 63-64
+tests/integration/processor/test_fetch_roundtrip_measurement.py
+  s_16fa9f57dbc6ab::t_0c6bc5c4b690dd 162-192
+  s_16fa9f57dbc6ab::t_8a2ddf99ca46a8 62-69,117,121,130,134,141,145,154,160,196,200
+  s_16fa9f57dbc6ab::t_d91265049545df 161
+plugins/module_utils/infrahub_utils.py
+  s_16fa9f57dbc6ab::t_8f902ebba3ba1b 977-982,984-987
+tests/integration/inventory/test_inventory_integration.py
+  s_16fa9f57dbc6ab::t_c2375932766f50 94-100,110-120
+  s_16fa9f57dbc6ab::t_531c4b7ff5c975 101-109
+tests/integration/inventory/schema.py
+  s_16fa9f57dbc6ab::t_e2bafb7efdfa66 10-18,25,34,50-56,60
+  s_16fa9f57dbc6ab::t_9ec129757f7932 89-92
+  s_16fa9f57dbc6ab::t_e09074a2126c5c 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "a908d929c9cbeed37fdddab813473ed227c3934b",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
