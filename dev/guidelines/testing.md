@@ -104,6 +104,7 @@ Since tests run without an Infrahub instance, mock the SDK client:
 ```python
 from unittest.mock import MagicMock, patch
 
+
 @patch("ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils.InfrahubClientSync")
 def test_wrapper_creation(mock_client_class):
     mock_client_class.return_value = MagicMock()
@@ -124,6 +125,7 @@ Use `ansible.module_utils.basic.AnsibleModule` with mocked `exit_json` and `fail
 
 ```python
 from unittest.mock import patch, MagicMock
+
 
 def test_node_module_create():
     mock_module = MagicMock()

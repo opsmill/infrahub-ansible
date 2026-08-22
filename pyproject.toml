@@ -133,6 +133,16 @@ ignore = [
     "FBT",    # flake8-boolean-trap
 
     ##################################################################################################
+    # Preview rules about how this config and its suppressions are *written*, not about the code.    #
+    # `select = ["ALL"]` with `preview = true` opts into rules ruff itself marks as unstable, so     #
+    # each of these would rewrite the repo again the next time their opinion changes. They buy no    #
+    # correctness, and RUF105 replaces `# noqa: CODE` with a ruff-only spelling that other tools     #
+    # and editors do not understand.                                                                 #
+    ##################################################################################################
+    "RUF105", # noqa-comments — wants `# ruff: ignore[rule-name]` instead of `# noqa: CODE`
+    "RUF201", # rule-codes-in-selectors — wants rule names instead of codes in this very list
+
+    ##################################################################################################
     # Rules below needs to be Investigated                                                           #
     ##################################################################################################
     "PT",     # flake8-pytest-style
