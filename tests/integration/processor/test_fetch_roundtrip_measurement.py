@@ -59,6 +59,16 @@ def count_graphql(client: InfrahubClientSync):
         client.execute_graphql = original
 
 
+# The budgets below are measured, not derived. They depend on SDK behaviour the
+# inventory code does not control -- pagination_size-driven chunking, whether a
+# count query is issued, cold-client schema fetches -- so an infrahub-sdk or
+# Infrahub upgrade can legitimately shift them by one with no change here.
+#
+# Measured against: infrahub-sdk 1.20.0, infrahub-testcontainers image 1.9.9.
+#
+# If one of these fails after a dependency bump and nothing in plugins/ changed,
+# re-measure with `-s` (each test prints its own total) and move the number,
+# noting the versions. A rise with plugins/ changes is a regression.
 def _over_budget(actual: int, budget: int) -> str:
     return (
         f"{actual} GraphQL round-trips, budget {budget}. These budgets are measured, not\n"
@@ -158,6 +168,17 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         )
         assert result and len(result) == seeded["people"]
         assert count <= 3, _over_budget(count, 3)
+
+        # The most representative shape is the one most worth guarding against a
+        # fast-and-empty regression: assert every part of it actually resolved.
+        sample = next(iter(result.values()))
+        animals = sample.get("animals")
+        tags = sample.get("tags")
+        assert animals and len(animals) == self.CATS_PER_PERSON
+        assert all(a.get("name") for a in animals)
+        assert all(a.get("owner", {}).get("name") for a in animals)
+        assert tags and len(tags) == seeded["tags"]
+        assert all(t.get("name") for t in tags)
 
     def test_generic_peer_attribute_resolves_and_stays_bounded(self, infrahub_port, seeded):
         """A nested attribute the *declared* peer schema does not expose.

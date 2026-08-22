@@ -35,12 +35,21 @@ class FakeNode:
 
 
 class RecordingFetch:
-    def __init__(self):
+    """Records the fetch calls and returns a node per requested id.
+
+    Returning the nodes matters: ``warm`` records what actually came back, not what
+    it asked for, so a fake that returns [] models a fetch that found nothing.
+    """
+
+    def __init__(self, found=None):
         self.calls = []
+        # None = every requested id is found. A set = only these are.
+        self.found = found
 
     def __call__(self, **kwargs):
         self.calls.append(kwargs)
-        return []
+        ids = kwargs.get("filters", {}).get("ids", [])
+        return [SimpleNamespace(id=i) for i in ids if self.found is None or i in self.found]
 
 
 def _warmer(fetch=None, store_get=None, page_size=50):
@@ -206,6 +215,30 @@ def test_warm_records_the_ids_it_loaded():
     warmer.warm({"LocationSite": {"s1", "s2"}})
 
     assert warmer.loaded == {"s1", "s2"}
+
+
+def test_warm_does_not_record_ids_the_fetch_did_not_return():
+    """A requested id that does not come back was not loaded.
+
+    Peers can vanish between the host query and the warm -- deleted, or hidden by
+    permissions. Marking them loaded would tell RefillLedger their empty attributes
+    are genuine nulls and suppress the retry that would notice.
+    """
+    fetch = RecordingFetch(found={"s1"})
+    warmer = _warmer(fetch=fetch)
+
+    warmer.warm({"LocationSite": {"s1", "s2"}})
+
+    assert warmer.loaded == {"s1"}
+
+
+def test_warm_records_nothing_when_the_fetch_is_swallowed():
+    """The wrapper's exception decorator returns None instead of raising."""
+    warmer = _warmer(fetch=lambda **kwargs: None)
+
+    warmer.warm({"LocationSite": {"s1"}})
+
+    assert warmer.loaded == set()
 
 
 def test_ledger_ignores_a_peer_the_warmer_already_loaded_in_full():

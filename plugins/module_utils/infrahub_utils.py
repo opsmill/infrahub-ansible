@@ -686,7 +686,14 @@ if HAS_INFRAHUBCLIENT:
                 return str(node_attr.value)
 
             if refill is not None:
-                refill.record(node, root_attr)
+                # Only a genuinely absent value is worth reloading. `False`, `0` and
+                # `""` are falsy but present, and the truthiness test above cannot
+                # tell them from "never queried" -- so without this, a peer with a
+                # boolean attribute set to False would be refetched and re-resolved
+                # on every single run. The return value keeps the historical
+                # truthiness semantics; only the decision to reload is narrowed.
+                if node_attr.value is None:
+                    refill.record(node, root_attr)
                 return node_attr.value
 
             if "node" not in refetch_cache:

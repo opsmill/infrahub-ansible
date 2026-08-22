@@ -18,6 +18,7 @@ Run with:  ``uv run --group integration pytest tests/integration/processor -m in
 from __future__ import annotations
 
 import contextlib
+import math
 from collections import Counter
 
 import pytest
@@ -37,6 +38,17 @@ def _processor_for(client_sync: InfrahubClientSync) -> iu.InfrahubNodesProcessor
     wrapper = iu.InfrahubclientWrapper.__new__(iu.InfrahubclientWrapper)
     wrapper.client = client_sync
     return iu.InfrahubNodesProcessor(client=wrapper)
+
+
+def _page_budget(client: InfrahubClientSync, node_count: int) -> int:
+    """The most requests one kind may cost: a count query plus one per page.
+
+    Derived rather than hardcoded because these tests share a class-scoped
+    container and each adds nodes, so a fixed "one page" ceiling would silently
+    become wrong once the tags outgrow a page rather than catching a regression.
+    """
+    pages = max(1, math.ceil(node_count / client.pagination_size))
+    return 1 + pages
 
 
 @contextlib.contextmanager
@@ -97,8 +109,9 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
             result = processor.fetch_and_process(nodes={"BuiltinTag": {"include": ["name", "description"]}})
 
         assert result
-        total = sum(trackers.values())
-        assert total <= 2, f"expected a count plus one page, got {total}: {dict(trackers)}"
+        assert sum(trackers.values()) <= _page_budget(client_sync, len(result)), (
+            f"got {sum(trackers.values())} requests for {len(result)} tags: {dict(trackers)}"
+        )
 
     def test_empty_description_does_not_cost_a_refetch(self, client_sync: InfrahubClientSync) -> None:
         """A null attribute is an answer, not a cache miss.
@@ -116,8 +129,9 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         assert result
         blank = [attrs for attrs in result.values() if not attrs.get("description")]
         assert blank, "expected at least one tag with an empty description"
-        total = sum(trackers.values())
-        assert total <= 2, f"empty attributes triggered {total} requests: {dict(trackers)}"
+        assert sum(trackers.values()) <= _page_budget(client_sync, len(result)), (
+            f"empty attributes triggered {sum(trackers.values())} requests for {len(result)} tags: {dict(trackers)}"
+        )
 
     def test_unknown_kind_is_skipped_not_fatal(self, client_sync: InfrahubClientSync, seeded_tags: list[str]) -> None:
         """One bad kind must not take the rest of the inventory with it.

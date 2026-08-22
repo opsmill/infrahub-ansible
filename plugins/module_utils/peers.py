@@ -253,11 +253,17 @@ class PeerWarmer:
                         order=self.order,
                     )
                     calls += 1
-                    if loaded is not None:
-                        # `fetch` returns None when the wrapper's exception decorator
-                        # swallowed the failure, and a chunk that never arrived must not
-                        # count as loaded -- that is exactly what a refill is for.
-                        self.loaded.update(chunk)
+                    # Record the ids that actually came back, not the ids asked for.
+                    # `fetch` returns None when the wrapper's exception decorator
+                    # swallowed the failure, and even a successful call can return
+                    # fewer nodes than requested -- a peer deleted between the host
+                    # query and this one, or hidden by permissions. Marking those as
+                    # loaded would tell RefillLedger their empty attributes are
+                    # genuine nulls and suppress the retry that would notice.
+                    for node in loaded or []:
+                        node_id = getattr(node, "id", None)
+                        if node_id:
+                            self.loaded.add(node_id)
                 except Exception as exc:
                     if self.on_error:
                         self.on_error(kind, exc)
