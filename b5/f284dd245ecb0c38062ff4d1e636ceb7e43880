@@ -1,0 +1,31 @@
+tests/integration/processor/test_fetch_and_process_integration.py
+  s_16fa9f57dbc6ab::t_31f1eeac7e82d3 21,43-53,112-114,132-134
+tests/integration/processor/test_fetch_roundtrip_measurement.py
+  s_16fa9f57dbc6ab::t_9cc2b58ec95dca 62-71,172-182
+tests/unit/plugins/module_utils/test_peers.py
+  s_16fa9f57dbc6ab::t_f681fcc7e2939e 38-44,46-47,51-52,220-243
+plugins/AGENTS.md
+  s_16fa9f57dbc6ab::t_2ca74d60e7d948 11,88
+plugins/module_utils/infrahub_utils.py
+  s_16fa9f57dbc6ab::t_f1612fc8b47e52 689-696
+plugins/module_utils/peers.py
+  s_16fa9f57dbc6ab::t_0adbfd2444750e 256-266
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_16fa9f57dbc6ab::t_670e62f2c4cdac 46-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "b5f284dd245ecb0c38062ff4d1e636ceb7e43880",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
