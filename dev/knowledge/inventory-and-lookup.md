@@ -47,6 +47,32 @@ inventory files against one Infrahub share an entry, and switching `branch`
 would serve the other branch's hosts. The cache is written only on a miss, so an
 entry ages out instead of having its TTL renewed on every run.
 
+### What a run cost
+
+`fetch_and_process` ends by reporting what the run cost, at raised verbosity only:
+
+```text
+Inventory fetch cost: 15 request(s) to Infrahub, 41 related node(s) loaded in 2 batch(es)
+```
+
+The request count comes from a `RequestCounter`
+(`plugins/module_utils/metrics.py`) handed to the SDK as its `custom_recorder`
+when `InfrahubclientWrapper` builds its `Config`. That is the only place a
+truthful count can be taken: the SDK paginates inside `client.filters()`, below
+the wrapper, so counting the wrapper's own calls reports fetch *operations* and
+misses the pages — the part that actually grows with the estate.
+
+Two things to know before reading the number. It counts **every** HTTP
+round-trip, so schema lookups (REST, not GraphQL) are included and the figure is
+legitimately higher than a GraphQL-only count. And a wrapper built through
+`__new__` — which the integration tests do, to skip re-authenticating — has no
+counter attached, so the line reports `unavailable` for requests and still gives
+the peer figures.
+
+It goes out through `Display.v`, which Ansible gates behind `-v`; nothing is
+printed at default verbosity, and a run served entirely from cache never reaches
+this code at all.
+
 String values are passed through `_mark_trusted` before going into the
 inventory — on ansible-core 2.19 this tags plugin-supplied strings as
 trusted-as-template so `ansible-inventory --list` emits plain JSON instead of

@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from ansible.module_utils.basic import env_fallback
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
+from ansible_collections.opsmill.infrahub.plugins.module_utils.metrics import RequestCounter, request_count
 from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer, RefillLedger
 from ansible_collections.opsmill.infrahub.plugins.module_utils.projection import NodeProjection
 
@@ -113,17 +114,31 @@ if HAS_INFRAHUBCLIENT:
             if not isinstance(validate_certs, bool):
                 raise ValueError(f"validate_certs must be a bool, got {type(validate_certs).__name__}")
 
+            # Handed to the SDK as its recorder so the count is taken below pagination,
+            # where the round-trips actually happen. Held here so callers can read it
+            # back without reaching into the client's config.
+            self.request_counter = RequestCounter()
+
             if branch:
                 self.client = InfrahubClientSync(
                     address=api_endpoint,
                     config=Config(
-                        api_token=token, timeout=timeout, default_branch=branch, tls_insecure=not validate_certs
+                        api_token=token,
+                        timeout=timeout,
+                        default_branch=branch,
+                        tls_insecure=not validate_certs,
+                        custom_recorder=self.request_counter,
                     ),
                 )
             else:
                 self.client = InfrahubClientSync(
                     address=api_endpoint,
-                    config=Config(api_token=token, timeout=timeout, tls_insecure=not validate_certs),
+                    config=Config(
+                        api_token=token,
+                        timeout=timeout,
+                        tls_insecure=not validate_certs,
+                        custom_recorder=self.request_counter,
+                    ),
                 )
             self.display = display
             for method_name in dir(self):
@@ -619,6 +634,8 @@ if HAS_INFRAHUBCLIENT:
                     self.display.warning(error_msg)
                 elif level == "INFO":
                     self.display.v(error_msg)
+                elif level == "VVV":
+                    self.display.vvv(error_msg)
                 elif level == "DEBUG":
                     self.display.debug(error_msg)
 
@@ -934,6 +951,11 @@ if HAS_INFRAHUBCLIENT:
             if not nodes:
                 return None
 
+            # Snapshot rather than read the running total: the counter belongs to the
+            # client, which outlives a single call. Reporting the absolute value would
+            # attribute an earlier run's requests to this one.
+            requests_before = request_count(self.client)
+
             fetched = self._fetch_host_nodes(nodes=nodes, prefetch_relationships=prefetch_relationships)
             if not fetched.nodes:
                 if fetched.failures:
@@ -960,7 +982,7 @@ if HAS_INFRAHUBCLIENT:
                 ),
                 order=Order(disable=True),
             )
-            self._warm_peers(warmer=warmer, fetched=fetched)
+            peer_batches = self._warm_peers(warmer=warmer, fetched=fetched)
 
             # `refill` collects nodes whose attributes the query never carried rather than
             # refetching them one by one. Anything it finds is loaded in one batched pass,
@@ -976,12 +998,105 @@ if HAS_INFRAHUBCLIENT:
                     message=f"Refilling nodes with unqueried attributes: {dict.fromkeys(refill.pending)}",
                     level="DEBUG",
                 )
-                warmer.warm(refill.pending)
+                peer_batches += warmer.warm(refill.pending)
                 host_node_attributes = self._resolve_hosts(
                     fetched=fetched, include_id=include_id, refill=RefillLedger.disabled(), refreshed=True
                 )
 
+            self._report_run_cost(
+                requests_before=requests_before,
+                peer_batches=peer_batches,
+                peers_loaded=len(warmer.loaded),
+                fetched=fetched,
+                warmer=warmer,
+            )
+
             return host_node_attributes
+
+        def _report_run_cost(
+            self,
+            requests_before: int | None,
+            peer_batches: int,
+            peers_loaded: int,
+            fetched: HostFetch,
+            warmer: PeerWarmer,
+        ) -> None:
+            """State what the run cost, at raised verbosity only.
+
+            The point is that the next report of slowness arrives as a number rather
+            than an anecdote. It is deliberately not printed at default verbosity: an
+            inventory run's output belongs to the playbook, not to diagnostics.
+
+            The request count covers every HTTP round-trip, schema lookups included --
+            those are not GraphQL queries but they cost the server the same. When no
+            counter is attached (a wrapper built through ``__new__``, as the tests do)
+            the peer figures are still worth reporting on their own.
+
+            At ``-vvv`` the totals are followed by the breakdown behind them: what each
+            requested kind cost and how far its query was narrowed, and what each peer
+            kind cost. A total that looks wrong is only actionable once you can see
+            which kind produced it.
+
+            Parameters:
+                requests_before (int | None): counter reading taken before this run began,
+                    so the figure reported is this run's cost and not the client's lifetime total.
+                peer_batches (int): how many batched peer fetches were issued.
+                peers_loaded (int): how many related nodes came back.
+                fetched (HostFetch): the host nodes and their projections, for the per-kind lines.
+                warmer (PeerWarmer): carries the per-peer-kind tallies.
+            """
+            requests_now = request_count(self.client)
+            unavailable = requests_before is None or requests_now is None
+            cost = "unavailable" if unavailable else f"{requests_now - requests_before} request(s)"
+            self._handle_display(
+                message=(
+                    f"Inventory fetch cost: {cost} to Infrahub, "
+                    f"{peers_loaded} related node(s) loaded in {peer_batches} batch(es)"
+                ),
+                level="INFO",
+            )
+            for line in self._run_cost_breakdown(fetched=fetched, warmer=warmer):
+                self._handle_display(message=line, level="VVV")
+
+        @staticmethod
+        def _run_cost_breakdown(fetched: HostFetch, warmer: PeerWarmer) -> list[str]:
+            """The per-kind detail behind the run-cost totals.
+
+            Separate from the emitting method so it can be asserted on directly, and so
+            nothing here can raise into a run: this is a diagnostic, and a diagnostic
+            that breaks the thing it reports on is worse than no diagnostic.
+            """
+            lines: list[str] = []
+
+            hosts_by_kind: dict[str, int] = {}
+            for node in fetched.nodes:
+                kind = getattr(getattr(node, "_schema", None), "kind", "unknown")
+                hosts_by_kind[kind] = hosts_by_kind.get(kind, 0) + 1
+
+            for kind in sorted(hosts_by_kind):
+                projection = fetched.projections.get(kind)
+                if projection is None:
+                    # A concrete kind a generic answered with: it has no projection of
+                    # its own, and saying "not narrowed" would be a lie.
+                    detail = "answered via a requested generic"
+                elif not projection.narrowed:
+                    detail = "no include given, full attribute set requested"
+                else:
+                    requested = ", ".join(sorted(projection.roots)) or "none"
+                    excluded = len(projection.exclude or ())
+                    detail = f"requested [{requested}], {excluded} field(s) excluded"
+                lines.append(f"  host kind {kind}: {hosts_by_kind[kind]} node(s), {detail}")
+
+            for kind in sorted(warmer.stats):
+                stat = warmer.stats[kind]
+                detail = f"{stat['requested']} id(s) referenced, {stat['batches']} batch(es), {stat['loaded']} loaded"
+                if stat["failed"]:
+                    detail += f", {stat['failed']} batch(es) failed"
+                lines.append(f"  peer kind {kind}: {detail}")
+
+            if not lines:
+                return []
+            return ["Inventory fetch cost, by kind:", *lines]
 
         def _fetch_host_nodes(self, nodes: dict[str, Any], prefetch_relationships: bool | None) -> HostFetch:
             """Fetch every requested kind, narrowed to what the user actually asked for.
@@ -1075,16 +1190,19 @@ if HAS_INFRAHUBCLIENT:
 
             return fetched
 
-        def _warm_peers(self, warmer: PeerWarmer, fetched: HostFetch) -> None:
+        def _warm_peers(self, warmer: PeerWarmer, fetched: HostFetch) -> int:
             """Load the peers that nested paths are about to read.
 
             Only ids the host nodes reference are fetched, and only where the inline peer
             payload came back short, so this costs one request per page of peers rather
             than one pass over every peer kind in the database.
+
+            Returns:
+                int: how many peer batches were issued.
             """
             referenced = warmer.collect(nodes=fetched.nodes, attrs_by_kind=fetched.attrs_by_kind)
             if not referenced:
-                return
+                return 0
 
             self._handle_display(
                 message=f"Loading referenced peers: {dict.fromkeys(referenced)}",
@@ -1093,7 +1211,7 @@ if HAS_INFRAHUBCLIENT:
             # No schema fetch for the peer kinds: `resolve_node_mapping` reads a node's
             # own `_schema`, never the `schemas` mapping it is handed, so loading them
             # here would be a round-trip nothing reads back.
-            warmer.warm(referenced)
+            return warmer.warm(referenced)
 
         def _resolve_hosts(
             self,

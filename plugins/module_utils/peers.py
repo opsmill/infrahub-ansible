@@ -120,6 +120,10 @@ class PeerWarmer:
         # Ids fetched in full this run, so a ``RefillLedger`` can tell a genuine null
         # from an attribute the query never carried.
         self.loaded: set[str] = set()
+        # Per-kind tallies for the raised-verbosity cost breakdown. Accumulated across
+        # both warming passes (the initial one and the refill), because a peer kind can
+        # legitimately appear in each.
+        self.stats: dict[str, dict[str, int]] = {}
 
     @staticmethod
     def _nested_roots(attrs: list[str]) -> dict[str, tuple[str, ...]]:
@@ -240,6 +244,8 @@ class PeerWarmer:
         calls = 0
         for kind, ids in referenced.items():
             ordered = sorted(ids)
+            stat = self.stats.setdefault(kind, {"requested": 0, "batches": 0, "loaded": 0, "failed": 0})
+            stat["requested"] += len(ordered)
             for start in range(0, len(ordered), self.page_size):
                 chunk = ordered[start : start + self.page_size]
                 try:
@@ -253,6 +259,7 @@ class PeerWarmer:
                         order=self.order,
                     )
                     calls += 1
+                    stat["batches"] += 1
                     # Record the ids that actually came back, not the ids asked for.
                     # `fetch` returns None when the wrapper's exception decorator
                     # swallowed the failure, and even a successful call can return
@@ -264,7 +271,9 @@ class PeerWarmer:
                         node_id = getattr(node, "id", None)
                         if node_id:
                             self.loaded.add(node_id)
+                            stat["loaded"] += 1
                 except Exception as exc:
+                    stat["failed"] += 1
                     if self.on_error:
                         self.on_error(kind, exc)
         return calls
