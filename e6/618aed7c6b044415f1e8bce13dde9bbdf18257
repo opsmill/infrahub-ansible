@@ -1,0 +1,38 @@
+dev/guidelines/python.md
+  s_16fa9f57dbc6ab::t_425724fb168942 122,125,131-146
+  s_16fa9f57dbc6ab::t_eeec2dd88cdf5c 147
+dev/guidelines/testing.md
+  s_16fa9f57dbc6ab::t_a74843c705c654 170-210,215,218-219
+  s_16fa9f57dbc6ab::t_0099f8897b88c3 220
+.dockerignore
+  s_16fa9f57dbc6ab::t_fa6a77eae9ea46 11-12
+dev/knowledge/infrahub-sdk-usage.md
+  s_16fa9f57dbc6ab::t_700463f5b6fdaa 326-328
+  s_16fa9f57dbc6ab::t_e88b8c8ccfd6d1 283-300
+  s_16fa9f57dbc6ab::t_4d1e8a4eca2d74 258-282,301-325,329-333
+AGENTS.md
+  s_16fa9f57dbc6ab::t_f68f282f9de2ab 17
+  s_16fa9f57dbc6ab::t_425724fb168942 28,46,48-50
+dev/guides/running-tests.md
+  s_16fa9f57dbc6ab::t_60d00a28f07142 114-169,173,176-177
+  s_16fa9f57dbc6ab::t_8db12bf22109c6 178
+CLAUDE.md
+  s_16fa9f57dbc6ab::t_f2affe03cb9324 7-8,10-12,14
+  s_16fa9f57dbc6ab::t_90d9aea2651964 9,13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "e6618aed7c6b044415f1e8bce13dde9bbdf18257",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
