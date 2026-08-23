@@ -14,7 +14,7 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 | Component | Version/Tool |
 |-----------|-------------|
 | Python | >=3.11, <3.15 |
-| ansible-core | >=2.18 |
+| ansible-core | >=2.19.11rc1 |
 | infrahub-sdk | >=1.19.0, <2.0 |
 | Linter/Formatter | Ruff (pinned in pyproject.toml) |
 | Tests | pytest, ansible-test sanity (Docker-based) |
@@ -25,7 +25,7 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 ## Commands
 
 ```bash
-invoke lint            # Check (ruff + yamllint)
+invoke lint            # Check (ruff + yamllint + rumdl) -- NOT mypy, see below
 invoke format          # Auto-fix (ruff)
 invoke tests-sanity    # Ansible compliance (boilerplate, docs, imports)
 invoke tests-unit      # Unit tests
@@ -43,8 +43,11 @@ All tests run in Docker. Run checks as you go, not just at the end:
 | any plugin file (`plugins/**/*.py`) | `invoke format` → `invoke lint` → `invoke tests-sanity` |
 | module logic or `module_utils` | also `invoke tests-unit` |
 | module docstrings (DOCUMENTATION / EXAMPLES / RETURN) | `invoke generate-doc` |
+| any Python file | also `uv run mypy .` -- `invoke lint` does **not** run it, CI does |
 
-Full verification before a PR: `invoke format && invoke lint && invoke tests-sanity && invoke tests-unit && invoke generate-doc`.
+Full verification before a PR: `invoke format && invoke lint && uv run mypy . && invoke tests-sanity && invoke tests-unit && invoke generate-doc`.
+
+`uv run mypy .` is listed separately because `invoke lint` does not include it while CI's `python-lint` job does — a green `invoke lint` is not a green CI. Note also that mypy currently **excludes** `plugins/module_utils/infrahub_utils.py`, so the collection's largest file is not typechecked at all.
 
 New-module walkthrough: [dev/guides/creating-a-module.md](dev/guides/creating-a-module.md). Test execution detail: [dev/guides/running-tests.md](dev/guides/running-tests.md).
 

@@ -119,14 +119,31 @@ ruff check --fix .
 ## Python Version
 
 ```toml
-python = ">=3.10,<3.14"
+requires-python = ">=3.11,<3.15"
 ```
 
-Target Python 3.10+ but maintain the Ansible `__future__` imports and `__metaclass__ = type` boilerplate for `ansible-test sanity` compliance.
+Target Python 3.11+ but maintain the Ansible `__future__` imports and `__metaclass__ = type` boilerplate for `ansible-test sanity` compliance.
 
 ## Type Hints
 
 Use modern type hints (`str | None` not `Optional[str]`). The `from __future__ import annotations` import is present in all files.
+
+### mypy
+
+CI runs `uv run mypy .` as part of the `python-lint` job. **`invoke lint` does not**, so a clean
+`invoke lint` can still fail CI — run mypy explicitly before opening a PR:
+
+```bash
+uv run mypy .
+```
+
+Two things to know about the current configuration (`[tool.mypy]` in `pyproject.toml`):
+
+- `warn_return_any`, `disallow_untyped_defs`, and `warn_unused_ignores` are all on, so an unannotated
+  helper or a stale `# type: ignore` fails the build.
+- `plugins/module_utils/infrahub_utils.py` is **excluded**. That is the largest file in the collection,
+  so a change confined to it gets no type checking whatsoever. Do not read "mypy passed" as "this file
+  is checked".
 
 ## Dependencies
 
