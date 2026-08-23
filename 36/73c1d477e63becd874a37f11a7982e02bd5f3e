@@ -1,0 +1,54 @@
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_16fa9f57dbc6ab::t_1d1e1e74154111 204-235
+  s_16fa9f57dbc6ab::t_3fd7f26a1b8360 202-203
+tests/integration/processor/conftest.py
+  s_16fa9f57dbc6ab::t_098e3247341f0b 1,5-6,11,13,15-20,32-35,45,49-53
+  s_16fa9f57dbc6ab::t_1b9a16cfa4acfe 27-28,30-31,36-44,46-48,54-57,59-66
+  s_16fa9f57dbc6ab::t_264b4e58297ad8 29
+  s_16fa9f57dbc6ab::t_932687d8e4aaf0 58
+tests/integration/processor/test_fetch_and_process_integration.py
+  s_16fa9f57dbc6ab::t_2ed53d396d314b 56,75,93,116
+  s_16fa9f57dbc6ab::t_934624052fd959 30,32
+tests/integration/processor/test_fetch_roundtrip_measurement.py
+  s_16fa9f57dbc6ab::t_f00f1157fcfba4 17,21-22
+  s_16fa9f57dbc6ab::t_ffae069d41d1e6 36-40
+  s_16fa9f57dbc6ab::t_2ed53d396d314b 102
+  s_16fa9f57dbc6ab::t_bf3b490f0c4102 23
+  s_16fa9f57dbc6ab::t_3faa1d0e6d142c 41
+  s_945dbf036e47b5::t_0382406e1f3130 34
+tests/unit/plugins/module_utils/test_projection.py
+  s_16fa9f57dbc6ab::t_24cadea9f6bae3 33-45
+  s_16fa9f57dbc6ab::t_c4bb78353103e7 114-136
+plugins/module_utils/infrahub_utils.py
+  s_16fa9f57dbc6ab::t_c23bda703e6adb 1053-1062,1067-1073
+  s_16fa9f57dbc6ab::t_d0777002562d19 671,674-677
+  s_16fa9f57dbc6ab::t_a6bc300e1572c1 1010-1012,1014,1017
+  s_16fa9f57dbc6ab::t_78c854a1f4f121 678
+plugins/module_utils/projection.py
+  s_16fa9f57dbc6ab::t_dbed8104a4d70f 29-36
+  s_16fa9f57dbc6ab::t_ff6b9dcf8fd862 113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "3673c1d477e63becd874a37f11a7982e02bd5f3e",
+  "prompts": {},
+  "sessions": {
+    "s_16fa9f57dbc6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f36a0176-11ec-489d-af33-4b32b2988103",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    },
+    "s_945dbf036e47b5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-acbc423846f4c948d",
+        "model": "unknown"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
