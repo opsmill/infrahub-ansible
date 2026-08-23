@@ -668,8 +668,13 @@ if HAS_INFRAHUBCLIENT:
             node_attr: Any,
             refetch_cache: dict[str, Any],
             refill: RefillLedger | None = None,
-        ) -> str | None:
+        ) -> Any:
             """Resolve a schema attribute value, handling attributes the query never carried.
+
+            The return type is deliberately wide: a populated value is stringified, but a
+            falsy-but-present one (``False``, ``0``, ``""``) is handed back as it came, so
+            this is not ``str | None``. mypy does not currently check this file, so the
+            annotation is the only thing saying so.
 
             An attribute can come back empty for two different reasons: the server
             answered null, or nobody asked for it. The second happens whenever the
@@ -1002,12 +1007,14 @@ if HAS_INFRAHUBCLIENT:
                     # An unknown kind -- a typo, or a kind that does not exist on this
                     # branch. Skip it the way a failed fetch is skipped: reading
                     # attribute_names off None would abort the whole inventory over one
-                    # bad entry.
+                    # bad entry. It can also mean the lookup itself failed and the
+                    # wrapper's decorator swallowed it (server unreachable, bad token),
+                    # which is why the wording does not promise the kind is unknown.
                     self._handle_display(
-                        message=f"No schema found for kind '{node_kind}', skipping it",
+                        message=f"No schema available for kind '{node_kind}', skipping it",
                         level="WARNING",
                     )
-                    fetched.failures[node_kind] = "no schema found"
+                    fetched.failures[node_kind] = "no schema found, or the schema lookup failed"
                     continue
                 fetched.schemas[node_kind] = node_schema
                 node_options = nodes.get(node_kind) or {}
@@ -1043,10 +1050,27 @@ if HAS_INFRAHUBCLIENT:
                     fetched.failures[node_kind] = str(exc) or type(exc).__name__
                     continue
 
+                if nodes_from_kind is None:
+                    # `None` is not an empty result: the wrapper's exception decorator
+                    # logs the failure and returns nothing rather than raising whenever a
+                    # Display is attached -- which it always is in the inventory. Without
+                    # this the `except` above never fires there, `failures` stays empty,
+                    # and a broken fetch is indistinguishable from a kind that legitimately
+                    # matched nothing: the run hands Ansible zero hosts and reports success.
+                    fetched.failures[node_kind] = "fetch failed, see the warning above"
+                    continue
+
                 if not nodes_from_kind:
                     continue
                 fetched.attrs_by_kind[node_kind] = projection.attrs
                 fetched.projections[node_kind] = projection
+                # A generic kind answers with nodes of its concrete kinds, and resolution
+                # looks the attribute list up by the node's own kind -- so register those
+                # too, or `nodes: {SomeGeneric: {}}` dies on a KeyError in `_resolve_hosts`
+                # and warms no peers. `setdefault` so an explicitly requested kind keeps
+                # its own spec.
+                for fetched_node in nodes_from_kind:
+                    fetched.attrs_by_kind.setdefault(fetched_node._schema.kind, projection.attrs)
                 fetched.nodes.extend(nodes_from_kind)
 
             return fetched

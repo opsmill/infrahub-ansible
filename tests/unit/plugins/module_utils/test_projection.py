@@ -30,7 +30,19 @@ def test_include_becomes_an_exclude_complement():
     """Everything the schema offers and the user did not ask for is excluded."""
     projection = _build(include=["name", "site.name"])
 
-    assert projection.exclude == ["config", "description", "platform", "serial", "tags"]
+    # The four hierarchy pseudo-fields ride along: see
+    # test_hierarchy_fields_are_excluded_when_not_requested.
+    assert projection.exclude == [
+        "ancestors",
+        "children",
+        "config",
+        "descendants",
+        "description",
+        "parent",
+        "platform",
+        "serial",
+        "tags",
+    ]
     assert projection.include == ["name", "site"]
     # Resolution still works off the dotted paths the user wrote.
     assert projection.attrs == ["name", "site.name"]
@@ -99,3 +111,26 @@ def test_projected_respects_a_user_exclude_when_not_narrowed():
 
     assert projection.projected("serial") is False
     assert projection.projected("name") is True
+
+
+def test_hierarchy_fields_are_excluded_when_not_requested():
+    """A narrowed query must not still drag both hierarchies down on every page.
+
+    ``parent``/``children``/``ancestors``/``descendants`` are pseudo-schemas the SDK
+    adds to every query when ``prefetch_relationships`` is on. They never appear in
+    ``relationship_names``, so the exclude complement misses them unless they are
+    named -- which is how a hierarchical kind (Location, IPAM prefix) kept paying for
+    two full hierarchies per page despite an explicit ``include``.
+    """
+    projection = _build(include=["name"])
+
+    for field in ("parent", "children", "ancestors", "descendants"):
+        assert field in projection.exclude
+
+
+def test_a_requested_hierarchy_field_is_not_excluded():
+    """Asking for one must still fetch it."""
+    projection = _build(include=["name", "parent.name"])
+
+    assert "parent" not in projection.exclude
+    assert "children" in projection.exclude

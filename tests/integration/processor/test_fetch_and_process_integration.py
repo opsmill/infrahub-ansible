@@ -17,27 +17,19 @@ Run with:  ``uv run --group integration pytest tests/integration/processor -m in
 
 from __future__ import annotations
 
-import contextlib
 import math
-from collections import Counter
 
 import pytest
 
 # Skip cleanly when the testcontainers stack isn't installed (e.g. default dev env).
 pytest.importorskip("infrahub_testcontainers")
 
-from ansible_collections.opsmill.infrahub.plugins.module_utils import infrahub_utils as iu
 from infrahub_sdk import InfrahubClientSync
 from infrahub_sdk.testing.docker import TestInfrahubDockerClient
 
+from conftest import count_graphql, processor_for
+
 pytestmark = pytest.mark.integration
-
-
-def _processor_for(client_sync: InfrahubClientSync) -> iu.InfrahubNodesProcessor:
-    """Wrap a live client in the collection's processor without re-authenticating."""
-    wrapper = iu.InfrahubclientWrapper.__new__(iu.InfrahubclientWrapper)
-    wrapper.client = client_sync
-    return iu.InfrahubNodesProcessor(client=wrapper)
 
 
 def _page_budget(client: InfrahubClientSync, node_count: int) -> int:
@@ -51,29 +43,6 @@ def _page_budget(client: InfrahubClientSync, node_count: int) -> int:
     return 1 + pages
 
 
-@contextlib.contextmanager
-def count_graphql(client: InfrahubClientSync):
-    """Count GraphQL round-trips made inside the block.
-
-    The heavy per-shape budgets live in ``test_fetch_roundtrip_measurement.py``,
-    which is ``measurement``-marked and therefore only runs on scheduled builds.
-    This lighter counter rides the PR gate so a gross regression -- a fetch that
-    goes back to one request per node -- cannot land unnoticed.
-    """
-    trackers: Counter[str] = Counter()
-    original = client.execute_graphql
-
-    def wrapper(*args, **kwargs):
-        trackers[kwargs.get("tracker") or "untracked"] += 1
-        return original(*args, **kwargs)
-
-    client.execute_graphql = wrapper
-    try:
-        yield trackers
-    finally:
-        client.execute_graphql = original
-
-
 class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
     @pytest.fixture(scope="class")
     def seeded_tags(self, client_sync: InfrahubClientSync) -> list[str]:
@@ -84,7 +53,7 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         return names
 
     def test_resolves_simple_attributes(self, client_sync: InfrahubClientSync, seeded_tags: list[str]) -> None:
-        processor = _processor_for(client_sync)
+        processor = processor_for(client_sync)
 
         result = processor.fetch_and_process(nodes={"BuiltinTag": {"include": ["name", "description"]}})
 
@@ -103,7 +72,7 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         back empty used to refetch the whole node, one request per node, so the
         count tracked the inventory size instead of the page count.
         """
-        processor = _processor_for(client_sync)
+        processor = processor_for(client_sync)
 
         with count_graphql(client_sync) as trackers:
             result = processor.fetch_and_process(nodes={"BuiltinTag": {"include": ["name", "description"]}})
@@ -121,7 +90,7 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         """
         for name in ("no-desc-1", "no-desc-2", "no-desc-3"):
             client_sync.create(kind="BuiltinTag", name=name).save()
-        processor = _processor_for(client_sync)
+        processor = processor_for(client_sync)
 
         with count_graphql(client_sync) as trackers:
             result = processor.fetch_and_process(nodes={"BuiltinTag": {"include": ["name", "description"]}})
@@ -144,7 +113,7 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         the lookup itself asking not to raise, rather than from the decorator
         happening to convert the error, or it only works for callers built one way.
         """
-        processor = _processor_for(client_sync)
+        processor = processor_for(client_sync)
 
         result = processor.fetch_and_process(nodes={"NoSuchKindHere": {}, "BuiltinTag": {"include": ["name"]}})
 

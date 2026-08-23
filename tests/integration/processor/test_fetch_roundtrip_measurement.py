@@ -14,14 +14,15 @@ Run:
 
 from __future__ import annotations
 
-import contextlib
-from collections import Counter
+from typing import TYPE_CHECKING
 
 import pytest
 
+if TYPE_CHECKING:
+    from collections import Counter
+
 pytest.importorskip("infrahub_testcontainers")
 
-from ansible_collections.opsmill.infrahub.plugins.module_utils import infrahub_utils as iu
 from infrahub_sdk import Config, InfrahubClientSync
 from infrahub_sdk.testing.docker import TestInfrahubDockerClient
 from infrahub_sdk.testing.schemas.animal import (
@@ -30,33 +31,14 @@ from infrahub_sdk.testing.schemas.animal import (
     SchemaAnimal,
 )
 
-# `measurement` marks the heavy schema-load + seed benchmark: it gates only the
-# scheduled/dispatch runs, not every PR (the convergence step is too slow for a
-# standard GitHub runner). The lighter correctness test carries the PR gate.
+from conftest import count_graphql, processor_for
+
+# `measurement` marks the heavy schema-load + seed benchmark, so a nightly run can
+# select the lighter suite alone with `-m "integration and not measurement"`. Note
+# neither suite runs on a pull request: `integration-testcontainers` in
+# workflow-ansible-linter-and-tests.yml is gated on `schedule`/`workflow_dispatch`,
+# so a regression these catch shows up on the nightly build, not in PR checks.
 pytestmark = [pytest.mark.integration, pytest.mark.measurement]
-
-
-def _processor_for(client_sync: InfrahubClientSync) -> iu.InfrahubNodesProcessor:
-    wrapper = iu.InfrahubclientWrapper.__new__(iu.InfrahubclientWrapper)
-    wrapper.client = client_sync
-    return iu.InfrahubNodesProcessor(client=wrapper)
-
-
-@contextlib.contextmanager
-def count_graphql(client: InfrahubClientSync):
-    """Count GraphQL round-trips by query tracker while inside the block."""
-    trackers: Counter[str] = Counter()
-    original = client.execute_graphql
-
-    def wrapper(*args, **kwargs):
-        trackers[kwargs.get("tracker") or "untracked"] += 1
-        return original(*args, **kwargs)
-
-    client.execute_graphql = wrapper
-    try:
-        yield trackers
-    finally:
-        client.execute_graphql = original
 
 
 # The budgets below are measured, not derived. They depend on SDK behaviour the
@@ -117,7 +99,7 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
         client = InfrahubClientSync(
             config=Config(username="admin", password="infrahub", address=f"http://localhost:{infrahub_port}")
         )
-        processor = _processor_for(client)
+        processor = processor_for(client)
         with count_graphql(client) as trackers:
             result = processor.fetch_and_process(nodes=nodes)
         _report(label, trackers)

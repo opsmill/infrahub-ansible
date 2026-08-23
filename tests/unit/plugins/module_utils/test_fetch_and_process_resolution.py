@@ -199,3 +199,37 @@ def test_a_kind_with_no_schema_alone_raises(mocker):
 
     with pytest.raises(RuntimeError, match="no schema found"):
         processor.fetch_and_process(nodes={"NoSuchKind": {}})
+
+
+def test_a_swallowed_fetch_is_a_failure_not_an_empty_result(mocker):
+    """The wrapper returns ``None`` instead of raising, and that still has to fail loudly.
+
+    ``InfrahubclientWrapper`` decorates its own methods with
+    ``handle_infrahub_exceptions_decorator``, which -- whenever a Display is attached,
+    as it always is in the inventory -- logs the error and returns ``None`` rather than
+    raising. So the ``except`` around ``fetch_nodes`` never fires in the path that
+    matters, and treating ``None`` as "this kind matched nothing" hands Ansible zero
+    hosts and reports success.
+    """
+    processor, wrapper = _make_processor(mocker, {})
+    wrapper.fetch_nodes.side_effect = lambda kind, **kw: None
+
+    with pytest.raises(RuntimeError, match="No nodes could be fetched"):
+        processor.fetch_and_process(nodes={"KindA": {}})
+
+
+def test_a_generic_kind_resolves_the_concrete_kinds_it_answers_with(mocker):
+    """Requesting a generic must not die on the concrete kinds that come back.
+
+    A query for a generic answers with nodes carrying their *concrete* ``__typename``,
+    and resolution looks the attribute list up by the node's own kind. Keying that list
+    by the requested kind alone made a perfectly valid ``nodes: {SomeGeneric: {}}``
+    abort the whole inventory with a KeyError.
+    """
+    nodes_by_kind = {"TestingLocation": [FakeNode("TestingSite", "s1"), FakeNode("TestingRegion", "r1")]}
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind)
+    mocker.patch.object(processor, "resolve_node_mapping", side_effect=lambda node, **kw: {"id": node.id})
+
+    result = processor.fetch_and_process(nodes={"TestingLocation": {}})
+
+    assert result == {"s1": {"id": "s1"}, "r1": {"id": "r1"}}

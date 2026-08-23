@@ -26,6 +26,14 @@ from typing import Any
 # they can never be excluded and never need requesting.
 ALWAYS_QUERIED = frozenset({"id", "hfid", "display_label"})
 
+# Hierarchical kinds (Location, Organization, IPAM prefixes -- the ones an inventory
+# actually queries) carry four synthetic fields the SDK adds to every query whenever
+# `prefetch_relationships` is on. They are pseudo-schemas, so they are absent from
+# `relationship_names` and the exclude complement below never reaches them: a narrowed
+# query would still drag both full hierarchies down on every page. Naming them costs
+# nothing on a kind that has none -- the SDK only ever tests membership in `exclude`.
+HIERARCHICAL_FIELDS = frozenset({"parent", "children", "ancestors", "descendants"})
+
 
 class NodeProjection:
     """What to fetch for one node kind, and what to resolve out of it.
@@ -102,7 +110,7 @@ class NodeProjection:
         # Anything the schema offers and the user did not ask for is dead weight
         # on every page of every host. Unknown roots are left alone: they are
         # either special node properties or a typo, and neither belongs in exclude.
-        complement = sorted(known - roots)
+        complement = sorted((known | HIERARCHICAL_FIELDS) - roots)
 
         merged_exclude = sorted(set(complement) | set(exclude or []))
 
