@@ -195,6 +195,9 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     InfrahubNodesProcessor,
 )
 
+# Additional failing hosts listed by name in an aggregated strict:false warning.
+MAX_LISTED_FAILURE_HOSTS = 5
+
 PACKAGING_IMPORT_ERROR: ImportError | None = None
 
 try:
@@ -328,13 +331,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         other affected hosts are listed.
         """
         for failures in self._constructed_failures.values():
-            _, first_error = failures[0]
+            first_error = failures[0][1]
             if len(failures) == 1:
                 self.display.warning(first_error)
                 continue
-            other_hosts = [host for host, _ in failures[1:]]
-            listed = ", ".join(other_hosts[:5])
-            if len(other_hosts) > 5:
+            other_hosts = [host for host, _error in failures[1:]]
+            listed = ", ".join(other_hosts[:MAX_LISTED_FAILURE_HOSTS])
+            if len(other_hosts) > MAX_LISTED_FAILURE_HOSTS:
                 listed += f", ... ({len(failures)} hosts affected in total)"
             self.display.warning(f"{first_error} (same failure for {len(other_hosts)} more host(s): {listed})")
 

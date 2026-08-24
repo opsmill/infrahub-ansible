@@ -218,7 +218,7 @@ def test_non_strict_failure_warns_once_per_expression(tmp_path):
     # One broken expression across many hosts collapses to a single warning naming
     # the expression and the affected hosts, instead of one warning per host.
     config = BASE_CONFIG + "keyed_groups:\n  - prefix: region\n    key: site.region_name\n"
-    _, warnings = run_inventory_with_warnings(
+    _inv, warnings = run_inventory_with_warnings(
         tmp_path,
         config,
         _hosts({f"web{i}": {"name": f"web{i}", "role": "edge", "id": str(i)} for i in range(1, 9)}),
@@ -237,7 +237,7 @@ def test_non_strict_resolving_expressions_do_not_warn(tmp_path):
     config = BASE_CONFIG + (
         "compose:\n  loud_role: role | upper\nkeyed_groups:\n  - prefix: role\n    key: role\ngroups:\n  edges: \"role == 'edge'\"\n"
     )
-    _, warnings = run_inventory_with_warnings(
+    _inv, warnings = run_inventory_with_warnings(
         tmp_path,
         config,
         _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
