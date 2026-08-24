@@ -1,0 +1,59 @@
+specs/001-inventory-fetch-performance/data-model.md
+  s_65a1fe60356776::t_182f5d8941e9b0 113,115-116,121-122,126-132
+tests/unit/plugins/module_utils/test_peers.py
+  s_65a1fe60356776::t_50fdbf252c734f 264-265,279-280
+  s_65a1fe60356776::t_8794c2cf520436 258-263,266-278,281-290
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_65a1fe60356776::t_2808f30f73ec74 281
+  s_65a1fe60356776::t_1d9b4f077bde8e 381-383,386-404,406-429,431-440
+  s_65a1fe60356776::t_50fdbf252c734f 384-385,405,430
+tests/integration/processor/test_fetch_and_process_integration.py
+  s_65a1fe60356776::t_f8b1b037454f15 155,157-159
+  s_65a1fe60356776::t_50fdbf252c734f 160-161,176-179
+  s_65a1fe60356776::t_0d3edbce39dcd2 200-207
+  s_65a1fe60356776::t_c8a0ffd96d0bb4 180-184
+specs/001-inventory-fetch-performance/plan.md
+  s_65a1fe60356776::t_182f5d8941e9b0 13,23,97
+specs/001-inventory-fetch-performance/research.md
+  s_65a1fe60356776::t_182f5d8941e9b0 21,60
+plugins/module_utils/peers.py
+  s_65a1fe60356776::t_927901eee2d9f7 262,265-266,272,276,278
+  s_65a1fe60356776::t_5c81def2b4763d 263-264,269-271,273-275
+  s_65a1fe60356776::t_844fea3f9e0528 242-243
+plugins/module_utils/infrahub_utils.py
+  s_65a1fe60356776::t_c80ddbb7cfdd5f 970
+  s_65a1fe60356776::t_5bd35acaf4a7c3 968-969,1048-1049,1054-1055,1061-1062,1102-1104
+  s_65a1fe60356776::t_8e83baa8825851 1022-1024
+  s_65a1fe60356776::t_d5434495e0d55d 1097-1098,1105-1106
+  s_65a1fe60356776::t_9ce126f3bc36f6 1046-1047,1057,1059-1060,1063-1064
+  s_65a1fe60356776::t_c5ecb78968b511 1069
+  s_65a1fe60356776::t_ae9567832084a6 1056
+specs/001-inventory-fetch-performance/checklists/requirements.md
+  s_65a1fe60356776::t_fe3c4b1079e23a 11,32,42-48
+  s_65a1fe60356776::t_0432df034db56c 40-41
+specs/001-inventory-fetch-performance/spec.md
+  s_65a1fe60356776::t_fe3c4b1079e23a 190
+  s_65a1fe60356776::t_182f5d8941e9b0 167
+specs/001-inventory-fetch-performance/quickstart.md
+  s_65a1fe60356776::t_182f5d8941e9b0 25,70,72-75
+specs/001-inventory-fetch-performance/contracts/inventory-options.md
+  s_65a1fe60356776::t_182f5d8941e9b0 62-63,65
+specs/001-inventory-fetch-performance/tasks.md
+  s_65a1fe60356776::t_182f5d8941e9b0 25-28,245,247-249,251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "db23c8ab70e085ce0b447a01e31d3c0fd9ab8b0f",
+  "prompts": {},
+  "sessions": {
+    "s_65a1fe60356776": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8b570d3-6c7d-4a14-a4ca-dd821b7114e1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
