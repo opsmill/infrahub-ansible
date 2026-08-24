@@ -79,3 +79,16 @@ def test_genuinely_empty_relationship_refetches_only_once(mocker):
     processor._resolve_one_relationship(node_attr, ["parent.name"], has_nested=True, schemas={})
 
     node_attr.fetch.assert_called_once()
+
+
+def test_failed_refetch_is_retried_by_later_hosts(mocker):
+    """A refetch that yields no usable peer is not memoized, so the next host retries it."""
+    cached = _cached_peer(mocker, nested_rel_id=None)
+    processor = _make_processor(mocker, cached)
+    node_attr = _one_rel(mocker, fresh_peer=None)
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={})
+
+    assert processor._resolve_one_relationship(node_attr, ["parent.name"], has_nested=True, schemas={}) is None
+    processor._resolve_one_relationship(node_attr, ["parent.name"], has_nested=True, schemas={})
+
+    assert node_attr.fetch.call_count == 2
