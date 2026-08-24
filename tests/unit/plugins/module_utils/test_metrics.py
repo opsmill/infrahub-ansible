@@ -36,13 +36,6 @@ def test_counter_ignores_the_response_it_is_given():
     assert list(vars(counter)) == ["responses"]
 
 
-def test_reset_zeroes_the_counter():
-    counter = metrics.RequestCounter()
-    counter.record(response=None)
-    counter.reset()
-    assert counter.responses == 0
-
-
 def test_module_has_no_runtime_sdk_dependency():
     """Plugin files must import without ``infrahub-sdk`` installed.
 

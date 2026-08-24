@@ -18,7 +18,7 @@ The SDK exposes a first-class, runtime-checkable `Recorder` protocol — a singl
 `record(response: httpx.Response) -> None` — invoked from `InfrahubClientSync._record` on every HTTP
 response (`infrahub_sdk/client.py:235`, called at four request sites including the sync `_request` at
 `:3788`). `Config` already accepts `custom_recorder`, and the wrapper already constructs `Config` at two
-sites (`infrahub_utils.py:119` and `:126`), so the wiring is a keyword argument in code the wrapper
+sites (`infrahub_utils.py:125` and `:136`), so the wiring is a keyword argument in code the wrapper
 already owns.
 
 **Rationale**:
@@ -57,7 +57,7 @@ and how many batches it took. So the emitted line is one total request count plu
 inventory code owns:
 
 ```text
-Inventory fetch cost: 15 request(s) to Infrahub, 41 related node(s) loaded in 2 batch(es)
+Inventory fetch cost: 15 request(s) to Infrahub, 41 node(s) loaded in 2 batch(es)
 ```
 
 **Consequence worth stating**: the request count covers *every* HTTP round-trip, schema lookups

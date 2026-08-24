@@ -110,17 +110,23 @@ Ansible's cache plugin holds the value; this feature defines only the key.
 - Key material: API endpoint, branch, node selection, and `CACHE_SCHEMA_VERSION` (FR-011, FR-012).
 - Written only when the run actually fetched from the API (FR-013).
 
-## Run cost report — *not yet implemented*
+## Run cost report
 
-Required by FR-020 / SC-009. Per R1, carried by a counting `Recorder` passed as `Config.custom_recorder`
-from `InfrahubclientWrapper`.
+Required by FR-020 / SC-009, delivered in PR #381. Per R1, carried by a counting `Recorder` passed as
+`Config.custom_recorder` from `InfrahubclientWrapper`.
 
 | Field | Meaning |
 |---|---|
 | `requests` | HTTP responses observed — the true count, below pagination |
-| `peers_loaded` | Related nodes loaded; `PeerWarmer.warm()` already returns its call count today and discards it in `_warm_peers` |
+| `peers_loaded` | Nodes the batched passes loaded on top of the hosts themselves, deduplicated across both passes (`len(PeerWarmer.loaded)`) |
+| `peer_batches` | Batches that came back, summed over both passes. Batches that failed are counted separately and reported as their own clause |
 
 ### Rules
 
-- Emitted at raised verbosity only (`_handle_display(level="INFO")` → `display.v()`); silent at default.
-- A run served entirely from cache fetches nothing and so reports nothing.
+- Totals at raised verbosity (`_handle_display(level="INFO")` → `display.v()`), the by-kind breakdown
+  behind them one level deeper (`level="VVV"` → `display.vvv()`); silent at default.
+- Reported on any run that fetched, a run whose query matched no hosts included: the schema lookups and
+  the empty node query were round-trips, and that is exactly when someone asks whether the run asked.
+- A run served entirely from cache fetches nothing and so reports nothing (FR-020 says as much).
+- A host kind that reaches the warmer got there through the refill pass, not a relationship, and the
+  breakdown names it as such rather than calling it a peer kind.

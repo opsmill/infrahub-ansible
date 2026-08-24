@@ -22,7 +22,7 @@ Integration tests need Docker and the `integration` dependency group.
 uv sync --group integration
 export INFRAHUB_TESTING_IMAGE_VER=1.9.9
 
-# PR gate: correctness plus a gross-regression counter
+# nightly and on dispatch: correctness plus a gross-regression counter
 uv run --group integration pytest tests/integration/processor -m integration
 
 # Scheduled only: per-shape measured budgets, prints its own totals
@@ -67,8 +67,9 @@ Output was byte-identical to the previous behaviour in all four.
 - **Deleting the per-node refetch.** It looks like dead code. It fired 653 times on a 652-device estate
   and was the only thing resolving attributes through generic peers. See `research.md` R4.
 
-## Where the work is not done
+## Where the last requirement landed
 
-FR-020 / SC-009 — a run reporting its own cost at raised verbosity — is specified but not implemented.
-`research.md` R1 has the design: a counting `Recorder` passed as `Config.custom_recorder` from
-`InfrahubclientWrapper`.
+FR-020 / SC-009 — a run reporting its own cost at raised verbosity — ships in PR #381, built to the
+design in `research.md` R1: a counting `Recorder` passed as `Config.custom_recorder` from
+`InfrahubclientWrapper`. `fetch_and_process` emits the totals at `-v` and the by-kind breakdown behind
+them at `-vvv`.

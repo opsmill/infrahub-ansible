@@ -164,7 +164,7 @@ invalid types. The first must return the valid hosts; the second must raise, nam
 - **FR-017**: The default request timeout MUST be at least 60 seconds, so that a large estate under load is served rather than aborted mid-run.
 - **FR-018**: For any given definition, the hosts and host variables produced MUST be identical to those produced before these changes.
 - **FR-019**: When related nodes of a given type fail to load, the run MUST emit a warning naming that type, MUST still produce every host that referenced them with the affected attributes left empty, and MUST NOT fail on that account.
-- **FR-020**: At raised verbosity, a run MUST report how many requests it sent to Infrahub and how many related nodes it loaded. At default verbosity it MUST report neither. The request figure counts every HTTP round-trip, schema lookups included, so it is legitimately higher than a GraphQL-only count.
+- **FR-020**: At raised verbosity, a run that fetched from Infrahub MUST report how many requests it sent, how many nodes it loaded beyond the hosts themselves, and how many batches that took. At default verbosity it MUST report none of them. A run served entirely from cache sends nothing and so reports nothing. The request figure counts every HTTP round-trip, schema lookups included, so it is legitimately higher than a GraphQL-only count.
 
 ### Key Entities
 
@@ -187,7 +187,7 @@ invalid types. The first must return the valid hosts; the second must raise, nam
 - **SC-006**: Every requested attribute that has a value in Infrahub is present in the produced inventory, including attributes reached through a relationship declared in terms of a broader type.
 - **SC-007**: A run in which every selected node type fails reports an error naming each failure, and never returns an empty inventory silently.
 - **SC-008**: Two runs that differ only in branch, or only in the node types selected, never serve each other's cached results.
-- **SC-009**: A slowness report from the field can be quantified from a raised-verbosity run alone, without attaching an instrumented harness: the run states its own query count and how many related nodes it loaded.
+- **SC-009**: A slowness report from the field can be quantified from a raised-verbosity run alone, without attaching an instrumented harness: the run states its own request count and how many nodes it loaded beyond the hosts themselves.
 
 ## Out of Scope
 

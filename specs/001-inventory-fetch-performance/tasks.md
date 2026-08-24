@@ -22,10 +22,10 @@ description: "Task list for Dynamic Inventory Fetch Performance"
 
 ## Delivery status
 
-This is a retroactive task list. 19 of the spec's 20 functional requirements describe code that is
-implemented, measured, and passing CI. Phases 1–7 record that work so coverage is traceable rather than
-assumed. **Phase 8 is the only outstanding implementation work** — FR-020 / SC-009, added during
-`/speckit.clarify`.
+This is a retroactive task list. **All 20 of the spec's functional requirements are implemented and
+passing CI.** Phases 1–7 shipped in PR #374; Phase 8 — FR-020 / SC-009, added during
+`/speckit.clarify` — ships in PR #381. Phases 1–7 record the earlier work so coverage is traceable
+rather than assumed. What remains unchecked is Phase 9 repo hygiene, which gates nothing.
 
 Read `- [X]` as "requirement covered and verified", not as "task someone should do".
 
@@ -242,11 +242,10 @@ T041 → T042                               # docs, then spec status
 
 ## Implementation Strategy
 
-**Everything through Phase 7 is delivered.** The MVP shipped; PR #374 carries it at 22/22 checks green.
+**Everything through Phase 8 is delivered.** Phases 1–7 shipped in PR #374 at 22/22 checks green.
 
-The remaining decision is where Phase 8 lands:
+Phase 8 was taken as the follow-up rather than folded back into #374 — 10 tasks across one new module
+plus three edits to `infrahub_utils.py`, a small independently testable increment that left a green,
+byte-identical-verified diff closed. It ships in PR #381, at which point the spec is fully retroactive.
 
-- **Fold into PR #374** — the spec becomes fully retroactive in one merge, but reopens a diff that is green and byte-identical-verified for a feature that has not been measured
-- **Ship #374, take Phase 8 as a follow-up** — recommended. Phase 8 is 10 tasks touching one new module plus three edits to `infrahub_utils.py`; it is a clean, small, independently testable increment
-
-Phase 9 is repo hygiene and should not gate either.
+Phase 9 is repo hygiene and gates nothing.

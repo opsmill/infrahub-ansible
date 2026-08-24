@@ -965,7 +965,9 @@ if HAS_INFRAHUBCLIENT:
                     # playbook would quietly no-op against zero hosts. Fail loudly instead.
                     detail = "; ".join(f"{kind}: {why}" for kind, why in sorted(fetched.failures.items()))
                     raise RuntimeError(f"No nodes could be fetched. Failures -- {detail}")
-                # Every requested kind answered, and the answer was empty.
+                # Every requested kind answered, and the answer was empty. Still
+                # report: the schema lookups and the empty query cost round-trips.
+                self._report_run_cost(requests_before=requests_before, fetched=fetched)
                 return None
 
             warmer = PeerWarmer(
@@ -1016,10 +1018,10 @@ if HAS_INFRAHUBCLIENT:
         def _report_run_cost(
             self,
             requests_before: int | None,
-            peer_batches: int,
-            peers_loaded: int,
             fetched: HostFetch,
-            warmer: PeerWarmer,
+            peer_batches: int = 0,
+            peers_loaded: int = 0,
+            warmer: PeerWarmer | None = None,
         ) -> None:
             """State what the run cost, at raised verbosity only.
 
@@ -1040,26 +1042,31 @@ if HAS_INFRAHUBCLIENT:
             Parameters:
                 requests_before (int | None): counter reading taken before this run began,
                     so the figure reported is this run's cost and not the client's lifetime total.
-                peer_batches (int): how many batched peer fetches were issued.
-                peers_loaded (int): how many related nodes came back.
                 fetched (HostFetch): the host nodes and their projections, for the per-kind lines.
-                warmer (PeerWarmer): carries the per-peer-kind tallies.
+                peer_batches (int): how many batched peer fetches came back.
+                peers_loaded (int): how many nodes those batches loaded.
+                warmer (PeerWarmer | None): carries the per-kind tallies. ``None`` when
+                    the query matched no hosts, so nothing was warmed.
             """
             requests_now = request_count(self.client)
             unavailable = requests_before is None or requests_now is None
             cost = "unavailable" if unavailable else f"{requests_now - requests_before} request(s)"
-            self._handle_display(
-                message=(
-                    f"Inventory fetch cost: {cost} to Infrahub, "
-                    f"{peers_loaded} related node(s) loaded in {peer_batches} batch(es)"
-                ),
-                level="INFO",
+            # "node(s)", not "related node(s)": the refill pass shares this warmer, so
+            # host nodes are counted here too.
+            message = (
+                f"Inventory fetch cost: {cost} to Infrahub, {peers_loaded} node(s) loaded in {peer_batches} batch(es)"
             )
+            failed_batches = sum(stat["failed"] for stat in warmer.stats.values()) if warmer else 0
+            if failed_batches:
+                # A failed batch cost a round-trip too, so it belongs in the cost line
+                # rather than only in the -vvv breakdown.
+                message += f", {failed_batches} batch(es) failed"
+            self._handle_display(message=message, level="INFO")
             for line in self._run_cost_breakdown(fetched=fetched, warmer=warmer):
                 self._handle_display(message=line, level="VVV")
 
         @staticmethod
-        def _run_cost_breakdown(fetched: HostFetch, warmer: PeerWarmer) -> list[str]:
+        def _run_cost_breakdown(fetched: HostFetch, warmer: PeerWarmer | None) -> list[str]:
             """The per-kind detail behind the run-cost totals.
 
             Separate from the emitting method so it can be asserted on directly, and so
@@ -1087,12 +1094,16 @@ if HAS_INFRAHUBCLIENT:
                     detail = f"requested [{requested}], {excluded} field(s) excluded"
                 lines.append(f"  host kind {kind}: {hosts_by_kind[kind]} node(s), {detail}")
 
-            for kind in sorted(warmer.stats):
-                stat = warmer.stats[kind]
+            for kind in sorted(warmer.stats if warmer else {}):
+                stat = warmer.stats[kind]  # type: ignore[union-attr]
                 detail = f"{stat['requested']} id(s) referenced, {stat['batches']} batch(es), {stat['loaded']} loaded"
                 if stat["failed"]:
                     detail += f", {stat['failed']} batch(es) failed"
-                lines.append(f"  peer kind {kind}: {detail}")
+                # A host kind here came from the refill pass, not a relationship.
+                # `RefillLedger` keys on the same `_schema.kind` counted above, so
+                # membership is what tells the two apart.
+                label = "refilled host kind" if kind in hosts_by_kind else "peer kind"
+                lines.append(f"  {label} {kind}: {detail}")
 
             if not lines:
                 return []

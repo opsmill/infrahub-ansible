@@ -239,7 +239,8 @@ class PeerWarmer:
             referenced: concrete peer kind to the ids to fetch.
 
         Returns:
-            int: how many fetch calls were issued.
+            int: how many fetch calls came back. A failed one lands in
+                ``stats[kind]["failed"]`` instead.
         """
         calls = 0
         for kind, ids in referenced.items():
@@ -258,18 +259,23 @@ class PeerWarmer:
                         parallel=False,
                         order=self.order,
                     )
+                    if loaded is None:
+                        # None means the wrapper's exception decorator swallowed the
+                        # failure. Counting it as a batch that worked would hide it.
+                        stat["failed"] += 1
+                        continue
                     calls += 1
                     stat["batches"] += 1
-                    # Record the ids that actually came back, not the ids asked for.
-                    # `fetch` returns None when the wrapper's exception decorator
-                    # swallowed the failure, and even a successful call can return
-                    # fewer nodes than requested -- a peer deleted between the host
-                    # query and this one, or hidden by permissions. Marking those as
-                    # loaded would tell RefillLedger their empty attributes are
-                    # genuine nulls and suppress the retry that would notice.
-                    for node in loaded or []:
+                    # Record the ids that came back, not the ids asked for: a peer can
+                    # vanish between the host query and this one, and marking it loaded
+                    # would tell RefillLedger its empty attributes are genuine nulls.
+                    #
+                    # Once per id, not once per return -- `warm` runs twice a run, and
+                    # double-counting would push the by-kind tally past the deduplicated
+                    # total the summary reports.
+                    for node in loaded:
                         node_id = getattr(node, "id", None)
-                        if node_id:
+                        if node_id and node_id not in self.loaded:
                             self.loaded.add(node_id)
                             stat["loaded"] += 1
                 except Exception as exc:

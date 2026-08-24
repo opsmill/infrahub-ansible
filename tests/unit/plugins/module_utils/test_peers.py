@@ -255,3 +255,36 @@ def test_ledger_ignores_a_peer_the_warmer_already_loaded_in_full():
 
     assert ledger.pending == {}
     assert not ledger
+
+
+def test_warm_counts_a_swallowed_batch_as_failed_not_as_a_batch():
+    """A ``None`` return is a failure the wrapper already swallowed.
+
+    ``handle_infrahub_exceptions_decorator`` logs and returns ``None`` rather than
+    raising whenever a Display is attached, which is always in the inventory, so the
+    ``except`` never fires. Counting it as a batch that worked hides the failure.
+    """
+    warmer = _warmer(fetch=lambda **kwargs: None)
+
+    calls = warmer.warm({"LocationSite": {"s1"}})
+
+    assert calls == 0
+    assert warmer.stats["LocationSite"]["batches"] == 0
+    assert warmer.stats["LocationSite"]["failed"] == 1
+
+
+def test_warm_counts_each_loaded_id_once_across_passes():
+    """``warm`` runs twice a run, and the by-kind tally must still reconcile.
+
+    The summary reports ``len(warmer.loaded)``, a deduplicated set, so counting every
+    returned node would overshoot it for any id that comes back in both passes.
+    """
+    warmer = _warmer()
+
+    warmer.warm({"LocationSite": {"s1", "s2"}})
+    warmer.warm({"LocationSite": {"s1"}})
+
+    assert warmer.loaded == {"s1", "s2"}
+    assert warmer.stats["LocationSite"]["loaded"] == 2
+    # Both passes were issued, so both are still charged as batches.
+    assert warmer.stats["LocationSite"]["batches"] == 2

@@ -10,7 +10,7 @@ Cut the cost of building a dynamic inventory from *proportional to the database*
 
 Four defects compounded into the reported slowness: related nodes were fetched a whole type at a time rather than by the ids actually referenced; the attribute selection a user wrote was never translated into a narrower request; any attribute that came back empty triggered a refetch of the node that owned it, one request per node; and the cache key ignored the branch and the node selection. The refetch turned out to be load-bearing — it was the only thing making attributes resolve when a relationship declares a broad peer type — so removing it required replacing it with a bounded, batched warm-up pass.
 
-**Status of this plan**: 19 of the 20 functional requirements describe work already implemented, measured, and green in PR #374. The forward work is **FR-020 / SC-009** — a run reporting its own cost at raised verbosity — which was added during `/speckit.clarify` and does not exist in the code. Phase 0 research below resolves the one open design question it carries.
+**Status of this plan**: all 20 functional requirements are implemented. Nineteen shipped in PR #374, measured and green. The twentieth, **FR-020 / SC-009** — a run reporting its own cost at raised verbosity — was added during `/speckit.clarify` and ships in PR #381, built to the design Phase 0 research below settled.
 
 ## Technical Context
 
@@ -20,7 +20,7 @@ Four defects compounded into the reported slowness: related nodes were fetched a
 
 **Storage**: N/A for the fetch path. Inventory results may be persisted through Ansible's own cache plugin interface (`jsonfile` by default); this feature only defines the cache *key*, never the backend.
 
-**Testing**: `pytest` unit tests with a mocked SDK client; `ansible-test sanity` for plugin compliance; `pytest` integration tests against a live Infrahub via `infrahub-testcontainers`, split by marker into `integration` (PR gate) and `measurement` (scheduled only — the schema-convergence step is too slow for a standard runner)
+**Testing**: `pytest` unit tests with a mocked SDK client; `ansible-test sanity` for plugin compliance; `pytest` integration tests against a live Infrahub via `infrahub-testcontainers`, split by marker into `integration` and `measurement`. Neither gates a pull request: both run on the nightly schedule and manual dispatch only, because the schema-convergence step is too slow for a standard runner. PRs are gated by `ansible-test sanity`, `ansible-lint` and the unit-test job
 
 **Target Platform**: Ansible controller (Linux, macOS)
 
@@ -94,7 +94,7 @@ tests/
 └── integration/
     ├── inventory/schema.py                                  # generic-peer test schema
     └── processor/
-        ├── test_fetch_and_process_integration.py            # PR gate: correctness + gross-regression counter
+        ├── test_fetch_and_process_integration.py            # nightly: correctness + gross-regression counter
         └── test_fetch_roundtrip_measurement.py              # scheduled: per-shape measured budgets
 ```
 

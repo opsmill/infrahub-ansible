@@ -8,7 +8,7 @@
 
 ## Content Quality
 
-- [x] No implementation details (languages, frameworks, APIs)
+- [ ] No implementation details (languages, frameworks, APIs) — **one deliberate exception, FR-020**; see Notes
 - [x] Focused on user value and business needs
 - [x] Written for non-technical stakeholders
 - [x] All mandatory sections completed
@@ -29,7 +29,7 @@
 - [x] All functional requirements have clear acceptance criteria
 - [x] User scenarios cover primary flows
 - [x] Feature meets measurable outcomes defined in Success Criteria
-- [x] No implementation details leak into specification
+- [ ] No implementation details leak into specification — **FR-020 excepted, deliberately**; see Notes
 
 ## Notes
 
@@ -37,8 +37,15 @@
   criteria carry real measured numbers rather than targets, and the "identical output" requirement
   (FR-018, SC-005) was verified byte-for-byte across four inventory shapes before the spec was written.
 - **FR-020 and SC-009** were added by `/speckit.clarify` (session 2026-08-23) and implemented by
-  `/speckit.implement` the same day: a run reports its own request count and related-node count at
-  raised verbosity. Every requirement in the spec now describes delivered, verified behaviour.
+  `/speckit.implement` the same day: a run reports its own request count, the nodes it loaded beyond
+  the hosts, and the batches that took, at raised verbosity. Every requirement in the spec now describes delivered, verified behaviour.
+- **FR-020 names machinery on purpose, and these boxes are unchecked to say so.** "Every HTTP
+  round-trip, schema lookups included, so it is legitimately higher than a GraphQL-only count" is
+  API language in a spec that otherwise avoids it. It stays because the alternative is worse: a
+  reader told only that the run "reports how many requests it sent" will compare the number against
+  the GraphQL queries they can see, find it higher, and file the report as a bug. The requirement is
+  about a number's meaning, and the meaning does not survive being made technology-agnostic. Every
+  other requirement in the spec holds the line.
 - Clarification also fixed the spec's vocabulary: it now uses **node** / **node type** / **related node**,
   matching the `nodes:` key users write, with **host** reserved for the Ansible inventory entry.
 - Two items were rewritten during validation:

@@ -59,8 +59,10 @@ binding statement, verified byte-for-byte across four definition shapes.
 | Related-node batch fails | `warning` | Names the type; hosts still produced, attribute empty; run succeeds (FR-019) |
 | No hosts fetched, at least one type failed | **error** | Run fails, message names each type and reason (FR-015) |
 | No hosts fetched, nothing failed | — | Succeeds, no hosts, no error (FR-016) |
-| Run cost | `-v` | Requests sent, related nodes loaded, and how many batches it took (FR-020) |
+| Run cost | `-v` | Requests sent, nodes loaded beyond the hosts, and how many batches that took; failed batches named when there were any (FR-020) |
+| Run cost | `-vvv` | The `-v` totals, plus the breakdown behind them: per host kind, its node count and how far its query was narrowed; per peer kind, ids referenced, batches, nodes loaded, and batches failed. A refilled host kind is named as one, not as a peer kind |
 | Run cost | default verbosity | Silent (FR-020) |
+| Run cost | run served entirely from cache | Silent at every verbosity — nothing was fetched (FR-020) |
 
 ## Cache contract
 

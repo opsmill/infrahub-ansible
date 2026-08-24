@@ -152,19 +152,19 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
     ) -> None:
         """FR-020 / SC-009: the run states its own cost, and the number is true.
 
-        Two things are checked, because either alone would pass while lying:
+        Three things are checked, because any one alone would pass while lying:
 
-        * The number printed equals what the SDK-level recorder saw. A report that
-          drifts from the counter is worse than no report.
+        * The number printed equals what the SDK-level recorder saw *for this run*. A
+          report that drifts from the counter is worse than no report.
+        * It is strictly below the client's lifetime total. The client outlives a run,
+          so a report that skipped the snapshot would charge this run for what came
+          before it -- and against a zero baseline that misreads as correct.
         * It is at least the GraphQL round-trip count. It is deliberately *not*
           asserted equal: schema lookups go over REST, so they are counted by the
           recorder and invisible to ``count_graphql``. Asserting equality here would
           encode a wrong idea of what the number means and would break the first time
           a schema fetch moved.
         """
-        for name in ("cost-1", "cost-2"):
-            client_sync.create(kind="BuiltinTag", name=name).save()
-
         counter = RequestCounter()
         original_recorder = client_sync.config.custom_recorder
         client_sync.config.custom_recorder = counter
@@ -173,7 +173,15 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         processor.display = _CapturingDisplay()
 
         try:
-            counter.reset()
+            # Spend requests with the counter already attached, so the run starts from
+            # a non-zero baseline. Resetting to zero instead -- as this test used to --
+            # makes the delta and the lifetime total the same number, and the equality
+            # below would survive a regression that dropped the snapshot.
+            for name in ("cost-1", "cost-2"):
+                client_sync.create(kind="BuiltinTag", name=name).save()
+            baseline = counter.responses
+            assert baseline, "the setup requests went uncounted, so the delta below proves nothing"
+
             with count_graphql(client_sync) as trackers:
                 result = processor.fetch_and_process(nodes={"BuiltinTag": {"include": ["name"]}})
         finally:
@@ -189,7 +197,14 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         reported = int(match.group(1))
         graphql_calls = sum(trackers.values())
 
-        assert reported == counter.responses, f"reported {reported}, recorder saw {counter.responses}"
+        assert reported == counter.responses - baseline, (
+            f"reported {reported}, recorder saw {counter.responses - baseline} for this run "
+            f"({counter.responses} total, {baseline} before it)"
+        )
+        assert reported < counter.responses, (
+            f"reported {reported} and the client's lifetime total is {counter.responses}: "
+            "the run's cost is not being isolated from requests that preceded it"
+        )
         # -vvv carries the per-kind detail behind that total.
         breakdown = "\n".join(processor.display.very_verbose)
         assert "Inventory fetch cost, by kind:" in breakdown, processor.display.very_verbose

@@ -46,10 +46,6 @@ class RequestCounter:
         """Called by the SDK for each response. The response itself is not retained."""
         self.responses += 1
 
-    def reset(self) -> None:
-        """Zero the counter. Useful when one client serves several measured runs."""
-        self.responses = 0
-
     def __repr__(self) -> str:
         return f"{type(self).__name__}(responses={self.responses})"
 

@@ -278,7 +278,7 @@ def test_run_cost_degrades_when_no_counter_is_attached(mocker):
 
     cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
     assert "unavailable" in cost_line
-    assert "related node(s) loaded" in cost_line
+    assert "node(s) loaded" in cost_line
 
 
 def test_run_cost_counts_the_peer_batches_it_issued(mocker):
@@ -376,6 +376,66 @@ def test_run_cost_breakdown_is_empty_when_there_is_nothing_to_say():
 
     warmer = PeerWarmer(fetch=lambda **kw: [], store=None)
     assert iu.InfrahubNodesProcessor._run_cost_breakdown(fetched=iu.HostFetch(), warmer=warmer) == []
+
+
+def test_run_cost_breakdown_calls_a_refilled_host_kind_by_its_name():
+    """A host kind reaching the warmer got there through refill, not a relationship.
+
+    Both passes share one warmer, so refill files host kinds into the same stats map.
+    Calling those a peer kind points the reader at the wrong cause.
+    """
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer
+
+    fetched = iu.HostFetch()
+    fetched.nodes = [FakeNode("KindA", "a1")]
+    warmer = PeerWarmer(fetch=lambda **kw: [], store=None)
+    warmer.stats = {
+        "KindA": {"requested": 1, "batches": 1, "loaded": 1, "failed": 0},
+        "LocationSite": {"requested": 1, "batches": 1, "loaded": 1, "failed": 0},
+    }
+
+    joined = "\n".join(iu.InfrahubNodesProcessor._run_cost_breakdown(fetched=fetched, warmer=warmer))
+
+    assert "refilled host kind KindA:" in joined
+    assert "peer kind LocationSite:" in joined
+    assert "peer kind KindA:" not in joined
+
+
+def test_run_cost_names_failed_batches_in_the_totals(mocker):
+    """A batch that failed still cost a round-trip, so the cost line says so."""
+    shared = FakePeer("site-1", "LocationSite")
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1", peer=shared)]}
+    processor, wrapper = _make_processor(mocker, nodes_by_kind, attrs=["name", "site.name"])
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    hosts = wrapper.fetch_nodes.side_effect
+
+    def failing_peer_fetch(kind, **kwargs):
+        if kind == "LocationSite":
+            raise RuntimeError("boom")
+        return hosts(kind, **kwargs)
+
+    wrapper.fetch_nodes.side_effect = failing_peer_fetch
+
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
+    assert "1 batch(es) failed" in cost_line, cost_line
+    # The batch that failed loaded nothing, so it is not folded into the loaded count.
+    assert "0 node(s) loaded in 0 batch(es)" in cost_line, cost_line
+
+
+def test_run_cost_is_reported_when_the_query_matched_no_hosts(mocker):
+    """An empty-but-successful fetch still cost requests, and still reports them."""
+    processor, _wrapper = _make_processor(mocker, {})
+    processor.display = mocker.MagicMock()
+
+    assert processor.fetch_and_process(nodes={"KindA": {}}) is None
+
+    cost_lines = [line for line in _display_lines(processor.display) if "Inventory fetch cost" in line]
+    assert len(cost_lines) == 1, _display_lines(processor.display)
+    assert "0 node(s) loaded in 0 batch(es)" in cost_lines[0]
 
 
 def test_a_swallowed_fetch_is_a_failure_not_an_empty_result(mocker):
