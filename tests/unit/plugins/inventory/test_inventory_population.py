@@ -214,6 +214,25 @@ def test_non_strict_bad_conditional_group_warns(tmp_path):
     assert any("edges" in warning and "web1" in warning for warning in warnings)
 
 
+def test_non_strict_failure_warns_once_per_expression(tmp_path):
+    # One broken expression across many hosts collapses to a single warning naming
+    # the expression and the affected hosts, instead of one warning per host.
+    config = BASE_CONFIG + "keyed_groups:\n  - prefix: region\n    key: site.region_name\n"
+    _, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({f"web{i}": {"name": f"web{i}", "role": "edge", "id": str(i)} for i in range(1, 9)}),
+    )
+    assert len(warnings) == 1
+    warning = warnings[0]
+    assert "site.region_name" in warning and "web1" in warning
+    assert "7 more host(s)" in warning
+    # Only the first few additional hosts are listed, plus a total count.
+    assert "web6" in warning
+    assert "web7" not in warning
+    assert "8 hosts affected in total" in warning
+
+
 def test_non_strict_resolving_expressions_do_not_warn(tmp_path):
     config = BASE_CONFIG + (
         "compose:\n  loud_role: role | upper\nkeyed_groups:\n  - prefix: role\n    key: role\ngroups:\n  edges: \"role == 'edge'\"\n"

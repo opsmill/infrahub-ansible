@@ -5,7 +5,7 @@ description: Infrahub inventory source (using GraphQL)
 
 # Inventory inventory
 
-Get inventory hosts from Infrahub. When strict is false, a compose, groups or keyed_groups expression that fails to resolve emits a warning naming the host and the expression instead of failing silently. 
+Get inventory hosts from Infrahub. When strict is false, a compose, groups or keyed_groups expression that fails to resolve emits one warning per expression naming the affected hosts, instead of failing silently. 
 
 ## Parameters
 

@@ -14,7 +14,7 @@ short_description: Infrahub inventory source (using GraphQL)
 description:
     - Get inventory hosts from Infrahub.
     - When strict is false, a compose, groups or keyed_groups expression that fails to resolve
-      emits a warning naming the host and the expression instead of failing silently.
+      emits one warning per expression naming the affected hosts, instead of failing silently.
 extends_documentation_fragment:
     - constructed
     - inventory_cache
@@ -298,25 +298,45 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             cache_key: str = self.get_cache_key(self.api_endpoint)
             self._cache[cache_key] = json.dumps(host_node_attributes)
 
-    def _apply_constructed_or_warn(self, apply_entry: Callable[..., None]) -> None:
+    def _apply_constructed_or_record(self, apply_entry: Callable[..., None], entry_key: str, host: str) -> None:
         """
         Apply a single constructed-inventory entry (compose / groups / keyed_groups),
-        surfacing expression failures as warnings when strict mode is off.
+        recording expression failures when strict mode is off.
 
         The Constructable helpers silently skip an entry whose expression fails to
         resolve under strict=False, which leaves group membership quietly incomplete
-        (#385). Evaluate the entry strictly instead and downgrade the failure to a
-        warning; errors that strict=False would raise as well (invalid entry
-        configuration) stay fatal.
+        (#385). Evaluate the entry strictly instead and record the failure for a
+        per-expression warning; errors that strict=False would raise as well (invalid
+        entry configuration) stay fatal.
 
         Parameters:
             apply_entry (Callable): applies one entry, accepting a `strict` keyword.
+            entry_key (str): identity of the entry, used to aggregate failures across hosts.
+            host (str): host the entry is being applied to.
         """
         try:
             apply_entry(strict=True)
         except AnsibleError as exc:
             apply_entry(strict=False)
-            self.display.warning(str(exc))
+            self._constructed_failures.setdefault(entry_key, []).append((host, str(exc)))
+
+    def _warn_constructed_failures(self) -> None:
+        """
+        Emit one warning per failing expression instead of one per host, so a single
+        broken expression on a large inventory does not flood the output. The first
+        host's error is kept verbatim (it names the host and the expression) and the
+        other affected hosts are listed.
+        """
+        for failures in self._constructed_failures.values():
+            _, first_error = failures[0]
+            if len(failures) == 1:
+                self.display.warning(first_error)
+                continue
+            other_hosts = [host for host, _ in failures[1:]]
+            listed = ", ".join(other_hosts[:5])
+            if len(other_hosts) > 5:
+                listed += f", ... ({len(failures)} hosts affected in total)"
+            self.display.warning(f"{first_error} (same failure for {len(other_hosts)} more host(s): {listed})")
 
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
@@ -325,6 +345,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         Parameters:
             host_node_attributes (dict[str, Any]): dictionary containing attributes for each host node.
         """
+
+        self._constructed_failures: dict[str, list[tuple[str, str]]] = {}
 
         for host_node, attributes in host_node_attributes.items():
             self.inventory.add_host(host_node)
@@ -347,23 +369,29 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 )
             else:
                 for group_name, expression in (self.groups or {}).items():
-                    self._apply_constructed_or_warn(
+                    self._apply_constructed_or_record(
                         partial(
                             self._add_host_to_composed_groups,
                             groups={group_name: expression},
                             variables=trusted_attributes,
                             host=host_node,
-                        )
+                        ),
+                        entry_key=f"groups:{group_name}",
+                        host=host_node,
                     )
                 for keyed_group in self.keyed_groups or []:
-                    self._apply_constructed_or_warn(
+                    self._apply_constructed_or_record(
                         partial(
                             self._add_host_to_keyed_groups,
                             keys=[keyed_group],
                             variables=trusted_attributes,
                             host=host_node,
-                        )
+                        ),
+                        entry_key=f"keyed_groups:{keyed_group}",
+                        host=host_node,
                     )
+
+        self._warn_constructed_failures()
 
     def set_host_variables(self, host_node: str, attributes: dict[str, Any]) -> None:
         """
@@ -381,13 +409,15 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=True)
         else:
             for varname, expression in (self.compose or {}).items():
-                self._apply_constructed_or_warn(
+                self._apply_constructed_or_record(
                     partial(
                         self._set_composite_vars,
                         compose={varname: expression},
                         variables=attributes,
                         host=host_node,
-                    )
+                    ),
+                    entry_key=f"compose:{varname}",
+                    host=host_node,
                 )
 
     def main(self) -> None:
