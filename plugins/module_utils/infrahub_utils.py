@@ -598,6 +598,9 @@ if HAS_INFRAHUBCLIENT:
         ):
             self.client = client
             self.display = display
+            # Peer ids already refetched by _peer_needs_concrete_refetch, so a
+            # genuinely empty relationship doesn't refetch once per host node.
+            self._refetched_peer_ids: set[str] = set()
 
         def _handle_display(
             self, message: str, exception: Exception | None = None, level: str | None = "ERROR"
@@ -673,6 +676,25 @@ if HAS_INFRAHUBCLIENT:
             tmp_attr = getattr(refetch_cache["node"], root_attr, None)
             return str(tmp_attr.value) if tmp_attr.value else tmp_attr.value
 
+        def _peer_needs_concrete_refetch(self, related_node: InfrahubNodeSync, nested_attrs: list[str]) -> bool:
+            """Whether a store-cached peer must be refetched by its concrete kind (#384).
+
+            A peer reached through a relationship declared against a generic is cached
+            typed by its concrete kind (from ``__typename``) but only carries the
+            generic's fields: a requested concrete-only relationship then exists on
+            the schema yet holds no id, and the nested traversal would silently
+            resolve empty. Refetched ids are remembered so a genuinely empty
+            relationship doesn't trigger a refetch for every host traversing it.
+            """
+            if related_node.id in self._refetched_peer_ids:
+                return False
+            for root_attr in {attr.split(".", 1)[0] for attr in nested_attrs}:
+                node_attr = getattr(related_node, root_attr, None)
+                if isinstance(node_attr, RelatedNodeSync) and node_attr.id is None:
+                    self._refetched_peer_ids.add(related_node.id)
+                    return True
+            return False
+
         def _resolve_many_relationship(
             self, node_attr: RelationshipManagerSync, nested_attrs: list[str], has_nested: bool, schemas: dict[str, Any]
         ) -> list[Any]:
@@ -688,6 +710,8 @@ if HAS_INFRAHUBCLIENT:
 
             for peer in node_attr.peers:
                 related_node = store.get(key=peer.id, raise_when_missing=False)
+                if related_node and has_nested and self._peer_needs_concrete_refetch(related_node, nested_attrs):
+                    related_node = None
                 if not related_node:
                     peer.fetch()
                     related_node = peer.peer
@@ -717,6 +741,8 @@ if HAS_INFRAHUBCLIENT:
 
             store = self.client.client.store
             related_node = store.get(key=node_attr.id, raise_when_missing=False)
+            if related_node and has_nested and self._peer_needs_concrete_refetch(related_node, nested_attrs):
+                related_node = None
             if not related_node:
                 node_attr.fetch()
                 related_node = node_attr.peer
