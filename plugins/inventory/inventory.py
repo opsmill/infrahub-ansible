@@ -12,7 +12,9 @@ author:
     - Benoit Kohler (@bearchitek)
 short_description: Infrahub inventory source (using GraphQL)
 description:
-    - Get inventory hosts from Infrahub
+    - Get inventory hosts from Infrahub.
+    - When strict is false, a compose, groups or keyed_groups expression that fails to resolve
+      emits a warning naming the host and the expression instead of failing silently.
 extends_documentation_fragment:
     - constructed
     - inventory_cache
@@ -178,7 +180,11 @@ RETURN = """
 """
 import json
 import os
-from typing import Any
+from functools import partial
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
@@ -292,6 +298,26 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             cache_key: str = self.get_cache_key(self.api_endpoint)
             self._cache[cache_key] = json.dumps(host_node_attributes)
 
+    def _apply_constructed_or_warn(self, apply_entry: Callable[..., None]) -> None:
+        """
+        Apply a single constructed-inventory entry (compose / groups / keyed_groups),
+        surfacing expression failures as warnings when strict mode is off.
+
+        The Constructable helpers silently skip an entry whose expression fails to
+        resolve under strict=False, which leaves group membership quietly incomplete
+        (#385). Evaluate the entry strictly instead and downgrade the failure to a
+        warning; errors that strict=False would raise as well (invalid entry
+        configuration) stay fatal.
+
+        Parameters:
+            apply_entry (Callable): applies one entry, accepting a `strict` keyword.
+        """
+        try:
+            apply_entry(strict=True)
+        except AnsibleError as exc:
+            apply_entry(strict=False)
+            self.display.warning(str(exc))
+
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
         Set host variables and add host to keyed groups based on the provided attributes.
@@ -306,18 +332,38 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             trusted_attributes = _mark_trusted(attributes)
             self.set_host_variables(host_node=host_node, attributes=trusted_attributes)
 
-            self._add_host_to_composed_groups(
-                groups=self.groups,
-                variables=trusted_attributes,
-                host=host_node,
-                strict=self.strict,
-            )
-            self._add_host_to_keyed_groups(
-                keys=self.keyed_groups,
-                variables=trusted_attributes,
-                host=host_node,
-                strict=self.strict,
-            )
+            if self.strict:
+                self._add_host_to_composed_groups(
+                    groups=self.groups,
+                    variables=trusted_attributes,
+                    host=host_node,
+                    strict=True,
+                )
+                self._add_host_to_keyed_groups(
+                    keys=self.keyed_groups,
+                    variables=trusted_attributes,
+                    host=host_node,
+                    strict=True,
+                )
+            else:
+                for group_name, expression in (self.groups or {}).items():
+                    self._apply_constructed_or_warn(
+                        partial(
+                            self._add_host_to_composed_groups,
+                            groups={group_name: expression},
+                            variables=trusted_attributes,
+                            host=host_node,
+                        )
+                    )
+                for keyed_group in self.keyed_groups or []:
+                    self._apply_constructed_or_warn(
+                        partial(
+                            self._add_host_to_keyed_groups,
+                            keys=[keyed_group],
+                            variables=trusted_attributes,
+                            host=host_node,
+                        )
+                    )
 
     def set_host_variables(self, host_node: str, attributes: dict[str, Any]) -> None:
         """
@@ -331,7 +377,18 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for key, value in attributes.items():
             self.inventory.set_variable(host_node, key, value)
 
-        self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=self.strict)
+        if self.strict:
+            self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=True)
+        else:
+            for varname, expression in (self.compose or {}).items():
+                self._apply_constructed_or_warn(
+                    partial(
+                        self._set_composite_vars,
+                        compose={varname: expression},
+                        variables=attributes,
+                        host=host_node,
+                    )
+                )
 
     def main(self) -> None:
         """Main function"""

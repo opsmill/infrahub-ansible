@@ -40,6 +40,17 @@ def run_inventory(tmp_path, config: str, host_node_attributes: dict) -> Inventor
     return plugin.inventory
 
 
+def run_inventory_with_warnings(tmp_path, config: str, host_node_attributes: dict) -> tuple[InventoryData, list[str]]:
+    """Same as run_inventory, additionally capturing display warnings."""
+    warnings: list[str] = []
+    with mock.patch(
+        "ansible.utils.display.Display.warning",
+        side_effect=lambda msg, *args, **kwargs: warnings.append(msg),
+    ):
+        inventory = run_inventory(tmp_path, config, host_node_attributes)
+    return inventory, warnings
+
+
 BASE_CONFIG = """\
 plugin: opsmill.infrahub.inventory
 nodes:
@@ -140,6 +151,87 @@ def test_keyed_groups_leading_separator_false(tmp_path):
 def test_strict_raises_on_bad_compose(tmp_path):
     # strict:true turns an undefined reference in compose into a hard error.
     config = BASE_CONFIG + "strict: true\ncompose:\n  bad: this_var_does_not_exist | upper\n"
+    with pytest.raises(AnsibleError):
+        run_inventory(
+            tmp_path,
+            config,
+            _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+        )
+
+
+def test_non_strict_bad_compose_warns(tmp_path):
+    # strict:false (default) keeps the run alive but warns instead of staying silent (#385).
+    config = BASE_CONFIG + "compose:\n  bad: this_var_does_not_exist | upper\n  loud_role: role | upper\n"
+    inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    host_vars = inv.get_host("web1").get_vars()
+    assert host_vars["loud_role"] == "EDGE"
+    assert "bad" not in host_vars
+    assert any("bad" in warning and "web1" in warning for warning in warnings)
+
+
+def test_non_strict_bad_keyed_group_warns(tmp_path):
+    # A keyed group whose expression fails to resolve warns; other keyed groups still apply.
+    config = BASE_CONFIG + (
+        "keyed_groups:\n  - prefix: region\n    key: site.region_name\n  - prefix: role\n    key: role\n"
+    )
+    inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    groups = inv.get_groups_dict()
+    assert "web1" in groups["role_edge"]
+    assert not any(group.startswith("region_") for group in groups)
+    assert any("site.region_name" in warning and "web1" in warning for warning in warnings)
+
+
+def test_non_strict_empty_keyed_group_warns(tmp_path):
+    # A key that resolves to an empty value drops the host from the group with a warning.
+    config = BASE_CONFIG + "keyed_groups:\n  - prefix: site\n    key: site\n"
+    inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "site": None, "id": "1"}}),
+    )
+    groups = inv.get_groups_dict()
+    assert not any(group.startswith("site_") for group in groups)
+    assert any("site" in warning and "web1" in warning for warning in warnings)
+
+
+def test_non_strict_bad_conditional_group_warns(tmp_path):
+    config = BASE_CONFIG + "groups:\n  edges: \"this_var_does_not_exist == 'edge'\"\n"
+    inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    assert "web1" in inv.hosts
+    assert not inv.get_groups_dict().get("edges")
+    assert any("edges" in warning and "web1" in warning for warning in warnings)
+
+
+def test_non_strict_resolving_expressions_do_not_warn(tmp_path):
+    config = BASE_CONFIG + (
+        "compose:\n  loud_role: role | upper\nkeyed_groups:\n  - prefix: role\n    key: role\ngroups:\n  edges: \"role == 'edge'\"\n"
+    )
+    _, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    assert warnings == []
+
+
+def test_non_strict_keyed_group_config_error_still_fatal(tmp_path):
+    # default_value and trailing_separator are mutually exclusive regardless of strict;
+    # the warning downgrade must not swallow entry misconfiguration.
+    config = BASE_CONFIG + (
+        "keyed_groups:\n  - prefix: role\n    key: role\n    default_value: none\n    trailing_separator: false\n"
+    )
     with pytest.raises(AnsibleError):
         run_inventory(
             tmp_path,
