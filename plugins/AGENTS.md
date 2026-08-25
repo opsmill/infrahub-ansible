@@ -8,7 +8,7 @@ Plugin development context for the `opsmill.infrahub` Ansible collection.
 |-----------|------|-------|-------------|
 | `modules/` | Module stubs | 5 | User-facing interface — DOCUMENTATION + argument specs |
 | `action/` | Action plugins | 3 | Controller-side execution logic |
-| `module_utils/` | Shared utilities | 7 | SDK wrapper, base classes, processors |
+| `module_utils/` | Shared utilities | 8 | SDK wrapper, base classes, processors |
 | `inventory/` | Inventory plugin | 1 | Dynamic inventory from Infrahub |
 | `lookup/` | Lookup plugin | 1 | GraphQL query lookup |
 | `doc_fragments/` | Doc fragments | 1 | Reusable DOCUMENTATION blocks |
@@ -85,6 +85,7 @@ Check at runtime before using:
 | `module_utils/exception.py` | `handle_infrahub_exceptions_decorator` — SDK error mapping |
 | `module_utils/projection.py` | `NodeProjection` — user node spec to the SDK's include/exclude arguments |
 | `module_utils/peers.py` | `PeerWarmer`, `RefillLedger` — bounded peer loading for nested paths |
+| `module_utils/metrics.py` | `RequestCounter` — SDK recorder counting HTTP round-trips for the run-cost report |
 | `module_utils/schema.py` | `SchemaModule` — schema load/check/export |
 | `doc_fragments/fragments.py` | `ModuleDocFragment` — reusable doc blocks |
 

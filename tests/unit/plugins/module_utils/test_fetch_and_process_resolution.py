@@ -201,6 +201,243 @@ def test_a_kind_with_no_schema_alone_raises(mocker):
         processor.fetch_and_process(nodes={"NoSuchKind": {}})
 
 
+def _display_lines(display, level="v"):
+    """The messages emitted at one Display level."""
+    return [c.args[0] if c.args else c.kwargs.get("msg", "") for c in getattr(display, level).call_args_list]
+
+
+def test_run_cost_is_reported_at_raised_verbosity(mocker):
+    """The run states what it cost, through ``Display.v`` and not through plain output.
+
+    ``Display.v`` is what Ansible gates behind ``-v``. Emitting the same line through
+    ``display.display`` or ``error`` would put diagnostics into every playbook's
+    normal output, which is why the level matters more than the wording here.
+    """
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1"), FakeNode("KindA", "a2")]}
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind)
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    cost_lines = [line for line in _display_lines(processor.display) if "Inventory fetch cost" in line]
+    assert len(cost_lines) == 1, _display_lines(processor.display)
+    # Never at default verbosity.
+    assert not [c for c in processor.display.display.call_args_list if "Inventory fetch cost" in str(c)]
+    assert not [c for c in processor.display.error.call_args_list if "Inventory fetch cost" in str(c)]
+
+
+def test_run_cost_reports_this_run_not_the_client_lifetime(mocker):
+    """The figure is a delta, and it comes from the SDK-level counter.
+
+    Two failure modes are covered here. Counting the wrapper's own calls would miss
+    pagination, which happens inside the SDK -- exactly the part that grows with the
+    estate. And reporting the counter's absolute value would charge this run for
+    every request the client made before it, because the counter belongs to the
+    client and outlives a single ``fetch_and_process``.
+    """
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.metrics import RequestCounter
+
+    counter = RequestCounter()
+    for _ in range(5):  # an earlier run on the same client
+        counter.record(response=None)
+
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
+    processor, wrapper = _make_processor(mocker, nodes_by_kind)
+    wrapper.request_counter = counter
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    # Each fetch this run makes costs two round-trips (a count query and a page).
+    inner = wrapper.fetch_nodes.side_effect
+
+    def counting_fetch(kind, **kwargs):
+        counter.record(response=None)
+        counter.record(response=None)
+        return inner(kind, **kwargs)
+
+    wrapper.fetch_nodes.side_effect = counting_fetch
+
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
+    assert "2 request(s)" in cost_line, cost_line
+    # The 5 requests from before this run are not charged to it.
+    assert "7 request(s)" not in cost_line
+    assert counter.responses == 7
+
+
+def test_run_cost_degrades_when_no_counter_is_attached(mocker):
+    """A wrapper without a counter still reports the peer figures, and does not raise."""
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind)
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
+    assert "unavailable" in cost_line
+    assert "node(s) loaded" in cost_line
+
+
+def test_run_cost_counts_the_peer_batches_it_issued(mocker):
+    """The batch count comes back from ``_warm_peers`` rather than being discarded."""
+    shared = FakePeer("site-1", "LocationSite")
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1", peer=shared)]}
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind, attrs=["name", "site.name"])
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
+    assert "in 1 batch(es)" in cost_line
+
+
+def test_run_cost_report_is_silent_without_a_display(mocker):
+    """No Display attached -- reporting must be a no-op, not an AttributeError."""
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind)
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    assert processor.display is None
+    assert processor.fetch_and_process(nodes={"KindA": {}}) is not None
+
+
+def test_run_cost_breakdown_is_emitted_at_vvv_not_at_v(mocker):
+    """The totals ride -v; the per-kind detail rides -vvv.
+
+    Anyone running an inventory at -v wants one line, not a page. The breakdown is
+    only useful once the total already looks wrong, so it sits a level deeper.
+    """
+    shared = FakePeer("site-1", "LocationSite")
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1", peer=shared)]}
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind, attrs=["name", "site.name"])
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    at_v = _display_lines(processor.display, "v")
+    at_vvv = _display_lines(processor.display, "vvv")
+    assert [line for line in at_v if "Inventory fetch cost:" in line]
+    assert not [line for line in at_v if "by kind" in line]
+    assert [line for line in at_vvv if "Inventory fetch cost, by kind:" in line]
+    assert [line for line in at_vvv if "host kind KindA: 1 node(s)" in line]
+    assert [line for line in at_vvv if "peer kind LocationSite:" in line]
+
+
+def test_run_cost_breakdown_distinguishes_narrowed_from_wide_from_generic():
+    """Three cases that must not be described the same way.
+
+    A kind with no ``include`` is wide by request. A kind answered via a requested
+    generic has no projection of its own, and calling that "not narrowed" would be a
+    lie. Only the third is actually narrowed.
+    """
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.projection import NodeProjection
+
+    fetched = iu.HostFetch()
+    fetched.nodes = [FakeNode("Wide", "w1"), FakeNode("Concrete", "c1"), FakeNode("Narrow", "n1")]
+    fetched.projections = {
+        "Wide": NodeProjection(attrs=["name"], roots={"name"}, include=None, exclude=None, narrowed=False),
+        "Narrow": NodeProjection(
+            attrs=["name"], roots={"name"}, include=["name"], exclude=["a", "b", "c"], narrowed=True
+        ),
+    }
+    warmer = PeerWarmer(fetch=lambda **kw: [], store=None)
+    warmer.stats = {"LocationSite": {"requested": 130, "batches": 3, "loaded": 130, "failed": 0}}
+
+    lines = iu.InfrahubNodesProcessor._run_cost_breakdown(fetched=fetched, warmer=warmer)
+
+    joined = "\n".join(lines)
+    assert "host kind Wide: 1 node(s), no include given, full attribute set requested" in joined
+    assert "host kind Concrete: 1 node(s), answered via a requested generic" in joined
+    assert "host kind Narrow: 1 node(s), requested [name], 3 field(s) excluded" in joined
+    assert "peer kind LocationSite: 130 id(s) referenced, 3 batch(es), 130 loaded" in joined
+
+
+def test_run_cost_breakdown_reports_failed_peer_batches():
+    """A peer kind that failed must say so, or its zero shows up as a mystery."""
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer
+
+    warmer = PeerWarmer(fetch=lambda **kw: [], store=None)
+    warmer.stats = {"LocationSite": {"requested": 60, "batches": 0, "loaded": 0, "failed": 2}}
+
+    lines = iu.InfrahubNodesProcessor._run_cost_breakdown(fetched=iu.HostFetch(), warmer=warmer)
+
+    assert any("2 batch(es) failed" in line for line in lines)
+
+
+def test_run_cost_breakdown_is_empty_when_there_is_nothing_to_say():
+    """No header without content -- an empty run should not emit a bare heading."""
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer
+
+    warmer = PeerWarmer(fetch=lambda **kw: [], store=None)
+    assert iu.InfrahubNodesProcessor._run_cost_breakdown(fetched=iu.HostFetch(), warmer=warmer) == []
+
+
+def test_run_cost_breakdown_calls_a_refilled_host_kind_by_its_name():
+    """A host kind reaching the warmer got there through refill, not a relationship.
+
+    Both passes share one warmer, so refill files host kinds into the same stats map.
+    Calling those a peer kind points the reader at the wrong cause.
+    """
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer
+
+    fetched = iu.HostFetch()
+    fetched.nodes = [FakeNode("KindA", "a1")]
+    warmer = PeerWarmer(fetch=lambda **kw: [], store=None)
+    warmer.stats = {
+        "KindA": {"requested": 1, "batches": 1, "loaded": 1, "failed": 0},
+        "LocationSite": {"requested": 1, "batches": 1, "loaded": 1, "failed": 0},
+    }
+
+    joined = "\n".join(iu.InfrahubNodesProcessor._run_cost_breakdown(fetched=fetched, warmer=warmer))
+
+    assert "refilled host kind KindA:" in joined
+    assert "peer kind LocationSite:" in joined
+    assert "peer kind KindA:" not in joined
+
+
+def test_run_cost_names_failed_batches_in_the_totals(mocker):
+    """A batch that failed still cost a round-trip, so the cost line says so."""
+    shared = FakePeer("site-1", "LocationSite")
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1", peer=shared)]}
+    processor, wrapper = _make_processor(mocker, nodes_by_kind, attrs=["name", "site.name"])
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    hosts = wrapper.fetch_nodes.side_effect
+
+    def failing_peer_fetch(kind, **kwargs):
+        if kind == "LocationSite":
+            raise RuntimeError("boom")
+        return hosts(kind, **kwargs)
+
+    wrapper.fetch_nodes.side_effect = failing_peer_fetch
+
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
+    assert "1 batch(es) failed" in cost_line, cost_line
+    # The batch that failed loaded nothing, so it is not folded into the loaded count.
+    assert "0 node(s) loaded in 0 batch(es)" in cost_line, cost_line
+
+
+def test_run_cost_is_reported_when_the_query_matched_no_hosts(mocker):
+    """An empty-but-successful fetch still cost requests, and still reports them."""
+    processor, _wrapper = _make_processor(mocker, {})
+    processor.display = mocker.MagicMock()
+
+    assert processor.fetch_and_process(nodes={"KindA": {}}) is None
+
+    cost_lines = [line for line in _display_lines(processor.display) if "Inventory fetch cost" in line]
+    assert len(cost_lines) == 1, _display_lines(processor.display)
+    assert "0 node(s) loaded in 0 batch(es)" in cost_lines[0]
+
+
 def test_a_swallowed_fetch_is_a_failure_not_an_empty_result(mocker):
     """The wrapper returns ``None`` instead of raising, and that still has to fail loudly.
 

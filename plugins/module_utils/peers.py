@@ -120,6 +120,10 @@ class PeerWarmer:
         # Ids fetched in full this run, so a ``RefillLedger`` can tell a genuine null
         # from an attribute the query never carried.
         self.loaded: set[str] = set()
+        # Per-kind tallies for the raised-verbosity cost breakdown. Accumulated across
+        # both warming passes (the initial one and the refill), because a peer kind can
+        # legitimately appear in each.
+        self.stats: dict[str, dict[str, int]] = {}
 
     @staticmethod
     def _nested_roots(attrs: list[str]) -> dict[str, tuple[str, ...]]:
@@ -235,11 +239,14 @@ class PeerWarmer:
             referenced: concrete peer kind to the ids to fetch.
 
         Returns:
-            int: how many fetch calls were issued.
+            int: how many fetch calls came back. A failed one lands in
+                ``stats[kind]["failed"]`` instead.
         """
         calls = 0
         for kind, ids in referenced.items():
             ordered = sorted(ids)
+            stat = self.stats.setdefault(kind, {"requested": 0, "batches": 0, "loaded": 0, "failed": 0})
+            stat["requested"] += len(ordered)
             for start in range(0, len(ordered), self.page_size):
                 chunk = ordered[start : start + self.page_size]
                 try:
@@ -252,19 +259,27 @@ class PeerWarmer:
                         parallel=False,
                         order=self.order,
                     )
+                    if loaded is None:
+                        # None means the wrapper's exception decorator swallowed the
+                        # failure. Counting it as a batch that worked would hide it.
+                        stat["failed"] += 1
+                        continue
                     calls += 1
-                    # Record the ids that actually came back, not the ids asked for.
-                    # `fetch` returns None when the wrapper's exception decorator
-                    # swallowed the failure, and even a successful call can return
-                    # fewer nodes than requested -- a peer deleted between the host
-                    # query and this one, or hidden by permissions. Marking those as
-                    # loaded would tell RefillLedger their empty attributes are
-                    # genuine nulls and suppress the retry that would notice.
-                    for node in loaded or []:
+                    stat["batches"] += 1
+                    # Record the ids that came back, not the ids asked for: a peer can
+                    # vanish between the host query and this one, and marking it loaded
+                    # would tell RefillLedger its empty attributes are genuine nulls.
+                    #
+                    # Once per id, not once per return -- `warm` runs twice a run, and
+                    # double-counting would push the by-kind tally past the deduplicated
+                    # total the summary reports.
+                    for node in loaded:
                         node_id = getattr(node, "id", None)
-                        if node_id:
+                        if node_id and node_id not in self.loaded:
                             self.loaded.add(node_id)
+                            stat["loaded"] += 1
                 except Exception as exc:
+                    stat["failed"] += 1
                     if self.on_error:
                         self.on_error(kind, exc)
         return calls

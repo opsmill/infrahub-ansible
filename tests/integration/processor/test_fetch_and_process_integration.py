@@ -18,12 +18,14 @@ Run with:  ``uv run --group integration pytest tests/integration/processor -m in
 from __future__ import annotations
 
 import math
+import re
 
 import pytest
 
 # Skip cleanly when the testcontainers stack isn't installed (e.g. default dev env).
 pytest.importorskip("infrahub_testcontainers")
 
+from ansible_collections.opsmill.infrahub.plugins.module_utils.metrics import RequestCounter
 from infrahub_sdk import InfrahubClientSync
 from infrahub_sdk.testing.docker import TestInfrahubDockerClient
 
@@ -41,6 +43,29 @@ def _page_budget(client: InfrahubClientSync, node_count: int) -> int:
     """
     pages = max(1, math.ceil(node_count / client.pagination_size))
     return 1 + pages
+
+
+class _CapturingDisplay:
+    """The parts of Ansible's Display that ``_handle_display`` actually calls."""
+
+    def __init__(self) -> None:
+        self.verbose: list[str] = []
+        self.very_verbose: list[str] = []
+
+    def debug(self, msg: str) -> None:
+        pass
+
+    def v(self, msg: str) -> None:
+        self.verbose.append(msg)
+
+    def vvv(self, msg: str) -> None:
+        self.very_verbose.append(msg)
+
+    def warning(self, msg: str) -> None:
+        pass
+
+    def error(self, msg: str) -> None:
+        pass
 
 
 class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
@@ -121,3 +146,71 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         resolved_names = {attrs.get("name") for attrs in result.values()}
         for name in seeded_tags:
             assert name in resolved_names
+
+    def test_reported_request_count_matches_the_counter_and_covers_graphql(
+        self, client_sync: InfrahubClientSync
+    ) -> None:
+        """FR-020 / SC-009: the run states its own cost, and the number is true.
+
+        Three things are checked, because any one alone would pass while lying:
+
+        * The number printed equals what the SDK-level recorder saw *for this run*. A
+          report that drifts from the counter is worse than no report.
+        * It is strictly below the client's lifetime total. The client outlives a run,
+          so a report that skipped the snapshot would charge this run for what came
+          before it -- and against a zero baseline that misreads as correct.
+        * It is at least the GraphQL round-trip count. It is deliberately *not*
+          asserted equal: schema lookups go over REST, so they are counted by the
+          recorder and invisible to ``count_graphql``. Asserting equality here would
+          encode a wrong idea of what the number means and would break the first time
+          a schema fetch moved.
+        """
+        counter = RequestCounter()
+        original_recorder = client_sync.config.custom_recorder
+        client_sync.config.custom_recorder = counter
+        processor = processor_for(client_sync)
+        processor.client.request_counter = counter
+        processor.display = _CapturingDisplay()
+
+        try:
+            # Spend requests with the counter already attached, so the run starts from
+            # a non-zero baseline. Resetting to zero instead -- as this test used to --
+            # makes the delta and the lifetime total the same number, and the equality
+            # below would survive a regression that dropped the snapshot.
+            for name in ("cost-1", "cost-2"):
+                client_sync.create(kind="BuiltinTag", name=name).save()
+            baseline = counter.responses
+            assert baseline, "the setup requests went uncounted, so the delta below proves nothing"
+
+            with count_graphql(client_sync) as trackers:
+                result = processor.fetch_and_process(nodes={"BuiltinTag": {"include": ["name"]}})
+        finally:
+            # The client is class-scoped and shared with the tests above.
+            client_sync.config.custom_recorder = original_recorder
+
+        assert result
+        cost_lines = [line for line in processor.display.verbose if "Inventory fetch cost" in line]
+        assert len(cost_lines) == 1, processor.display.verbose
+
+        match = re.search(r"(\d+) request\(s\)", cost_lines[0])
+        assert match, f"no request count in the reported line: {cost_lines[0]!r}"
+        reported = int(match.group(1))
+        graphql_calls = sum(trackers.values())
+
+        assert reported == counter.responses - baseline, (
+            f"reported {reported}, recorder saw {counter.responses - baseline} for this run "
+            f"({counter.responses} total, {baseline} before it)"
+        )
+        assert reported < counter.responses, (
+            f"reported {reported} and the client's lifetime total is {counter.responses}: "
+            "the run's cost is not being isolated from requests that preceded it"
+        )
+        # -vvv carries the per-kind detail behind that total.
+        breakdown = "\n".join(processor.display.very_verbose)
+        assert "Inventory fetch cost, by kind:" in breakdown, processor.display.very_verbose
+        assert "host kind BuiltinTag:" in breakdown, breakdown
+
+        assert reported >= graphql_calls, (
+            f"reported {reported} requests but {graphql_calls} GraphQL round-trips were made; "
+            "the recorder sits below GraphQL and must see at least as many"
+        )
