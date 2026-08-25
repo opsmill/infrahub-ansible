@@ -1,0 +1,32 @@
+plugins/module_utils/peers.py
+  s_430068875b317b::t_e816faf85e0ccf 73-87
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_430068875b317b::t_9da43ff214b9dd 568
+  s_430068875b317b::t_66857e88b825df 473-567,569-570
+plugins/module_utils/infrahub_utils.py
+  s_430068875b317b::t_3f1054f69144b5 20-21
+  s_430068875b317b::t_7ea7c6e4daa932 1252,1254
+  s_430068875b317b::t_b536f9489ddfed 1301
+  s_430068875b317b::t_67e0d3128ab50a 881-920,927-934,938
+  s_430068875b317b::t_8d8abae7fd16cf 1253,1255-1262
+  s_430068875b317b::t_aca134cbf6a4b2 1290-1300,1302-1339,1347-1351,1357-1358,1366,1370,1373,1379-1390
+  s_430068875b317b::t_ab9f23232106c9 880
+tests/unit/plugins/module_utils/test_peers.py
+  s_430068875b317b::t_2ccfa645170b0b 291-337
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "ade092a131e39456f638fe05370133b24c1daa48",
+  "prompts": {},
+  "sessions": {
+    "s_430068875b317b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe890077-57c0-4423-a319-e0c0d93e9b1f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
