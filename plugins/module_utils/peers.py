@@ -121,7 +121,10 @@ class PeerWarmer:
             fetch: callable with the signature of ``InfrahubclientWrapper.fetch_nodes``.
             store: the SDK node store, used to skip peers already held in full.
             page_size: how many ids to request per round-trip.
-            on_error: called with (kind, exception) when a kind fails to load.
+            on_error: called with (kind, exception) when a kind fails to load. A fetch
+                the wrapper's exception decorator swallowed -- ``None`` back, nothing
+                raised -- is a failure to load like any other, and is reported here too
+                with a stand-in error, since the real one never reached this module.
             order: the SDK ``Order`` to query peers with. Ordering is server-side work
                 nobody here needs, so the caller passes ``Order(disable=True)`` for the
                 same reason the host query does. Kept untyped so this module stays
@@ -288,6 +291,13 @@ class PeerWarmer:
                         # None means the wrapper's exception decorator swallowed the
                         # failure. Counting it as a batch that worked would hide it.
                         stat["failed"] += 1
+                        if self.on_error:
+                            # The caller's per-kind warning is the only place this
+                            # surfaces by name, and `on_error` promises to fire on a
+                            # failure to load. There is no exception to hand over --
+                            # the decorator already logged and discarded it -- so say
+                            # exactly that rather than invent a traceback.
+                            self.on_error(kind, RuntimeError("fetch failed, see the warning above"))
                         continue
                     calls += 1
                     stat["batches"] += 1

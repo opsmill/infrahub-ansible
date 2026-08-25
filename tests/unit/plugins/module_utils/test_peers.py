@@ -233,12 +233,26 @@ def test_warm_does_not_record_ids_the_fetch_did_not_return():
 
 
 def test_warm_records_nothing_when_the_fetch_is_swallowed():
-    """The wrapper's exception decorator returns None instead of raising."""
-    warmer = _warmer(fetch=lambda **kwargs: None)
+    """The wrapper's exception decorator returns None instead of raising.
+
+    Nothing is loaded, and the failure still has to reach ``on_error``: that callback
+    is what raises the caller's per-kind WARNING, so without it the kind silently
+    contributes no peers.
+    """
+    errors = []
+    warmer = PeerWarmer(
+        fetch=lambda **kwargs: None,
+        store=SimpleNamespace(get=lambda key, raise_when_missing=True: None),
+        on_error=lambda kind, exc: errors.append((kind, exc)),
+    )
 
     warmer.warm({"LocationSite": {"s1"}})
 
     assert warmer.loaded == set()
+    assert [kind for kind, _ in errors] == ["LocationSite"]
+    assert "fetch failed" in str(errors[0][1])
+    # Counted once, by the branch that saw the None -- not again by the `except`.
+    assert warmer.stats["LocationSite"]["failed"] == 1
 
 
 def test_ledger_ignores_a_peer_the_warmer_already_loaded_in_full():
