@@ -568,3 +568,75 @@ def test_merging_keeps_a_falsy_answer_over_an_unresolved_placeholder():
     iu.InfrahubNodesProcessor._merge_host_result(existing, {"enabled": None, "count": None, "site": {"name": "paris"}})
 
     assert existing == {"enabled": False, "count": 0, "site": {"name": "paris"}}
+
+
+def test_a_refill_batch_that_comes_back_short_is_reported(mocker):
+    """A refill that returns fewer nodes than it asked for must not be silent.
+
+    The second pass runs on a disabled ledger, so a node the refill never reloaded
+    resolves exactly as the first pass resolved it and its unqueried attributes stay
+    empty. Aborting the run instead would hand Ansible zero hosts over one peer that
+    vanished mid-run, so the values are kept -- but the warning is what says they are
+    short, and without it the gap is invisible.
+    """
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
+    processor, wrapper = _make_processor(mocker, nodes_by_kind)
+    processor.display = mocker.MagicMock()
+
+    hosts = wrapper.fetch_nodes.side_effect
+
+    def fetch(kind, **kwargs):
+        if (kwargs.get("filters") or {}).get("ids"):
+            # The refill pass: the node is gone by the time it is asked for by id.
+            return []
+        return hosts(kind, **kwargs)
+
+    wrapper.fetch_nodes.side_effect = fetch
+
+    def resolve(node, attrs, schemas, include_id, refill):
+        if refill is not None:
+            # `name` is not in the include, so the ledger judges it never queried.
+            refill.record(node, "name")
+        return {"id": node.id, "name": None}
+
+    mocker.patch.object(processor, "resolve_node_mapping", side_effect=resolve)
+
+    result = processor.fetch_and_process(nodes={"KindA": {"include": ["site.name"]}})
+
+    warnings = [line for line in _display_lines(processor.display, "warning") if "Refill came back short" in line]
+    assert len(warnings) == 1, _display_lines(processor.display, "warning")
+    assert "KindA (a1)" in warnings[0]
+    assert "1 node(s) never returned" in warnings[0]
+    # The run still completes, with the values the first pass had.
+    assert result == {"a1": {"id": "a1", "name": None}}
+
+
+def test_a_refill_that_comes_back_whole_says_nothing():
+    """No warning when every queued id was loaded: the diagnostic is for the gap only."""
+    processor = iu.InfrahubNodesProcessor.__new__(iu.InfrahubNodesProcessor)
+    processor.display = None
+
+    emitted = []
+    processor._handle_display = lambda message, level=None, exception=None: emitted.append((level, message))
+
+    processor._warn_on_short_refill(queued={"KindA": {"a1", "a2"}}, loaded={"a1", "a2", "s1"})
+
+    assert emitted == []
+
+
+def test_a_short_refill_warning_caps_the_ids_it_names():
+    """Hundreds of missing UUIDs would bury the count that the warning exists to give."""
+    processor = iu.InfrahubNodesProcessor.__new__(iu.InfrahubNodesProcessor)
+    processor.display = None
+
+    emitted = []
+    processor._handle_display = lambda message, level=None, exception=None: emitted.append((level, message))
+
+    processor._warn_on_short_refill(queued={"KindA": {f"id-{n:02d}" for n in range(12)}}, loaded=set())
+
+    (level, message) = emitted[0]
+    assert level == "WARNING"
+    assert "12 node(s) never returned" in message
+    assert "id-00" in message
+    assert "id-05" not in message
+    assert "and 7 more" in message

@@ -49,6 +49,11 @@ except ImportError:
 else:
     HAS_INFRAHUBCLIENT = True
 
+# How many ids a short-refill warning names per kind before it switches to a count.
+# The point of the warning is which kinds lost nodes and how many, and a refill can
+# legitimately cover hundreds of them.
+REFILL_MISSING_IDS_NAMED = 5
+
 INFRAHUB_ARG_SPEC = dict(
     api_endpoint=dict(type="str", required=False, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
     token=dict(type="str", required=False, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
@@ -1052,7 +1057,12 @@ if HAS_INFRAHUBCLIENT:
                     message=f"Refilling nodes with unqueried attributes: {dict.fromkeys(refill.pending)}",
                     level="DEBUG",
                 )
+                # Snapshot before warming: this is the ledger's own state, and reading
+                # it back afterwards would report whatever the warm left there rather
+                # than what was asked for.
+                queued = {kind: set(ids) for kind, ids in refill.pending.items()}
                 peer_batches += warmer.warm(refill.pending)
+                self._warn_on_short_refill(queued=queued, loaded=warmer.loaded)
                 host_node_attributes = self._resolve_hosts(
                     fetched=fetched, include_id=include_id, refill=RefillLedger.disabled(), refreshed=True
                 )
@@ -1066,6 +1076,49 @@ if HAS_INFRAHUBCLIENT:
             )
 
             return host_node_attributes
+
+        def _warn_on_short_refill(self, queued: dict[str, set[str]], loaded: set[str]) -> None:
+            """Say so when the refill pass came back without every node it asked for.
+
+            The second resolution pass runs on a disabled ledger, so a node the refill
+            never reloaded resolves exactly as the first pass resolved it: the
+            attributes its query never carried stay empty. That is the right trade for
+            a dynamic inventory -- one peer deleted between the host query and the
+            refill must not abort a run and hand Ansible zero hosts -- but it cannot be
+            silent, or the values are simply missing with nothing saying why.
+
+            Like ``_run_cost_breakdown``, this is a diagnostic, so it works off plain
+            sets of ids and cannot raise into the run it is reporting on. Only the
+            first few ids per kind are named: a refill covering hundreds of nodes would
+            otherwise bury the count that matters in a wall of UUIDs.
+
+            Parameters:
+                queued (dict[str, set[str]]): the ids the refill asked for, per kind,
+                    snapshotted before the warm.
+                loaded (set[str]): every id the warmer has loaded in full this run.
+            """
+            missing = {kind: sorted(ids - loaded) for kind, ids in queued.items()}
+            missing = {kind: ids for kind, ids in missing.items() if ids}
+            if not missing:
+                return
+
+            details = []
+            for kind in sorted(missing):
+                ids = missing[kind]
+                shown = ids[:REFILL_MISSING_IDS_NAMED]
+                listed = ", ".join(shown)
+                if len(ids) > len(shown):
+                    listed += f", and {len(ids) - len(shown)} more"
+                details.append(f"{kind} ({listed})")
+
+            total = sum(len(ids) for ids in missing.values())
+            self._handle_display(
+                message=(
+                    f"Refill came back short: {total} node(s) never returned, so the attributes "
+                    f"their query never carried stay empty -- {'; '.join(details)}"
+                ),
+                level="WARNING",
+            )
 
         def _report_run_cost(
             self,
