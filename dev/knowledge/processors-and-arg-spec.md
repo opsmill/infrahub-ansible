@@ -65,17 +65,30 @@ InfrahubBaseProcessor
 
 Holds the shared machinery both subclasses need: schema-attribute resolution
 (`get_attributes_for_schema`, `_resolve_schema_attribute`), relationship
-resolution (`_resolve_many_relationship`, `_resolve_one_relationship`,
-`get_related_nodes`), the node-to-dict mapper (`resolve_node_mapping`), a
-recursive `deep_update`, and host-name helpers (`resolve_dotted_path`,
-`resolve_hostnames`). It does not define `fetch_and_process` itself.
+resolution (`_resolve_many_relationship`, `_resolve_one_relationship`), the
+node-to-dict mapper (`resolve_node_mapping`), a recursive `deep_update`, and
+host-name helpers (`resolve_dotted_path`, `resolve_hostnames`). It does not
+define `fetch_and_process` itself.
 
 ### InfrahubNodesProcessor
 
 `fetch_and_process(nodes, prefetch_relationships=True, include_id=True)` fetches
-a set of nodes by kind and renders each into a dictionary, optionally
-prefetching relationships. It is the processor used wherever the unit of work is
-"a set of objects":
+a set of nodes by kind and renders each into a dictionary. It runs in three
+steps, split across `_fetch_host_nodes`, `_warm_peers` and `_resolve_hosts`:
+
+1. Each requested kind is fetched once. `NodeProjection`
+   (`module_utils/projection.py`) turns the user's `include`/`exclude` into the
+   arguments the SDK actually honours — the exclude complement plus the
+   cardinality-many opt-ins — because `include` on its own never narrows a query.
+2. `PeerWarmer` (`module_utils/peers.py`) loads the peers that nested paths are
+   about to read, by id and on their concrete kind. A relationship declaring a
+   *generic* peer yields peers missing the concrete kind's attributes, since the
+   SDK projects a relationship's inline payload off the declared schema.
+3. Host nodes are resolved once each. Anything still empty because the query
+   never carried it is recorded in a `RefillLedger`, reloaded in one batched
+   pass, and resolved again — rather than refetched one node at a time.
+
+It is the processor used wherever the unit of work is "a set of objects":
 
 - `plugins/inventory/inventory.py` — builds the dynamic inventory.
 - `plugins/module_utils/node.py` — the `NodeModule` read path.

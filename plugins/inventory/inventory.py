@@ -37,7 +37,7 @@ options:
         required: False
         description: Timeout for Infrahub requests in seconds
         type: int
-        default: 10
+        default: 60
     prefetch_relationships:
         required: False
         description: Prefetch relationships for Infrahub nodes
@@ -176,6 +176,7 @@ RETURN = """
       - list of composed dictionaries with key and value
     type: list
 """
+import hashlib
 import json
 import os
 from typing import Any
@@ -188,6 +189,10 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     InfrahubclientWrapper,
     InfrahubNodesProcessor,
 )
+
+# Bump when the shape of the cached host variables changes, so an upgrade does not
+# read an older release's entries back as if they were current.
+CACHE_SCHEMA_VERSION = 2
 
 PACKAGING_IMPORT_ERROR: ImportError | None = None
 
@@ -254,6 +259,44 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.templar.available_variables = self._vars
             self.token = self.templar.template(self.get_option("token"), fail_on_undefined=False)
 
+    def _cache_key(self) -> str:
+        """Build a cache key that covers everything shaping the cached data.
+
+        ``get_cache_key`` hashes the plugin name plus whatever it is handed. Handing
+        it only the endpoint means two inventory files pointing at one Infrahub share
+        a single entry, and switching ``branch`` serves the other branch's hosts.
+        The branch, the node spec, the token, the ``prefetch_relationships`` setting
+        and a schema version travel in the key instead, so a different request is a
+        different entry.
+
+        Infrahub applies permissions per token, so the token identity has to be part
+        of the key or a low-privilege run can be served hosts a privileged token
+        fetched. Only a digest of the token goes in: the key ends up in a cache
+        filename and in verbose output, and the secret must not be recoverable from
+        either. ``prefetch_relationships`` decides which relationship data lands in
+        the host variables, so prefetched and non-prefetched runs need their own
+        entries too.
+        """
+        token = getattr(self, "token", None)
+        request = json.dumps(
+            {
+                "endpoint": self.api_endpoint,
+                "branch": self.branch,
+                "nodes": self.nodes,
+                # `str` first: the option declares no type, so a token written as a
+                # bare number (as the example in this file's EXAMPLES does) arrives as
+                # an int and has no `encode`.
+                "token": hashlib.sha256(str(token).encode()).hexdigest() if token else None,
+                "prefetch_relationships": getattr(self, "prefetch_relationships", None),
+                "version": CACHE_SCHEMA_VERSION,
+            },
+            sort_keys=True,
+            default=str,
+        )
+        digest = hashlib.sha256(request.encode()).hexdigest()[:16]
+        cache_key: str = self.get_cache_key(f"{self.api_endpoint}|{digest}")
+        return cache_key
+
     def _fetch_from_cache(self) -> tuple[dict | None, bool]:
         """
         Fetches data from the cache (if available)
@@ -267,12 +310,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not self.use_cache:
             return None, True
 
-        cache_key: str = self.get_cache_key(self.api_endpoint)
-
         if self.user_cache_setting and self.use_cache:
             self.display.v("Fetching cache.")
             try:
-                host_node_attributes: dict = json.loads(self._cache[cache_key])
+                host_node_attributes: dict = json.loads(self._cache[self._cache_key()])
                 return host_node_attributes, not bool(host_node_attributes)
             except KeyError:
                 self.display.v("Cache key not found. Need to load from API.")
@@ -289,8 +330,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         """
 
         if self.user_cache_setting:
-            cache_key: str = self.get_cache_key(self.api_endpoint)
-            self._cache[cache_key] = json.dumps(host_node_attributes)
+            self._cache[self._cache_key()] = json.dumps(host_node_attributes)
 
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
@@ -369,9 +409,11 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not host_node_attributes:
             self.display.v("No nodes processed.")
         else:
-            # Store raw (pre-resolution) data in cache so hostname config
-            # changes are always applied on next load.
-            self._store_in_cache(host_node_attributes=host_node_attributes)
+            if need_to_load_from_api:
+                # Store raw (pre-resolution) data in cache so hostname config
+                # changes are always applied on next load. Only on a miss: writing
+                # on a hit renews the TTL on every run, so the entry never ages out.
+                self._store_in_cache(host_node_attributes=host_node_attributes)
             host_node_attributes = processor.resolve_hostnames(host_node_attributes, self.hostnames)
             self.set_hosts_and_groups(host_node_attributes=host_node_attributes)
 

@@ -10,12 +10,14 @@ check-mode behaviour without pulling in relationships.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from infrahub_sdk.schema.main import AttributeKind, NodeSchema, SchemaRoot
 from infrahub_sdk.schema.main import AttributeSchema as Attr
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from infrahub_sdk import InfrahubClientSync
 
 NAMESPACE = "Testing"
@@ -37,9 +39,16 @@ def build_schema() -> SchemaRoot:
     return SchemaRoot(version="1.0", nodes=[thing])
 
 
-def load_schema(client: InfrahubClientSync, branch: str | None = None) -> None:
-    """Load the TestingThing schema (on ``branch`` if given, else default)."""
+def load_schema(
+    client: InfrahubClientSync, branch: str | None = None, loader: Callable[..., Any] | None = None
+) -> None:
+    """Load the TestingThing schema (on ``branch`` if given, else default).
+
+    ``loader`` is the retrying ``schema.load`` from the integration harness; the
+    direct call is the fallback for anyone driving this outside pytest.
+    """
     kwargs = {"branch": branch} if branch else {}
-    resp = client.schema.load(schemas=[build_schema().to_schema_dict()], wait_until_converged=True, **kwargs)
+    load = loader or (lambda schemas, **kw: client.schema.load(schemas=schemas, wait_until_converged=True, **kw))
+    resp = load([build_schema().to_schema_dict()], **kwargs)
     if resp.errors:
         raise RuntimeError(f"schema load failed: {resp.errors}")
