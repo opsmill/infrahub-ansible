@@ -1,0 +1,27 @@
+dev/knowledge/infrahub-sdk-usage.md
+  s_b19d9fe5f17f04::t_08b15223253d96 271-273
+  s_b19d9fe5f17f04::t_cc3357a1f32fbe 291-293
+dev/guides/running-tests.md
+  s_b19d9fe5f17f04::t_98fab67084b924 121,125
+AGENTS.md
+  s_b19d9fe5f17f04::t_060dd20ae867b6 28
+  s_b19d9fe5f17f04::t_b0bdded8f5022c 52-53
+CLAUDE.md
+  s_b19d9fe5f17f04::t_e9052ab36e5bca 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "b99b5946d839ea1117105961cd07fe64bcf85d46",
+  "prompts": {},
+  "sessions": {
+    "s_b19d9fe5f17f04": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2dcc8e8c-dd65-40dd-8a7b-bad2d8ea748b",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
