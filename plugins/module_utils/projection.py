@@ -38,11 +38,17 @@ HIERARCHICAL_FIELDS = frozenset({"parent", "children", "ancestors", "descendants
 class NodeProjection:
     """What to fetch for one node kind, and what to resolve out of it.
 
+    An explicit ``exclude`` wins over ``include``, which is the SDK's own
+    precedence: it drops a name from the query before it ever consults
+    ``include``. A root named in both is therefore neither fetched nor resolved.
+
     Attributes:
-        attrs: dotted attribute paths to resolve into host variables.
+        attrs: dotted attribute paths to resolve into host variables, minus any
+            path whose root the user excluded.
         roots: top-level names those paths start from.
         include: names to pass to the SDK's ``include`` (opt-in relationships).
         exclude: names to pass to the SDK's ``exclude`` (the real projection).
+            A name here beats the same name in ``include``.
         narrowed: whether the user supplied an explicit ``include``.
     """
 
@@ -66,11 +72,18 @@ class NodeProjection:
         A field that was never projected comes back empty because nobody asked
         for it, which is a different thing from the server answering null. Only
         the first case is worth a second look.
+
+        An explicit ``exclude`` wins over ``include`` here too: a root the user
+        named in both never reached the wire, so its empty value is not a null.
+        ``ALWAYS_QUERIED`` still wins over everything -- the SDK puts those in
+        the query whatever the caller asks for.
         """
         if root_attr in ALWAYS_QUERIED:
             return True
+        if self.exclude and root_attr in self.exclude:
+            return False
         if not self.narrowed:
-            return self.exclude is None or root_attr not in self.exclude
+            return True
         return root_attr in self.roots
 
     @classmethod
@@ -86,7 +99,8 @@ class NodeProjection:
         Parameters:
             schema: the node's schema (needs ``attribute_names`` and ``relationship_names``).
             include: the user's include list, dotted paths allowed.
-            exclude: the user's exclude list.
+            exclude: the user's exclude list; a name here wins over the same name
+                in ``include``.
             resolvable_attrs: the attribute list to resolve when the user gave no
                 ``include`` -- i.e. the collection's default view of the kind.
 
@@ -112,10 +126,19 @@ class NodeProjection:
         # either special node properties or a typo, and neither belongs in exclude.
         complement = sorted((known | HIERARCHICAL_FIELDS) - roots)
 
-        merged_exclude = sorted(set(complement) | set(exclude or []))
+        excluded_roots = set(exclude or [])
+        merged_exclude = sorted(set(complement) | excluded_roots)
+
+        # The SDK drops a name it finds in `exclude` before it looks at `include`
+        # (attributes and relationships alike), so a root the user named in both is
+        # never on the wire. Resolving it anyway would hand out an empty host variable
+        # and make the refill pass -- which re-fetches by id with no exclude -- drag
+        # back the very field the user asked to drop. The whole dotted path goes with
+        # its root: `location.name` leaves when `location` is excluded.
+        attrs = [attr for attr in include if attr.split(".", 1)[0] not in excluded_roots]
 
         return cls(
-            attrs=include,
+            attrs=attrs,
             roots=roots,
             # `include` only ever *adds* to the query, so it is safe to name every
             # requested root: relationships the SDK would skip get opted in, and

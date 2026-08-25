@@ -134,3 +134,47 @@ def test_a_requested_hierarchy_field_is_not_excluded():
 
     assert "parent" not in projection.exclude
     assert "children" in projection.exclude
+
+
+def test_an_excluded_root_is_dropped_from_the_resolution_list():
+    """A root named in both lists is not resolved: the explicit exclude wins.
+
+    The SDK drops a name it finds in ``exclude`` before it consults ``include``, so
+    the field never reaches the wire. Resolving it anyway would only produce an empty
+    host variable -- and the refill pass re-fetches by id with no exclude, so it would
+    drag back exactly the field the user asked to drop.
+    """
+    projection = _build(include=["name", "site.name", "description"], exclude=["site", "description"])
+
+    assert projection.attrs == ["name"]
+    assert "site" in projection.exclude
+    assert "description" in projection.exclude
+
+
+def test_projected_is_false_for_a_root_the_user_excluded():
+    """It never reached the server, so its empty value is not a genuine null."""
+    projection = _build(include=["name", "site.name"], exclude=["site"])
+
+    assert projection.projected("site") is False
+    assert projection.projected("name") is True
+
+
+def test_always_queried_names_stay_projected_even_when_excluded():
+    """``id``/``hfid``/``display_label`` are in the SDK's query whatever the caller asks."""
+    projection = _build(include=["name"], exclude=["id", "hfid", "display_label"])
+
+    assert projection.projected("id") is True
+    assert projection.projected("hfid") is True
+    assert projection.projected("display_label") is True
+
+
+def test_a_requested_hierarchy_field_is_reported_projected():
+    """The pseudo-schemas are absent from ``relationship_names`` but do reach the wire.
+
+    Judging the narrowed branch on schema-known names would report ``parent`` as
+    unprojected and queue a pointless refill pass on every run.
+    """
+    projection = _build(include=["name", "parent.name"])
+
+    assert projection.projected("parent") is True
+    assert projection.projected("children") is False
