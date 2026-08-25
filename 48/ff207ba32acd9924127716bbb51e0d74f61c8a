@@ -1,0 +1,19 @@
+tests/integration/processor/test_generic_peer_traversal.py
+  s_f13a24c8c8cbcc::t_a9aea6905823c4 1-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "48ff207ba32acd9924127716bbb51e0d74f61c8a",
+  "prompts": {},
+  "sessions": {
+    "s_f13a24c8c8cbcc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c5af5ec9-f6f2-4e00-bbe4-1b94568366f5",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
