@@ -47,9 +47,37 @@ def test_staging_lives_outside_the_repository():
     assert staging != REPO_ROOT
 
 
-def test_collection_root_prefers_an_existing_layout():
-    """A developer checkout already sits under `ansible_collections`; don't stage over it."""
-    root = _harness.collection_root()
+def _fake_checkout(base: Path, *, with_layout: bool) -> Path:
+    """A stand-in checkout to walk up from, with or without the collections layout."""
+    workspace = base / "workspace"
+    checkout = (
+        workspace / "ansible_collections" / "opsmill" / "infrahub" if with_layout else workspace / "infrahub-ansible"
+    )
+    start = checkout / "tests" / "integration" / "_harness.py"
+    start.parent.mkdir(parents=True)
+    start.touch()
+    return start
 
-    assert (root / "ansible_collections").is_dir()
-    assert (root / "ansible_collections" / "opsmill" / "infrahub").is_dir()
+
+def test_collection_root_prefers_an_existing_layout(tmp_path: Path):
+    """A developer checkout already sits under `ansible_collections`; don't stage over it.
+
+    Asserted as an identity, not by probing the returned path for the layout: a staged
+    tree also contains `ansible_collections/opsmill/infrahub`, so `is_dir()` on the
+    result holds in *both* branches and would pass even if this always staged.
+    """
+    start = _fake_checkout(tmp_path, with_layout=True)
+
+    assert _harness.collection_root(start) == tmp_path / "workspace"
+
+
+def test_collection_root_stages_when_nothing_provides_the_layout(tmp_path: Path):
+    """The CI shape: a plain checkout with no `ansible_collections` ancestor to find."""
+    start = _fake_checkout(tmp_path, with_layout=False)
+
+    root = _harness.collection_root(start)
+
+    assert root != tmp_path / "workspace"
+    # Staged, and pointing back at the real checkout rather than the fake one.
+    assert (root / "ansible_collections" / "opsmill" / "infrahub").is_symlink()
+    assert (root / "ansible_collections" / "opsmill" / "infrahub" / "plugins").is_dir()

@@ -110,9 +110,16 @@ def _staged_collection_root() -> Path:
     return staging
 
 
-def collection_root() -> Path:
-    """The directory ansible should treat as its collections path."""
-    here = Path(__file__).resolve()
+def collection_root(start: Path | None = None) -> Path:
+    """The directory ansible should treat as its collections path.
+
+    Parameters:
+        start: the file to walk up from; defaults to this module. It is a parameter so
+            both branches below can be selected from a test -- walking up from a fixed
+            ``__file__`` means whichever branch the checkout happens to be in is the
+            only one a test can ever reach.
+    """
+    here = (start or Path(__file__)).resolve()
     for parent in here.parents:
         if (parent / "ansible_collections").is_dir():
             return parent
