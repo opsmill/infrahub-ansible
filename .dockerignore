@@ -8,5 +8,7 @@ docker-compose.yml
 .claude/
 .specify/
 dev/
+.pytest_collections/
+specs/
 **/.ruff_cache
 **/.DS_Store

@@ -111,11 +111,70 @@ Integration tests require a running Infrahub instance. The `integration` Docker 
 
 Integration tests use Ansible playbooks in `tests/integration/targets/`.
 
+### Testcontainers Suites
+
+`tests/integration/processor/` and `tests/integration/inventory/` do not use the Docker Compose
+`integration` service. They spin up a real Infrahub with the SDK's `TestInfrahubDocker` helper, so they
+run through pytest directly and need their own dependency group:
+
+```bash
+uv sync --no-default-groups --group integration
+export INFRAHUB_TESTING_IMAGE_VER=1.9.9
+
+uv run --no-default-groups --group integration pytest tests/integration/processor \
+  -m "integration and not measurement" -p no:pytest-infrahub-performance-test -q
+```
+
+Four details, each of which will otherwise cost you a failed run:
+
+- **`--no-default-groups` is mandatory.** `dev` and `integration` are declared as conflicting groups in
+  `pyproject.toml` (the `integration` group pulls `prefect-client`, which pins `cachetools<7`, while
+  `dev` needs `tox` at `cachetools>=7`). Without it, uv refuses outright:
+  `Groups 'dev' (enabled by default) and 'integration' are incompatible`.
+- **`-p no:pytest-infrahub-performance-test`.** That plugin's startup hook calls `psutil.cpu_freq()`,
+  which raises on macOS and aborts collection.
+- **`INFRAHUB_TESTING_IMAGE_VER`** selects the Infrahub image. It has no default.
+- **Two markers, two audiences.** `integration` rides the PR gate. `measurement` additionally marks the
+  heavy round-trip benchmarks in `test_fetch_roundtrip_measurement.py`, which load a schema and wait for
+  convergence — too slow for a standard runner, so they run on scheduled builds only.
+
+Fixtures are **class-scoped**, so every additional test class starts another Infrahub container. Adding
+a test to an existing class rather than a new one is worth roughly a minute of PR wall-clock.
+
+### Run pytest and sanity in separate passes
+
+Running pytest creates `.pytest_collections/`, which contains a symlink to the absolute path of your
+checkout. That directory is in `.gitignore`, and is now also in `.dockerignore` — it was not, and the
+consequence was `invoke tests-sanity` failing inside the Docker build with:
+
+```text
+[ERROR]: Failed to find the target path '/Users/.../infrahub' for the symlink
+         '/usr/src/app/.pytest_collections/ansible_collections/opsmill/infrahub'
+failed to solve: process "/bin/sh -c ansible-galaxy collection build --output-path ./dist/ ."
+         did not complete successfully: exit code: 1
+```
+
+The error names `ansible-galaxy`, not pytest, so it reads like a packaging problem. If you see it after
+a dependency bump or on an older checkout, `rm -rf .pytest_collections` and re-run.
+
+### Comparing two branches
+
+Use `git worktree`, not `git stash`. `uv run` rewrites `uv.lock` as a side effect, so the tree is dirty
+again the moment you run anything — which blocks `git stash pop` and can make `git checkout` fail
+silently enough that you carry on measuring the branch you thought you had left.
+
+```bash
+git worktree add ../infrahub-baseline develop
+```
+
 ## Linting (Not Tests, But Related)
 
 ```bash
-# Run all linters (ruff + yamllint)
+# Run all linters (ruff check + ruff format + yamllint + rumdl) -- does NOT run mypy
 invoke lint
+
+# Type checking is a separate command, and CI runs it
+uv run mypy .
 
 # Auto-fix formatting
 invoke format
