@@ -157,7 +157,11 @@ class PeerWarmer:
         return {root: tuple(sorted(wanted)) for root, wanted in nested.items()}
 
     def _is_satisfied(self, node_id: str, wanted: tuple[str, ...]) -> bool:
-        """Whether the stored peer already carries everything about to be read off it."""
+        """Whether the stored peer already carries everything about to be read off it.
+
+        "Carries" means the value is not ``None``. A falsy-but-present value counts as
+        carried, for the reason spelled out at the check below.
+        """
         peer = self.store.get(key=node_id, raise_when_missing=False)
         if peer is None:
             return False
@@ -182,7 +186,13 @@ class PeerWarmer:
                 # those without needing an attribute value here.
                 continue
             attr = getattr(peer, name, None)
-            if attr is None or getattr(attr, "value", None) in (None, ""):
+            if attr is None or getattr(attr, "value", None) is None:
+                # Only `None` means "never queried". `""` (like `False` and `0`) is a
+                # falsy answer the server actually gave, and asking again returns the
+                # same one -- so warming on it would refetch such a peer every single
+                # run for a value that cannot change. `_resolve_schema_attribute` in
+                # infrahub_utils draws the line in the same place, and the two have to
+                # agree: it only queues a refill when the value is `None`.
                 return False
         return True
 

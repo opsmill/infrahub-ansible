@@ -335,3 +335,38 @@ def test_scoped_view_inherits_enabled_and_already_loaded():
     # An id nothing fetched in full still queues.
     loaded.record(FakeNode("LocationSite", "s2"), "name")
     assert loaded.pending == {"LocationSite": {"s2"}}
+
+
+def test_collect_skips_a_peer_whose_attribute_is_genuinely_empty():
+    """An empty string is an answer, so asking again just buys the same empty string.
+
+    ``_resolve_schema_attribute`` treats ``""`` as falsy-but-present and only queues a
+    refill on ``None``; warming on ``""`` here made every such peer a fresh fetch on
+    every single run, for a value that cannot change.
+    """
+    stored = SimpleNamespace(
+        _schema=SimpleNamespace(attribute_names=["name"]),
+        name=SimpleNamespace(value=""),
+    )
+    node = FakeNode("KindA", "a1", site=FakePeer("s1", "LocationSite"))
+
+    referenced = _warmer(store_get=lambda key, raise_when_missing=True: stored).collect(
+        [node], {"KindA": ["site.name"]}
+    )
+
+    assert referenced == {}
+
+
+def test_collect_still_warms_a_peer_whose_attribute_is_none():
+    """The companion case: ``None`` is the never-queried signal, and worth a request."""
+    stored = SimpleNamespace(
+        _schema=SimpleNamespace(attribute_names=["name"]),
+        name=SimpleNamespace(value=None),
+    )
+    node = FakeNode("KindA", "a1", site=FakePeer("s1", "LocationSite"))
+
+    referenced = _warmer(store_get=lambda key, raise_when_missing=True: stored).collect(
+        [node], {"KindA": ["site.name"]}
+    )
+
+    assert referenced == {"LocationSite": {"s1"}}
