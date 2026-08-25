@@ -61,6 +61,18 @@ READY_TIMEOUT = float(os.environ.get("INFRAHUB_ANSIBLE_READY_TIMEOUT", "420"))
 POLL_INTERVAL = 3.0
 SCHEMA_LOAD_ATTEMPTS = 3
 
+# `schema.load` posts with `timeout=max(120, client.default_timeout)` and Config.timeout
+# defaults to 60, so the POST is capped at 120s however long the server actually needs.
+# A two-core runner takes longer than that to apply a schema, which is what turned into
+# "Unable to read from '.../api/schema/load?branch=main'. (timeout: 120 sec)".
+#
+# `default_timeout` is snapshotted at construction (client.py:139), so raising it means
+# setting the attribute -- mutating `config.timeout` afterwards has no effect.
+# `schema_converge_timeout` is the separate 60s budget for the convergence *poll* that
+# follows, and that one is read live off the config.
+SCHEMA_LOAD_TIMEOUT = int(os.environ.get("INFRAHUB_ANSIBLE_SCHEMA_LOAD_TIMEOUT", "600"))
+SCHEMA_CONVERGE_TIMEOUT = int(os.environ.get("INFRAHUB_ANSIBLE_SCHEMA_CONVERGE_TIMEOUT", "300"))
+
 _ROOT: Path | None = None
 
 
@@ -141,7 +153,15 @@ def schema_loader(client_sync: InfrahubClientSync, infrahub_ready: None) -> Call
     load can time out while nothing is actually wrong with the schema. Retried
     against a fresh readiness check rather than failing the suite on the first
     timeout; a schema that is genuinely bad still fails, just three attempts later.
+
+    The budgets are raised on the client first. Retrying a call that cannot take
+    longer than 120s only spends 120s three times over -- which is exactly what a
+    slow runner did before the timeouts moved.
     """
+    client_sync.default_timeout = max(client_sync.default_timeout, SCHEMA_LOAD_TIMEOUT)
+    client_sync.config.schema_converge_timeout = max(
+        client_sync.config.schema_converge_timeout, SCHEMA_CONVERGE_TIMEOUT
+    )
 
     def load(schemas: list[dict], **kwargs: str) -> SchemaLoadResponse:
         for attempt in range(1, SCHEMA_LOAD_ATTEMPTS + 1):
