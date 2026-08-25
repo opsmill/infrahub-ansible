@@ -301,7 +301,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             cache_key: str = self.get_cache_key(self.api_endpoint)
             self._cache[cache_key] = json.dumps(host_node_attributes)
 
-    def _apply_constructed_or_record(self, apply_entry: Callable[..., None], entry_key: str, host: str) -> None:
+    def _apply_constructed_or_record(self, apply_entry: Callable[..., None], entry_label: str, host: str) -> None:
         """
         Apply a single constructed-inventory entry (compose / groups / keyed_groups),
         recording expression failures when strict mode is off.
@@ -309,47 +309,50 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         The Constructable helpers silently skip an entry whose expression fails to
         resolve under strict=False, which leaves group membership quietly incomplete
         (#385). Evaluate the entry strictly instead and record the failure for a
-        per-expression warning; errors that strict=False would raise as well (invalid
+        per-failure warning; errors that strict=False would raise as well (invalid
         entry configuration) stay fatal.
 
         Parameters:
             apply_entry (Callable): applies one entry, accepting a `strict` keyword.
-            entry_key (str): identity of the entry, part of the failure's identity.
+            entry_label (str): the entry as the operator wrote it, part of the failure's identity.
             host (str): host the entry is being applied to.
         """
         try:
             apply_entry(strict=True)
         except AnsibleError as exc:
             apply_entry(strict=False)
-            error = str(exc)
-            # Most Constructable errors name the host, which would make every host its
-            # own failure. Blanking the host out of the text -- the host is known, so no
-            # parsing of Ansible's message formats -- leaves the cause, which is what
-            # decides whether two hosts failed for the same reason. Only the key is
-            # normalised; the message reported to the operator stays verbatim.
-            failure_key = (entry_key, error.replace(host, "<host>"))
-            self._constructed_failures.setdefault(failure_key, (error, []))[1].append(host)
+            # Group on the wrapped error, never on Ansible's own message: that message
+            # mixes the cause with the host, so hosts sharing one cause would look like
+            # separate failures. Constructable raises from the underlying template
+            # error, and that error is the host-independent part. A keyed group's key
+            # resolving empty is the one shape raised without a wrapped error; its
+            # exception type is host-independent where its message is not.
+            cause = exc.__cause__ or exc.__context__
+            if cause is None:
+                detail, group_by = str(exc), type(exc).__name__
+            else:
+                detail = group_by = str(cause)
+            self._constructed_failures.setdefault((entry_label, group_by), (detail, []))[1].append(host)
 
     def _warn_constructed_failures(self) -> None:
         """
         Emit one warning per distinct failure instead of one per host, so a single
-        broken expression on a large inventory does not flood the output. An expression
-        that fails for two different reasons keeps both diagnostics, since a cause the
-        first host did not hit would otherwise be lost.
+        broken expression on a large inventory does not flood the output, while an
+        expression failing for two different reasons keeps both diagnostics.
 
-        The error is reported verbatim, and the affected hosts are appended unless the
-        error already names the only host it concerns: a keyed group's `parent_group`
-        failure is the one Constructable error that names no host at all, and #385 asks
-        for the host.
+        The warning is composed here rather than taken from Ansible's message, which
+        mixes the failing host into its text: the entry is named as the operator wrote
+        it, every affected host is named exactly once, and the cause follows.
         """
-        for (_entry_key, normalized_error), (error, hosts) in self._constructed_failures.items():
-            if len(hosts) == 1 and normalized_error != error:
-                self.display.warning(error)
-                continue
-            listed = ", ".join(hosts[:MAX_LISTED_FAILURE_HOSTS])
-            if len(hosts) > MAX_LISTED_FAILURE_HOSTS:
-                listed += ", ..."
-            self.display.warning(f"{error} ({len(hosts)} host(s) affected: {listed})")
+        for (entry_label, _group_by), (detail, hosts) in self._constructed_failures.items():
+            if len(hosts) == 1:
+                affected = f"host {hosts[0]}"
+            else:
+                listed = ", ".join(hosts[:MAX_LISTED_FAILURE_HOSTS])
+                if len(hosts) > MAX_LISTED_FAILURE_HOSTS:
+                    listed += ", ..."
+                affected = f"{len(hosts)} host(s) ({listed})"
+            self.display.warning(f"Could not apply {entry_label} for {affected}: {detail}")
 
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
@@ -389,10 +392,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                             variables=trusted_attributes,
                             host=host_node,
                         ),
-                        entry_key=f"groups:{group_name}",
+                        entry_label=f"groups entry {group_name!r}",
                         host=host_node,
                     )
                 for keyed_group in self.keyed_groups or []:
+                    # A non-dict entry is Ansible's own hard error; keep it reachable
+                    # by not indexing into the entry while building the label.
+                    keyed_key = keyed_group.get("key") if isinstance(keyed_group, dict) else keyed_group
                     self._apply_constructed_or_record(
                         partial(
                             self._add_host_to_keyed_groups,
@@ -400,7 +406,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                             variables=trusted_attributes,
                             host=host_node,
                         ),
-                        entry_key=f"keyed_groups:{keyed_group}",
+                        entry_label=f"keyed_groups key {keyed_key!r}",
                         host=host_node,
                     )
 
@@ -429,7 +435,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                         variables=attributes,
                         host=host_node,
                     ),
-                    entry_key=f"compose:{varname}",
+                    entry_label=f"compose var {varname!r}",
                     host=host_node,
                 )
 

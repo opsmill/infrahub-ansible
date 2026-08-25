@@ -226,11 +226,31 @@ def test_non_strict_failure_warns_once_per_expression(tmp_path):
     assert len(warnings) == 1
     warning = warnings[0]
     assert "site.region_name" in warning
-    assert "8 host(s) affected" in warning
+    assert "8 host(s)" in warning
     # Every affected host counts, the first one included, and the list is truncated.
     assert "web1" in warning
     assert "web5" in warning
     assert "web6" not in warning
+
+
+def test_non_strict_host_named_after_the_expression_still_aggregates(tmp_path):
+    # Failures are grouped by the wrapped cause, not by Ansible's message text. A host
+    # whose name also occurs in the expression must not split the group -- which is
+    # exactly what normalising the message by the host name used to do.
+    config = BASE_CONFIG + "keyed_groups:\n  - prefix: region\n    key: site.region_name\n"
+    _inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts(
+            {
+                "site": {"name": "site", "role": "edge", "id": "1"},
+                "web2": {"name": "web2", "role": "edge", "id": "2"},
+            }
+        ),
+    )
+    assert len(warnings) == 1
+    assert "2 host(s)" in warnings[0]
+    assert "site" in warnings[0] and "web2" in warnings[0]
 
 
 def test_non_strict_distinct_failures_warn_separately(tmp_path):
@@ -267,8 +287,9 @@ def test_non_strict_parent_group_failure_names_the_host(tmp_path):
     )
     assert "web1" in inv.hosts
     assert len(warnings) == 1
-    assert "parent group" in warnings[0]
     assert "web1" in warnings[0]
+    assert "keyed_groups key 'role'" in warnings[0]
+    assert "'this_var_does_not_exist' is undefined" in warnings[0]
 
 
 def test_non_strict_resolving_expressions_do_not_warn(tmp_path):
