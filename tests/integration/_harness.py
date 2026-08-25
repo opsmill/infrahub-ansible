@@ -54,6 +54,25 @@ COLLECTION_PATH = ("ansible_collections", "opsmill", "infrahub")
 # Borrowed from infrahub-solution-ai-dc and infrahub-demo-dc, which hit the same thing.
 os.environ.setdefault("INFRAHUB_TESTING_TASKMGR_BACKGROUND_SVC_REPLICAS", "1")
 
+# The packaged defaults model a production-shaped cluster: two API replicas of four
+# gunicorn workers each, two task workers, plus Neo4j, RabbitMQ, Redis, Prefect and its
+# Postgres behind a load balancer. That is eight web workers before anything else, and a
+# GitHub runner has four cores -- so the schema load, which is the heaviest thing these
+# suites ask for, never completed. Raising its timeout to 600s did not help; the work was
+# not slow, it was starved.
+#
+# These tests need a working Infrahub, not a cluster. One replica each, and the Prefect UI
+# nobody is looking at turned off. `setdefault` throughout, so a bigger machine can put the
+# cluster shape back with env vars.
+#
+# WEB_CONCURRENCY has to be set before `infrahub_testcontainers.container` is imported: the
+# gunicorn entrypoint interpolates it at module import and freezes it. Being read from this
+# module, which every integration conftest imports first, is what makes that hold.
+os.environ.setdefault("INFRAHUB_TESTING_API_SERVER_COUNT", "1")
+os.environ.setdefault("INFRAHUB_TESTING_TASK_WORKER_COUNT", "1")
+os.environ.setdefault("INFRAHUB_TESTING_WEB_CONCURRENCY", "2")
+os.environ.setdefault("INFRAHUB_TESTING_PREFECT_UI_ENABLED", "false")
+
 # Generous on purpose. A cold runner brings up a database, a message bus, the API
 # and a task worker before a schema load can converge. The budget this replaces was
 # never chosen -- it was the SDK's own 120s read timeout, and that is what expired.
