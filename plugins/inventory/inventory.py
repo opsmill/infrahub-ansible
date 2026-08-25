@@ -14,7 +14,7 @@ short_description: Infrahub inventory source (using GraphQL)
 description:
     - Get inventory hosts from Infrahub.
     - When strict is false, a compose, groups or keyed_groups expression that fails to resolve
-      emits one warning per expression naming the affected hosts, instead of failing silently.
+      emits one warning per distinct failure naming the affected hosts, instead of failing silently.
 extends_documentation_fragment:
     - constructed
     - inventory_cache
@@ -314,32 +314,42 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         Parameters:
             apply_entry (Callable): applies one entry, accepting a `strict` keyword.
-            entry_key (str): identity of the entry, used to aggregate failures across hosts.
+            entry_key (str): identity of the entry, part of the failure's identity.
             host (str): host the entry is being applied to.
         """
         try:
             apply_entry(strict=True)
         except AnsibleError as exc:
             apply_entry(strict=False)
-            self._constructed_failures.setdefault(entry_key, []).append((host, str(exc)))
+            error = str(exc)
+            # Most Constructable errors name the host, which would make every host its
+            # own failure. Blanking the host out of the text -- the host is known, so no
+            # parsing of Ansible's message formats -- leaves the cause, which is what
+            # decides whether two hosts failed for the same reason. Only the key is
+            # normalised; the message reported to the operator stays verbatim.
+            failure_key = (entry_key, error.replace(host, "<host>"))
+            self._constructed_failures.setdefault(failure_key, (error, []))[1].append(host)
 
     def _warn_constructed_failures(self) -> None:
         """
-        Emit one warning per failing expression instead of one per host, so a single
-        broken expression on a large inventory does not flood the output. The first
-        host's error is kept verbatim (it names the host and the expression) and the
-        other affected hosts are listed.
+        Emit one warning per distinct failure instead of one per host, so a single
+        broken expression on a large inventory does not flood the output. An expression
+        that fails for two different reasons keeps both diagnostics, since a cause the
+        first host did not hit would otherwise be lost.
+
+        The error is reported verbatim, and the affected hosts are appended unless the
+        error already names the only host it concerns: a keyed group's `parent_group`
+        failure is the one Constructable error that names no host at all, and #385 asks
+        for the host.
         """
-        for failures in self._constructed_failures.values():
-            first_error = failures[0][1]
-            if len(failures) == 1:
-                self.display.warning(first_error)
+        for (_entry_key, normalized_error), (error, hosts) in self._constructed_failures.items():
+            if len(hosts) == 1 and normalized_error != error:
+                self.display.warning(error)
                 continue
-            other_hosts = [host for host, _error in failures[1:]]
-            listed = ", ".join(other_hosts[:MAX_LISTED_FAILURE_HOSTS])
-            if len(other_hosts) > MAX_LISTED_FAILURE_HOSTS:
-                listed += f", ... ({len(failures)} hosts affected in total)"
-            self.display.warning(f"{first_error} (same failure for {len(other_hosts)} more host(s): {listed})")
+            listed = ", ".join(hosts[:MAX_LISTED_FAILURE_HOSTS])
+            if len(hosts) > MAX_LISTED_FAILURE_HOSTS:
+                listed += ", ..."
+            self.display.warning(f"{error} ({len(hosts)} host(s) affected: {listed})")
 
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
@@ -349,7 +359,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             host_node_attributes (dict[str, Any]): dictionary containing attributes for each host node.
         """
 
-        self._constructed_failures: dict[str, list[tuple[str, str]]] = {}
+        self._constructed_failures: dict[tuple[str, str], tuple[str, list[str]]] = {}
 
         for host_node, attributes in host_node_attributes.items():
             self.inventory.add_host(host_node)

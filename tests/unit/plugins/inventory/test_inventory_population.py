@@ -225,12 +225,50 @@ def test_non_strict_failure_warns_once_per_expression(tmp_path):
     )
     assert len(warnings) == 1
     warning = warnings[0]
-    assert "site.region_name" in warning and "web1" in warning
-    assert "7 more host(s)" in warning
-    # Only the first few additional hosts are listed, plus a total count.
-    assert "web6" in warning
-    assert "web7" not in warning
-    assert "8 hosts affected in total" in warning
+    assert "site.region_name" in warning
+    assert "8 host(s) affected" in warning
+    # Every affected host counts, the first one included, and the list is truncated.
+    assert "web1" in warning
+    assert "web5" in warning
+    assert "web6" not in warning
+
+
+def test_non_strict_distinct_failures_warn_separately(tmp_path):
+    # One expression can fail for different reasons on different hosts. Each distinct
+    # error keeps its own warning and its own hosts, so no diagnostic is lost behind
+    # another host's error text.
+    config = BASE_CONFIG + "keyed_groups:\n  - prefix: region\n    key: site.region_name\n"
+    _inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts(
+            {
+                "web1": {"name": "web1", "role": "edge", "id": "1"},
+                "web2": {"name": "web2", "role": "edge", "site": "paris", "id": "2"},
+            }
+        ),
+    )
+    assert len(warnings) == 2
+    assert any("web1" in warning for warning in warnings)
+    assert any("web2" in warning for warning in warnings)
+    assert warnings[0] != warnings[1]
+
+
+def test_non_strict_parent_group_failure_names_the_host(tmp_path):
+    # A failing parent_group is the one Constructable error that never names the host,
+    # so the aggregated warning has to supply it -- naming the host is what #385 asks for.
+    config = BASE_CONFIG + (
+        'keyed_groups:\n  - prefix: role\n    key: role\n    parent_group: "{{ this_var_does_not_exist }}"\n'
+    )
+    inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    assert "web1" in inv.hosts
+    assert len(warnings) == 1
+    assert "parent group" in warnings[0]
+    assert "web1" in warnings[0]
 
 
 def test_non_strict_resolving_expressions_do_not_warn(tmp_path):
