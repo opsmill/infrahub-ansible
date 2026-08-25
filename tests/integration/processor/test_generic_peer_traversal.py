@@ -29,6 +29,8 @@ Run:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 pytest.importorskip("infrahub_testcontainers")
@@ -46,6 +48,11 @@ from infrahub_sdk.schema.main import AttributeSchema as Attr
 from infrahub_sdk.schema.main import RelationshipSchema as Rel
 from infrahub_sdk.testing.docker import TestInfrahubDockerClient
 from infrahub_testcontainers.container import PROJECT_ENV_VARIABLES
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from infrahub_sdk.schema import SchemaLoadResponse
 
 pytestmark = pytest.mark.integration
 
@@ -146,8 +153,8 @@ def build_schema() -> SchemaRoot:
 
 class TestGenericPeerTraversal(TestInfrahubDockerClient):
     @pytest.fixture(scope="class")
-    def dataset(self, client_sync: InfrahubClientSync) -> None:
-        resp = client_sync.schema.load(schemas=[build_schema().to_schema_dict()], wait_until_converged=True)
+    def dataset(self, client_sync: InfrahubClientSync, schema_loader: Callable[..., SchemaLoadResponse]) -> None:
+        resp = schema_loader([build_schema().to_schema_dict()])
         if resp.errors:
             raise RuntimeError(f"schema load failed: {resp.errors}")
 
