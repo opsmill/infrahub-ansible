@@ -202,6 +202,31 @@ def test_non_strict_empty_keyed_group_warns(tmp_path):
     assert any("site" in warning and "web1" in warning for warning in warnings)
 
 
+def test_non_strict_empty_keyed_group_across_hosts_warns_without_a_host_specific_cause(tmp_path):
+    # A key resolving empty is the one failure Ansible raises with no wrapped error,
+    # and its message names a single host. Aggregated across hosts that message would
+    # read as the shared cause and repeat one host, so the detail describes the
+    # condition instead -- each host is named once, in the host list.
+    config = BASE_CONFIG + "keyed_groups:\n  - prefix: site\n    key: site\n"
+    _inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts(
+            {
+                "web1": {"name": "web1", "role": "edge", "site": None, "id": "1"},
+                "web2": {"name": "web2", "role": "edge", "site": None, "id": "2"},
+            }
+        ),
+    )
+    assert len(warnings) == 1
+    warning = warnings[0]
+    assert "2 host(s)" in warning
+    assert warning.count("web1") == 1
+    assert warning.count("web2") == 1
+    assert "resolved to an empty value" in warning
+    assert "default_value" in warning
+
+
 def test_non_strict_bad_conditional_group_warns(tmp_path):
     config = BASE_CONFIG + "groups:\n  edges: \"this_var_does_not_exist == 'edge'\"\n"
     inv, warnings = run_inventory_with_warnings(

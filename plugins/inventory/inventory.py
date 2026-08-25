@@ -324,12 +324,18 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             # Group on the wrapped error, never on Ansible's own message: that message
             # mixes the cause with the host, so hosts sharing one cause would look like
             # separate failures. Constructable raises from the underlying template
-            # error, and that error is the host-independent part. A keyed group's key
-            # resolving empty is the one shape raised without a wrapped error; its
-            # exception type is host-independent where its message is not.
+            # error, and that error is the host-independent part.
             cause = exc.__cause__ or exc.__context__
             if cause is None:
-                detail, group_by = str(exc), type(exc).__name__
+                # A keyed group's key resolving empty is the only failure that reaches
+                # here without a wrapped error: Constructable's other cause-less errors
+                # (a non-dict entry, an invalid group-name type, default_value together
+                # with trailing_separator) are raised regardless of strict, so the
+                # non-strict retry re-raises them and they stay fatal. Its message names
+                # one host, which an aggregate warning would present as the shared
+                # cause, so describe the condition the hosts actually share.
+                detail = "the key resolved to an empty value and no default_value applies"
+                group_by = type(exc).__name__
             else:
                 detail = group_by = str(cause)
             self._constructed_failures.setdefault((entry_label, group_by), (detail, []))[1].append(host)
