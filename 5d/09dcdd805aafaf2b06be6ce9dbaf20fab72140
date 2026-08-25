@@ -1,0 +1,47 @@
+tests/integration/inventory/schema.py
+  s_430068875b317b::t_b04e4177bc7f11 23,30-31
+  s_430068875b317b::t_ae71574720afae 117-124
+tests/integration/modules/schema.py
+  s_430068875b317b::t_ae71574720afae 45-49,51-52
+  s_430068875b317b::t_b04e4177bc7f11 13,19-20,42-44
+tests/integration/processor/test_fetch_roundtrip_measurement.py
+  s_430068875b317b::t_ae71574720afae 74,76
+tests/unit/test_integration_harness.py
+  s_430068875b317b::t_cf6fb6c33e9a45 1-21,23-55
+  s_430068875b317b::t_fd0275e5336866 22
+tests/integration/modules/test_modules_integration.py
+  s_430068875b317b::t_ae71574720afae 38,41
+tests/integration/processor/test_fetch_and_process_integration.py
+  s_430068875b317b::t_ca8b84f3672dd1 73
+tests/integration/_harness.py
+  s_430068875b317b::t_fae11de0c6320b 1-31,33-39,41-108,110-123,125-132,134-136,138-143
+  s_430068875b317b::t_ca8b84f3672dd1 32,40,109,124,133,137
+tests/integration/inventory/test_inventory_integration.py
+  s_430068875b317b::t_ae71574720afae 55-56
+tests/integration/modules/conftest.py
+  s_430068875b317b::t_a7512199773d6b 6-7,15-20,22-25
+  s_430068875b317b::t_ca8b84f3672dd1 21
+tests/integration/inventory/conftest.py
+  s_430068875b317b::t_2482e4e175e1f3 6-7,15-19,22-26
+  s_430068875b317b::t_ca8b84f3672dd1 21
+  s_430068875b317b::t_7103a3caa30905 20,30-31
+tests/integration/processor/conftest.py
+  s_430068875b317b::t_ca8b84f3672dd1 28
+  s_430068875b317b::t_e5a0298e94915e 3-4,22-27,29-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "5d09dcdd805aafaf2b06be6ce9dbaf20fab72140",
+  "prompts": {},
+  "sessions": {
+    "s_430068875b317b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe890077-57c0-4423-a319-e0c0d93e9b1f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
