@@ -38,9 +38,13 @@ HIERARCHICAL_FIELDS = frozenset({"parent", "children", "ancestors", "descendants
 class NodeProjection:
     """What to fetch for one node kind, and what to resolve out of it.
 
-    An explicit ``exclude`` wins over ``include``, which is the SDK's own
-    precedence: it drops a name from the query before it ever consults
-    ``include``. A root named in both is therefore neither fetched nor resolved.
+    An explicit ``exclude`` wins over ``include``, and this class is what makes that
+    true: the SDK does not arbitrate between them, it *rejects* the pair.
+    ``generate_query_data`` raises ``ValueError("[...] are part of both include and
+    exclude")`` before any per-field logic runs, and ``fetch_nodes`` swallows that
+    into a failed kind -- so one overlapping name used to cost the whole inventory.
+    A root named in both is therefore kept out of ``include`` here, and is neither
+    fetched nor resolved.
 
     Attributes:
         attrs: dotted attribute paths to resolve into host variables, minus any
@@ -129,21 +133,25 @@ class NodeProjection:
         excluded_roots = set(exclude or [])
         merged_exclude = sorted(set(complement) | excluded_roots)
 
-        # The SDK drops a name it finds in `exclude` before it looks at `include`
-        # (attributes and relationships alike), so a root the user named in both is
-        # never on the wire. Resolving it anyway would hand out an empty host variable
-        # and make the refill pass -- which re-fetches by id with no exclude -- drag
-        # back the very field the user asked to drop. The whole dotted path goes with
-        # its root: `location.name` leaves when `location` is excluded.
+        # A root the user named in both lists is dropped, not arbitrated: the SDK
+        # refuses the pair outright (`ValueError: [...] are part of both include and
+        # exclude`), `fetch_nodes` swallows that, and the kind is recorded as failed --
+        # which for a single-kind inventory means zero hosts where the old wide query
+        # returned every host with an empty value. Resolving it would be wrong anyway:
+        # it would hand out an empty host variable and let the refill pass, which
+        # re-fetches by id with no exclude, drag back the field the user asked to drop.
+        # The whole dotted path goes with its root: `location.name` leaves when
+        # `location` is excluded.
         attrs = [attr for attr in include if attr.split(".", 1)[0] not in excluded_roots]
 
         return cls(
             attrs=attrs,
             roots=roots,
-            # `include` only ever *adds* to the query, so it is safe to name every
-            # requested root: relationships the SDK would skip get opted in, and
-            # plain attributes are a no-op there.
-            include=sorted(roots & known),
+            # `include` only ever *adds* to the query, so every requested root is safe
+            # to name -- relationships the SDK would skip get opted in, plain attributes
+            # are a no-op -- except one the user also excluded, which has to stay out to
+            # keep the two lists disjoint.
+            include=sorted((roots & known) - excluded_roots),
             exclude=merged_exclude or None,
             narrowed=True,
         )

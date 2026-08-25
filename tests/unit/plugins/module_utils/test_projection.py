@@ -139,15 +139,31 @@ def test_a_requested_hierarchy_field_is_not_excluded():
 def test_an_excluded_root_is_dropped_from_the_resolution_list():
     """A root named in both lists is not resolved: the explicit exclude wins.
 
-    The SDK drops a name it finds in ``exclude`` before it consults ``include``, so
-    the field never reaches the wire. Resolving it anyway would only produce an empty
-    host variable -- and the refill pass re-fetches by id with no exclude, so it would
-    drag back exactly the field the user asked to drop.
+    Resolving it would only produce an empty host variable -- and the refill pass
+    re-fetches by id with no exclude, so it would drag back exactly the field the user
+    asked to drop.
     """
     projection = _build(include=["name", "site.name", "description"], exclude=["site", "description"])
 
     assert projection.attrs == ["name"]
     assert "site" in projection.exclude
+    # Not merely unresolved: it must be out of the SDK `include` too, or the query is
+    # rejected outright rather than narrowed. See the disjointness test below.
+    assert "site" not in projection.include
+
+
+def test_include_and_exclude_never_overlap():
+    """The SDK rejects the pair instead of arbitrating, and a rejected kind is a failed kind.
+
+    ``generate_query_data`` raises ``ValueError("[...] are part of both include and
+    exclude")`` before any per-field logic; ``fetch_nodes`` swallows it, the kind is
+    recorded as failed, and a single-kind inventory then ends in "No nodes could be
+    fetched" -- zero hosts, where the old wide query returned every host with an empty
+    value. Keeping the two lists disjoint is what prevents that.
+    """
+    projection = _build(include=["name", "site.name"], exclude=["site"])
+
+    assert set(projection.include).isdisjoint(projection.exclude or ())
     assert "description" in projection.exclude
 
 
