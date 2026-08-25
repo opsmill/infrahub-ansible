@@ -1371,6 +1371,19 @@ if HAS_INFRAHUBCLIENT:
             """
             return value is None or (isinstance(value, (dict, list)) and not value)
 
+        @staticmethod
+        def _is_structured(value: Any) -> bool:
+            """Whether a resolved relationship carries its peer's attributes, not just an id.
+
+            A root asked for bare (``site``) resolves to the peer id, or a list of them
+            for cardinality-many; asked for with a nested path (``site.name``) it
+            resolves to a dict per peer. The dict is the richer answer and contains the
+            id anyway, so it is the one to keep when two specs disagree.
+            """
+            if isinstance(value, dict):
+                return True
+            return isinstance(value, list) and any(isinstance(item, dict) for item in value)
+
         @classmethod
         def _merge_host_result(cls, existing: dict[str, Any], addition: dict[str, Any]) -> None:
             """Fold one fetch's resolution of a host into what another fetch resolved for it.
@@ -1379,14 +1392,21 @@ if HAS_INFRAHUBCLIENT:
             interchangeable and the union is what the user asked for. Nested roots merge
             in place rather than being replaced wholesale: two specs naming different
             nested paths under one relationship must not erase each other. Where both
-            answered for the same field the first stands, unless it is a placeholder --
-            which keeps ``id`` consistent, both passes having resolved the same node.
+            answered for the same field the first stands, unless it is a placeholder or
+            an id where the other spec resolved the peer's attributes -- keeping ``id``
+            consistent, both passes having resolved the same node, and keeping the
+            result independent of the order the kinds were listed in.
             """
             for key, value in addition.items():
                 if key not in existing:
                     existing[key] = value
                 elif isinstance(existing[key], dict) and isinstance(value, dict):
                     cls._merge_host_result(existing[key], value)
+                elif cls._is_structured(value) and not cls._is_structured(existing[key]):
+                    # One spec asked for `site`, the other for `site.name`: the id-only
+                    # answer loses to the one carrying the attributes. Without this the
+                    # winner would be whichever kind the user happened to list first.
+                    existing[key] = value
                 elif cls._is_placeholder(existing[key]) and not cls._is_placeholder(value):
                     existing[key] = value
 

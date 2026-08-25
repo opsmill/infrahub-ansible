@@ -640,3 +640,32 @@ def test_a_short_refill_warning_caps_the_ids_it_names():
     assert "id-00" in message
     assert "id-05" not in message
     assert "and 7 more" in message
+
+
+def test_merging_prefers_the_nested_answer_over_a_bare_id():
+    """`site` resolves to the peer id, `site.name` to its attributes; the richer one wins."""
+    existing = {"id": "d1", "site": "x1"}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"id": "d1", "site": {"id": "x1", "name": "paris"}})
+
+    assert existing == {"id": "d1", "site": {"id": "x1", "name": "paris"}}
+
+
+def test_merging_does_not_let_a_bare_id_overwrite_the_nested_answer():
+    """The other order must give the same result, or output depends on node-spec order."""
+    existing = {"id": "d1", "site": {"id": "x1", "name": "paris"}}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"id": "d1", "site": "x1"})
+
+    assert existing == {"id": "d1", "site": {"id": "x1", "name": "paris"}}
+
+
+def test_merging_prefers_nested_peers_over_a_list_of_ids():
+    """Same rule for cardinality-many: a list of dicts beats a list of ids."""
+    existing = {"id": "d1", "tags": ["t1", "t2"]}
+
+    iu.InfrahubNodesProcessor._merge_host_result(
+        existing, {"id": "d1", "tags": [{"id": "t1", "name": "edge"}, {"id": "t2", "name": "core"}]}
+    )
+
+    assert existing == {"id": "d1", "tags": [{"id": "t1", "name": "edge"}, {"id": "t2", "name": "core"}]}
