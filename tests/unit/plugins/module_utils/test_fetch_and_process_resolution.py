@@ -669,3 +669,21 @@ def test_merging_prefers_nested_peers_over_a_list_of_ids():
     )
 
     assert existing == {"id": "d1", "tags": [{"id": "t1", "name": "edge"}, {"id": "t2", "name": "core"}]}
+
+
+def test_merging_keeps_a_known_peer_id_over_an_unresolved_nested_placeholder():
+    """A nested root that resolved nothing is seeded `{}` -- less than the id we have."""
+    existing = {"id": "d1", "site": "x1"}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"id": "d1", "site": {}})
+
+    assert existing == {"id": "d1", "site": "x1"}
+
+
+def test_merging_the_unresolved_placeholder_first_gives_the_same_answer():
+    """Both orders must agree, or the result depends on how the kinds were listed."""
+    existing = {"id": "d1", "site": {}}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"id": "d1", "site": "x1"})
+
+    assert existing == {"id": "d1", "site": "x1"}

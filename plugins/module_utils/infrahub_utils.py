@@ -1379,10 +1379,15 @@ if HAS_INFRAHUBCLIENT:
             for cardinality-many; asked for with a nested path (``site.name``) it
             resolves to a dict per peer. The dict is the richer answer and contains the
             id anyway, so it is the one to keep when two specs disagree.
+
+            Empty does not count. A nested root that resolved nothing is seeded ``{}``,
+            which carries less than the id the other spec did resolve -- treating it as
+            structured would drop that id, and put the outcome back at the mercy of the
+            order the kinds were listed in.
             """
             if isinstance(value, dict):
-                return True
-            return isinstance(value, list) and any(isinstance(item, dict) for item in value)
+                return bool(value)
+            return isinstance(value, list) and any(isinstance(item, dict) and bool(item) for item in value)
 
         @classmethod
         def _merge_host_result(cls, existing: dict[str, Any], addition: dict[str, Any]) -> None:
