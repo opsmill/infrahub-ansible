@@ -118,11 +118,11 @@ Integration tests use Ansible playbooks in `tests/integration/targets/`.
 run through pytest directly and need their own dependency group:
 
 ```bash
-uv sync --group integration
+uv sync --no-default-groups --group integration
 export INFRAHUB_TESTING_IMAGE_VER=1.9.9
 
 uv run --no-default-groups --group integration pytest tests/integration/processor \
-  -m integration -p no:pytest-infrahub-performance-test -q
+  -m "integration and not measurement" -p no:pytest-infrahub-performance-test -q
 ```
 
 Four details, each of which will otherwise cost you a failed run:

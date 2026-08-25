@@ -11,4 +11,4 @@ shell commands, and other important information, read the current plan
 
 ## Recent Changes
 
-- 001-inventory-fetch-performance: Added Python >=3.11, <3.15 (`pyproject.toml`) + `ansible-core>=2.19.11rc1`; `infrahub-sdk[all]>=1.19.0,<2.0` (synchronous client only)
+- 001-inventory-fetch-performance: Cut dynamic inventory fetch round-trips — query projection, bounded peer fetches, batched refill

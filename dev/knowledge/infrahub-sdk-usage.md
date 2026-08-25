@@ -268,8 +268,9 @@ attributes requested. Verified by rendering the query both ways: with and withou
 produced byte-identical output.
 
 The consequence is that a user writing `include: [name]` pays for every attribute on the kind unless the
-caller computes the complement and passes it as `exclude`. That translation is what
-`plugins/module_utils/projection.py` exists to do.
+caller computes the complement itself — "everything the schema declares, minus what the user asked for" —
+and passes that as `exclude`. `include` still has to carry the top-level name of any cardinality-many
+relationship that must be prefetched, so the two lists are derived together, not either/or.
 
 ### A relationship's peer payload is projected off the *declared* peer schema
 
@@ -287,9 +288,9 @@ with `hierarchy` set (`hierarchical_relationship_schemas`). They are **not** in 
 an exclude list computed as "everything the schema declares, minus what the user asked for" never
 reaches them — and `_process_hierarchical_fields` adds all four to the query whenever
 `prefetch_relationships` is on. A narrowed query against Location, Organization or an IPAM prefix
-therefore still drags two full hierarchies down on every page unless the four names are excluded
-explicitly. `NodeProjection.HIERARCHICAL_FIELDS` does that; naming them on a non-hierarchical kind is
-free, because the SDK only ever tests membership in `exclude`.
+therefore still drags two full hierarchies down on every page unless the four names are added to
+`exclude` explicitly. Name them unconditionally: doing so on a non-hierarchical kind is free, because the
+SDK only ever tests membership in `exclude`.
 
 ### The wrapper swallows exceptions whenever a Display is attached
 

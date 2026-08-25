@@ -25,7 +25,7 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 ## Commands
 
 ```bash
-invoke lint            # Check (ruff + yamllint + rumdl) -- NOT mypy, see below
+invoke lint            # autoflake (rewrites files!) + ruff + yamllint + rumdl -- NOT mypy, see below
 invoke format          # Auto-fix (ruff)
 invoke tests-sanity    # Ansible compliance (boilerplate, docs, imports)
 invoke tests-unit      # Unit tests
@@ -48,6 +48,8 @@ All tests run in Docker. Run checks as you go, not just at the end:
 Full verification before a PR: `invoke format && invoke lint && uv run mypy . && invoke tests-sanity && invoke tests-unit && invoke generate-doc`.
 
 `uv run mypy .` is listed separately because `invoke lint` does not include it while CI's `python-lint` job does — a green `invoke lint` is not a green CI. Note also that mypy currently **excludes** `plugins/module_utils/infrahub_utils.py`, so the collection's largest file is not typechecked at all.
+
+`invoke lint` is not purely a check: its first step is `autoflake --in-place --remove-all-unused-imports --remove-unused-variables`, which edits your working tree before ruff ever runs. Expect it to leave modified files behind, and review that diff rather than assuming a linter only reported.
 
 New-module walkthrough: [dev/guides/creating-a-module.md](dev/guides/creating-a-module.md). Test execution detail: [dev/guides/running-tests.md](dev/guides/running-tests.md).
 
