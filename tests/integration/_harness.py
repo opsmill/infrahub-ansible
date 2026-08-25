@@ -41,6 +41,19 @@ if TYPE_CHECKING:
 
 COLLECTION_PATH = ("ansible_collections", "opsmill", "infrahub")
 
+# `docker compose up --wait` fails on a project holding a zero-replica service
+# (docker/compose#13899), and infrahub-testcontainers ships
+# INFRAHUB_TESTING_TASKMGR_BACKGROUND_SVC_REPLICAS="0". It reads os.environ ahead of its
+# own defaults when it writes the project's .env (container.py), so setting this at
+# import time -- before any compose project is initialised -- is what takes effect.
+#
+# This is the failure CI kept hitting and a developer machine did not: `up --wait`
+# aborting with "dependency failed to start: container <project>-message-queue-1 is
+# unhealthy". Whether it bites depends on the docker-compose version, which is why it
+# showed up on the runner and not locally. `setdefault`, so an explicit override wins.
+# Borrowed from infrahub-solution-ai-dc and infrahub-demo-dc, which hit the same thing.
+os.environ.setdefault("INFRAHUB_TESTING_TASKMGR_BACKGROUND_SVC_REPLICAS", "1")
+
 # Generous on purpose. A cold runner brings up a database, a message bus, the API
 # and a task worker before a schema load can converge. The budget this replaces was
 # never chosen -- it was the SDK's own 120s read timeout, and that is what expired.
