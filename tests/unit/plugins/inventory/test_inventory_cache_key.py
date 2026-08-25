@@ -93,3 +93,15 @@ def test_key_order_in_the_node_spec_does_not_matter():
     b = _module(nodes={"DcimDevice": {"exclude": ["serial"], "include": ["name"]}})
 
     assert a._cache_key() == b._cache_key()
+
+
+def test_a_numeric_token_is_hashed_without_raising():
+    """The option declares no type, and EXAMPLES writes the token as a bare number."""
+    plugin = _module(token=1234567890123456478901234567)
+
+    assert plugin._cache_key()
+
+
+def test_a_numeric_token_and_its_string_spelling_share_an_entry():
+    """Same credential, same cache scope -- the YAML quoting is not part of the request."""
+    assert _module(token=42)._cache_key() == _module(token="42")._cache_key()

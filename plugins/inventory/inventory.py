@@ -283,7 +283,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 "endpoint": self.api_endpoint,
                 "branch": self.branch,
                 "nodes": self.nodes,
-                "token": hashlib.sha256(token.encode()).hexdigest() if token else None,
+                # `str` first: the option declares no type, so a token written as a
+                # bare number (as the example in this file's EXAMPLES does) arrives as
+                # an int and has no `encode`.
+                "token": hashlib.sha256(str(token).encode()).hexdigest() if token else None,
                 "prefetch_relationships": getattr(self, "prefetch_relationships", None),
                 "version": CACHE_SCHEMA_VERSION,
             },
