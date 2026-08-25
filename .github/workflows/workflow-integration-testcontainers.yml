@@ -7,7 +7,12 @@ on:
       runs-on:
         description: "The OS to run the job on"
         required: false
-        default: "ubuntu-22.04"
+        # ubuntu-latest, not ubuntu-22.04: this job boots a database, a message bus,
+        # a cache, a task manager and the API, and 22.04's 2 vCPU / 7 GB could not do
+        # it reliably -- runs failed either with an unhealthy message-queue container
+        # or with the API not serving before the first schema load. Matches what the
+        # sibling repos use for their heavy jobs; nothing larger exists in the org.
+        default: "ubuntu-latest"
         type: string
       infrahub_version:
         description: "Infrahub image version to test against (empty = infrahub-testcontainers package default)"
@@ -24,7 +29,12 @@ on:
       runs-on:
         description: "The OS to run the job on"
         required: false
-        default: "ubuntu-22.04"
+        # ubuntu-latest, not ubuntu-22.04: this job boots a database, a message bus,
+        # a cache, a task manager and the API, and 22.04's 2 vCPU / 7 GB could not do
+        # it reliably -- runs failed either with an unhealthy message-queue container
+        # or with the API not serving before the first schema load. Matches what the
+        # sibling repos use for their heavy jobs; nothing larger exists in the org.
+        default: "ubuntu-latest"
         type: string
       infrahub_version:
         description: "Infrahub image version to test against (empty = infrahub-testcontainers package default)"
