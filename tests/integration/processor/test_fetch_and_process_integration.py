@@ -70,7 +70,7 @@ class _CapturingDisplay:
 
 class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
     @pytest.fixture(scope="class")
-    def seeded_tags(self, client_sync: InfrahubClientSync) -> list[str]:
+    def seeded_tags(self, client_sync: InfrahubClientSync, infrahub_ready: None) -> list[str]:
         """Create a couple of BuiltinTag nodes (part of Infrahub's default schema)."""
         names = ["blue", "green"]
         for name in names:

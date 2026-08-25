@@ -1,7 +1,7 @@
 """Pytest configuration and shared helpers for the processor integration tests.
 
-Puts the directory that contains ``ansible_collections`` on ``sys.path`` so the
-plugin's absolute imports resolve under plain pytest, regardless of nesting depth.
+The collection-path and readiness handling lives in ``_harness`` so all three
+integration suites share one copy of it; see that module for why either is needed.
 The two suites in this directory share the processor factory and the round-trip
 counter from here so they cannot drift apart.
 """
@@ -19,11 +19,17 @@ if TYPE_CHECKING:
 
     from infrahub_sdk import InfrahubClientSync
 
-for _parent in Path(__file__).resolve().parents:
-    if (_parent / "ansible_collections").is_dir():
-        if str(_parent) not in sys.path:
-            sys.path.insert(0, str(_parent))
-        break
+# This directory is not a package, so pytest inserts *it* rather than its parent --
+# `_harness` has to be found explicitly.
+_INTEGRATION_ROOT = str(Path(__file__).resolve().parent.parent)
+if _INTEGRATION_ROOT not in sys.path:
+    sys.path.insert(0, _INTEGRATION_ROOT)
+
+from _harness import infrahub_ready, install_collection_path, schema_loader
+
+__all__ = ["count_graphql", "infrahub_ready", "processor_for", "schema_loader"]
+
+install_collection_path()
 
 
 def processor_for(client_sync: InfrahubClientSync):

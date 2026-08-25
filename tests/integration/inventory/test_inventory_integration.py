@@ -52,8 +52,8 @@ def _parse_cli_inventory(stdout: str) -> tuple[set[str], dict[str, set[str]], di
 
 class TestInventoryIntegration(TestInfrahubDockerClient):
     @pytest.fixture(scope="class")
-    def dataset(self, client_sync) -> dict:
-        return seed_dataset(client_sync)
+    def dataset(self, client_sync, schema_loader) -> dict:
+        return seed_dataset(client_sync, loader=schema_loader)
 
     def _env(self, infrahub_port: int) -> dict:
         env = os.environ.copy()

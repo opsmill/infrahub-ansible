@@ -20,13 +20,15 @@ them.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from infrahub_sdk.schema.main import AttributeKind, GenericSchema, NodeSchema, RelationshipKind, SchemaRoot
 from infrahub_sdk.schema.main import AttributeSchema as Attr
 from infrahub_sdk.schema.main import RelationshipSchema as Rel
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from infrahub_sdk import InfrahubClientSync
 
 NAMESPACE = "Testing"
@@ -112,9 +114,14 @@ HOSTS = [
 ]
 
 
-def seed_dataset(client: InfrahubClientSync) -> dict:
-    """Load the schema and create the host topology. Idempotent enough for one container."""
-    resp = client.schema.load(schemas=[build_schema().to_schema_dict()], wait_until_converged=True)
+def seed_dataset(client: InfrahubClientSync, loader: Callable[..., Any] | None = None) -> dict:
+    """Load the schema and create the host topology. Idempotent enough for one container.
+
+    ``loader`` is the retrying ``schema.load`` from the integration harness; the
+    direct call is the fallback for anyone driving this outside pytest.
+    """
+    load = loader or (lambda schemas: client.schema.load(schemas=schemas, wait_until_converged=True))
+    resp = load([build_schema().to_schema_dict()])
     if resp.errors:
         raise RuntimeError(f"schema load failed: {resp.errors}")
 

@@ -71,9 +71,9 @@ class TestFetchRoundTripMeasurement(TestInfrahubDockerClient, SchemaAnimal):
     CATS_PER_PERSON = 2
 
     @pytest.fixture(scope="class")
-    def seeded(self, client_sync, schema_base) -> dict:
+    def seeded(self, client_sync, schema_base, schema_loader) -> dict:
         """Load the animal schema and seed people (with tags) owning cats."""
-        resp = client_sync.schema.load(schemas=[schema_base.to_schema_dict()], wait_until_converged=True)
+        resp = schema_loader([schema_base.to_schema_dict()])
         assert not resp.errors, resp.errors
 
         tags = []

@@ -35,10 +35,10 @@ TEST_BRANCH = "ansible-modules-it"
 
 class TestModulesIntegration(TestInfrahubDockerClient):
     @pytest.fixture(scope="class")
-    def node_branch(self, client_sync) -> str:
+    def node_branch(self, client_sync, schema_loader) -> str:
         """A dedicated branch with the TestingThing schema for the node tests."""
         client_sync.branch.create(branch_name=TEST_BRANCH, wait_until_completion=True)
-        load_schema(client_sync, branch=TEST_BRANCH)
+        load_schema(client_sync, branch=TEST_BRANCH, loader=schema_loader)
         return TEST_BRANCH
 
     # Note: no cleanup_on_failure fixture (unlike demo-dc) — testcontainers tears
