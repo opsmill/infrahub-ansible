@@ -470,3 +470,101 @@ def test_a_generic_kind_resolves_the_concrete_kinds_it_answers_with(mocker):
     result = processor.fetch_and_process(nodes={"TestingLocation": {}})
 
     assert result == {"s1": {"id": "s1"}, "r1": {"id": "r1"}}
+
+
+def test_each_fetch_resolves_its_nodes_with_its_own_attribute_list(mocker):
+    """A generic and one of its concrete kinds are two specs, not one.
+
+    Both fetches answer with the same concrete ``__typename``, so a single by-kind
+    attribute map lets whichever spec registered last speak for both: the other's
+    fields get read off nodes whose query never projected them, and its variables are
+    lost. Each node is resolved with the spec that fetched it instead, and a host both
+    specs answered with carries the union rather than one silently replacing the other.
+    """
+    nodes_by_kind = {
+        "TestingLocation": [FakeNode("TestingSite", "s1")],
+        # A second fetch of the same underlying node, as the server would answer it.
+        "TestingSite": [FakeNode("TestingSite", "s1")],
+    }
+    processor, _wrapper = _make_processor(mocker, nodes_by_kind)
+
+    def resolve(node, attrs, schemas, include_id, refill):
+        return {attr: f"{node.id}-{attr}" for attr in attrs} | {"id": node.id}
+
+    resolved = mocker.patch.object(processor, "resolve_node_mapping", side_effect=resolve)
+
+    result = processor.fetch_and_process(
+        nodes={"TestingLocation": {"include": ["name"]}, "TestingSite": {"include": ["shortname"]}}
+    )
+
+    assert [c.kwargs["attrs"] for c in resolved.call_args_list] == [["name"], ["shortname"]]
+    assert result == {"s1": {"id": "s1", "name": "s1-name", "shortname": "s1-shortname"}}
+
+
+def test_a_refill_is_judged_by_the_query_that_fetched_the_node(mocker):
+    """An empty field the fetching query never projected is still worth a reload.
+
+    The node reports its concrete kind, so a ledger keyed on that alone consults the
+    *concrete* spec's projection -- which did project the field -- and calls the empty a
+    genuine null. The refill is suppressed and the value stays empty with nothing queued
+    to fix it, which is silently wrong data rather than a slow run.
+    """
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import RefillLedger
+
+    processor, _wrapper = _make_processor(mocker, {})
+    node = FakeNode("TestingSite", "s1")
+    generic = SimpleNamespace(projected=lambda root: False)
+    concrete = SimpleNamespace(projected=lambda root: True)
+
+    fetched = iu.HostFetch()
+    fetched.nodes = [node]
+    fetched.projections = {"TestingLocation": generic, "TestingSite": concrete}
+    fetched.contexts = [iu.HostContext(kind="TestingLocation", nodes=[node], attrs=["name"], projection=generic)]
+
+    def resolve(node, attrs, schemas, include_id, refill):
+        refill.record(node, "name")
+        return {"id": node.id}
+
+    mocker.patch.object(processor, "resolve_node_mapping", side_effect=resolve)
+    refill = RefillLedger(projections=fetched.projections)
+
+    processor._resolve_hosts(fetched=fetched, include_id=True, refill=refill)
+
+    assert refill.pending == {"TestingSite": {"s1"}}
+
+
+def test_a_hand_built_fetch_falls_back_to_the_by_kind_attributes(mocker):
+    """No per-fetch context: resolve off the by-kind map, exactly as before."""
+    from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import RefillLedger
+
+    processor, _wrapper = _make_processor(mocker, {})
+
+    fetched = iu.HostFetch()
+    fetched.nodes = [FakeNode("KindA", "a1")]
+    fetched.attrs_by_kind = {"KindA": ["name", "site.name"]}
+
+    resolve = mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "a1"})
+    result = processor._resolve_hosts(fetched=fetched, include_id=True, refill=RefillLedger.disabled())
+
+    assert result == {"a1": {"id": "a1"}}
+    assert resolve.call_args.kwargs["attrs"] == ["name", "site.name"]
+
+
+def test_merging_two_specs_keeps_both_nested_paths():
+    """Two specs naming different nested paths under one root must not erase each other."""
+    existing = {"id": "s1", "site": {"id": "x1", "name": "paris"}, "name": None}
+
+    iu.InfrahubNodesProcessor._merge_host_result(
+        existing, {"id": "s1", "site": {"id": "x1", "shortname": "par"}, "name": "site-1"}
+    )
+
+    assert existing == {"id": "s1", "site": {"id": "x1", "name": "paris", "shortname": "par"}, "name": "site-1"}
+
+
+def test_merging_keeps_a_falsy_answer_over_an_unresolved_placeholder():
+    """``False`` and ``0`` are answers; ``None`` and ``{}`` are what an unasked field looks like."""
+    existing = {"enabled": False, "count": 0, "site": {}}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"enabled": None, "count": None, "site": {"name": "paris"}})
+
+    assert existing == {"enabled": False, "count": 0, "site": {"name": "paris"}}

@@ -288,3 +288,50 @@ def test_warm_counts_each_loaded_id_once_across_passes():
     assert warmer.stats["LocationSite"]["loaded"] == 2
     # Both passes were issued, so both are still charged as batches.
     assert warmer.stats["LocationSite"]["batches"] == 2
+
+
+def test_scoped_view_shares_the_parent_pending_set():
+    """One batched reload, however many resolution passes feed it.
+
+    A view exists because two specs can answer with the same concrete kind and a
+    kind-keyed projection map cannot tell them apart. Copying ``pending`` instead of
+    sharing it would leave each pass queueing into a ledger nobody ever reloads.
+    """
+    parent = RefillLedger(projections={"KindA": SimpleNamespace(projected=lambda root: True)})
+    view = parent.scoped({"KindA": SimpleNamespace(projected=lambda root: False)})
+
+    view.record(FakeNode("KindA", "a1"), "name")
+
+    assert view.pending is parent.pending
+    assert parent.pending == {"KindA": {"a1"}}
+    # The parent is what the caller tests before issuing the reload.
+    assert parent
+
+
+def test_scoped_view_judges_against_its_own_projections():
+    """The parent's verdict for that kind must not leak into the view.
+
+    This is the suppression the view exists to stop: the node came from a query that
+    never projected the field, so the empty is not a genuine null -- even though the
+    other spec for that same concrete kind did project it.
+    """
+    parent = RefillLedger(projections={"KindA": SimpleNamespace(projected=lambda root: False)})
+    view = parent.scoped({"KindA": SimpleNamespace(projected=lambda root: True)})
+
+    view.record(FakeNode("KindA", "a1"), "name")
+
+    assert view.pending == {}
+
+
+def test_scoped_view_inherits_enabled_and_already_loaded():
+    """A view of a disabled ledger records nothing, and a peer loaded in full stays exempt."""
+    disabled = RefillLedger.disabled().scoped({})
+    disabled.record(FakeNode("KindA", "a1"), "name")
+    assert disabled.pending == {}
+
+    loaded = RefillLedger(projections={}, already_loaded={"s1"}).scoped({})
+    loaded.record(FakeNode("LocationSite", "s1"), "name")
+    assert loaded.pending == {}
+    # An id nothing fetched in full still queues.
+    loaded.record(FakeNode("LocationSite", "s2"), "name")
+    assert loaded.pending == {"LocationSite": {"s2"}}

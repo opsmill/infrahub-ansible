@@ -17,6 +17,8 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import Peer
 from ansible_collections.opsmill.infrahub.plugins.module_utils.projection import NodeProjection
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from ansible.module_utils.basic import AnsibleModule, Display
     from infrahub_sdk.branch import BranchData
 
@@ -876,14 +878,64 @@ if HAS_INFRAHUBCLIENT:
             return attribute_dict
 
     @dataclass
+    class HostContext:
+        """One fetch's own resolution context: what was asked for, and what came back.
+
+        A generic and one of its concrete kinds can both be requested, and both fetches
+        then answer with the same concrete ``__typename``. Keyed by concrete kind alone,
+        one spec's attribute list and projection stand in for the other's: attributes
+        are read that the query never projected, and the empty they come back as is
+        judged against a projection saying they *were* asked for. Each fetch keeps its
+        own context here instead, so its nodes are resolved with the spec that got them.
+
+        Attributes:
+            kind: the kind that was *requested*. For a generic that is not the kind the
+                nodes themselves report.
+            nodes: the nodes this fetch answered with.
+            attrs: the dotted attribute paths to resolve out of them.
+            projection: what this fetch actually asked the server for.
+        """
+
+        kind: str
+        nodes: list[InfrahubNodeSync]
+        attrs: list[str]
+        projection: NodeProjection
+
+        def scoped_projections(self, fallback: dict[str, NodeProjection]) -> dict[str, NodeProjection]:
+            """``fallback`` with every kind this fetch answered with mapped to its projection.
+
+            ``RefillLedger`` keys on a node's own kind, which is all it can see, so the
+            override has to name the concrete kinds rather than the requested one: that
+            is what makes a node fetched through a generic get judged against the
+            generic's projection instead of the concrete kind's own spec. The rest of
+            ``fallback`` is left in place as the fallback for peer nodes reached through
+            relationships -- peers have no projection of their own, and narrowing the map
+            to this one would queue pointless refills for genuinely-null peer attributes.
+            """
+            scoped = dict(fallback)
+            scoped[self.kind] = self.projection
+            for node in self.nodes:
+                scoped[node._schema.kind] = self.projection
+            return scoped
+
+    @dataclass
     class HostFetch:
         """Host nodes plus the schema and projection context needed to resolve them.
 
         Filled in as each requested kind is fetched, so the collections are mutable
         and start empty.
+
+        ``contexts`` holds one entry per successful fetch and is what resolution drives
+        off: it is the only view that survives two specs answering with the same
+        concrete kind. The by-kind maps stay alongside it for the paths that are
+        deliberately kind-level -- peer warming, which wants the union of every spec,
+        and the cost breakdown, which tolerates a concrete kind having no projection of
+        its own. ``_fetch_host_nodes`` is the only place that fills either, so they
+        cannot drift.
         """
 
         nodes: list[InfrahubNodeSync] = field(default_factory=list)
+        contexts: list[HostContext] = field(default_factory=list)
         schemas: dict[str, Any] = field(default_factory=dict)
         attrs_by_kind: dict[str, list[str]] = field(default_factory=dict)
         projections: dict[str, NodeProjection] = field(default_factory=dict)
@@ -1197,6 +1249,17 @@ if HAS_INFRAHUBCLIENT:
                 # its own spec.
                 for fetched_node in nodes_from_kind:
                     fetched.attrs_by_kind.setdefault(fetched_node._schema.kind, projection.attrs)
+                # The per-fetch record that resolution drives off. The by-kind maps above
+                # cannot tell two specs apart once both answer with the same concrete
+                # kind -- one of them ends up speaking for both -- and this can.
+                fetched.contexts.append(
+                    HostContext(
+                        kind=node_kind,
+                        nodes=list(nodes_from_kind),
+                        attrs=projection.attrs,
+                        projection=projection,
+                    )
+                )
                 fetched.nodes.extend(nodes_from_kind)
 
             return fetched
@@ -1224,6 +1287,56 @@ if HAS_INFRAHUBCLIENT:
             # here would be a round-trip nothing reads back.
             return warmer.warm(referenced)
 
+        @staticmethod
+        def _resolution_passes(
+            fetched: HostFetch, refill: RefillLedger
+        ) -> Iterator[tuple[InfrahubNodeSync, list[str], RefillLedger]]:
+            """Each host node paired with the attribute list and ledger of the fetch that got it.
+
+            Driven off ``fetched.contexts``, the only view that survives two specs
+            answering with the same concrete kind. A ``HostFetch`` assembled by hand
+            without contexts falls back to the by-kind attribute map, which is what this
+            did before per-fetch context existed.
+            """
+            if fetched.contexts:
+                for context in fetched.contexts:
+                    ledger = refill.scoped(context.scoped_projections(fetched.projections))
+                    for host_node in context.nodes:
+                        yield host_node, context.attrs, ledger
+                return
+
+            for host_node in fetched.nodes:
+                yield host_node, fetched.attrs_by_kind[host_node._schema.kind], refill
+
+        @staticmethod
+        def _is_placeholder(value: Any) -> bool:
+            """Whether a resolved value is the placeholder a root gets when nothing resolved.
+
+            ``resolve_node_mapping`` seeds every requested root with ``None`` or ``{}``
+            and overwrites only what it could resolve, so those are what "this spec had
+            no answer for this field" looks like. ``False``, ``0`` and ``""`` are answers.
+            """
+            return value is None or (isinstance(value, (dict, list)) and not value)
+
+        @classmethod
+        def _merge_host_result(cls, existing: dict[str, Any], addition: dict[str, Any]) -> None:
+            """Fold one fetch's resolution of a host into what another fetch resolved for it.
+
+            Each result carries only what its own query projected, so the two are not
+            interchangeable and the union is what the user asked for. Nested roots merge
+            in place rather than being replaced wholesale: two specs naming different
+            nested paths under one relationship must not erase each other. Where both
+            answered for the same field the first stands, unless it is a placeholder --
+            which keeps ``id`` consistent, both passes having resolved the same node.
+            """
+            for key, value in addition.items():
+                if key not in existing:
+                    existing[key] = value
+                elif isinstance(existing[key], dict) and isinstance(value, dict):
+                    cls._merge_host_result(existing[key], value)
+                elif cls._is_placeholder(existing[key]) and not cls._is_placeholder(value):
+                    existing[key] = value
+
         def _resolve_hosts(
             self,
             fetched: HostFetch,
@@ -1231,12 +1344,18 @@ if HAS_INFRAHUBCLIENT:
             refill: RefillLedger,
             refreshed: bool = False,
         ) -> dict[str, Any]:
-            """Resolve every host node exactly once against the warmed store.
+            """Resolve every host node against the warmed store, with the spec that fetched it.
+
+            A node is resolved once per fetch that answered with it -- once, except where
+            a generic and one of its concrete kinds were both requested and both came
+            back with the same host.
 
             Parameters:
                 fetched (HostFetch): the host nodes and their resolution context.
                 include_id (bool): Whether to include the node ID in each result.
                 refill (RefillLedger): where to record attributes the query never carried.
+                    Each fetch resolves against a view of it scoped to that fetch's own
+                    projections, every view sharing this ledger's pending set.
                 refreshed (bool): read each node back from the store first. A refill
                     replaces the node in the store rather than mutating the instance in
                     hand, so the second pass has to look it up again.
@@ -1244,21 +1363,31 @@ if HAS_INFRAHUBCLIENT:
             store = self.client.client.store
             resolved: dict[str, Any] = {}
 
-            for host_node in fetched.nodes:
+            for host_node, attrs, ledger in self._resolution_passes(fetched=fetched, refill=refill):
                 node = (store.get(key=host_node.id, raise_when_missing=False) or host_node) if refreshed else host_node
                 result = self.resolve_node_mapping(
                     node=node,
-                    attrs=fetched.attrs_by_kind[host_node._schema.kind],
+                    attrs=attrs,
                     schemas=fetched.schemas,
                     include_id=include_id,
-                    refill=refill,
+                    refill=ledger,
                 )
                 self._handle_display(
                     message=f"Resolved attributes for node '{get_node_identifier(host_node)}'",
                     level="DEBUG",
                 )
-                if result:
-                    resolved[str(host_node)] = result
+                if not result:
+                    continue
+
+                key = str(host_node)
+                if key in resolved:
+                    # One host reachable through two specs gets the union of both. Each
+                    # node was resolved with the spec that fetched it, so the results are
+                    # complementary rather than redundant -- the last-write-wins this
+                    # replaces silently dropped whichever spec resolved first.
+                    self._merge_host_result(resolved[key], result)
+                else:
+                    resolved[key] = result
 
             return resolved
 

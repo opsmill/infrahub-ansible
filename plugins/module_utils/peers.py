@@ -70,6 +70,21 @@ class RefillLedger:
         """A ledger that records nothing."""
         return cls(enabled=False)
 
+    def scoped(self, projections: dict[str, Any]) -> RefillLedger:
+        """A view judging nodes against one fetch's projections, sharing this ledger's pending set.
+
+        Two node specs can answer with the same concrete kind -- a generic and one of
+        its concrete kinds -- and then a single kind-keyed map cannot say which query a
+        given node came from. A resolution pass takes a view scoped to the projections
+        of the fetch it is walking, so an attribute *that* query never asked for is
+        still recorded even where the other spec projected it, and an attribute it did
+        ask for is not re-queued just because the other spec left it out. ``pending`` is
+        the same object rather than a copy: every view feeds the one batched reload.
+        """
+        view = RefillLedger(projections=projections, enabled=self.enabled, already_loaded=self.already_loaded)
+        view.pending = self.pending
+        return view
+
     def record(self, node: Any, root_attr: str) -> None:
         """Note that ``root_attr`` came back empty on ``node``, if that is worth a reload."""
         if not self.enabled or not node.id:
