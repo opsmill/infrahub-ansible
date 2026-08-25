@@ -10,11 +10,17 @@ from __future__ import annotations
 from ansible_collections.opsmill.infrahub.plugins.inventory.inventory import InventoryModule
 
 
-def _module(endpoint="http://infrahub:8000", branch="main", nodes=None):
+def _module(endpoint="http://infrahub:8000", branch="main", nodes=None, token=None, prefetch_relationships=None):
     plugin = InventoryModule()
     plugin.api_endpoint = endpoint
     plugin.branch = branch
     plugin.nodes = nodes if nodes is not None else {"DcimDevice": {"include": ["name"]}}
+    # Left unset unless a test asks for them, so the plain calls keep covering a
+    # plugin that has not reached _set_authorization or the option read yet.
+    if token is not None:
+        plugin.token = token
+    if prefetch_relationships is not None:
+        plugin.prefetch_relationships = prefetch_relationships
     return plugin
 
 
@@ -49,6 +55,36 @@ def test_filters_change_the_key():
 
 def test_endpoint_changes_the_key():
     assert _module(endpoint="http://a:8000")._cache_key() != _module(endpoint="http://b:8000")._cache_key()
+
+
+def test_token_changes_the_key():
+    """Infrahub applies permissions per token: two tokens must not share an entry."""
+    a = _module(token="token-of-a-read-only-account")
+    b = _module(token="token-of-an-admin-account")
+
+    assert a._cache_key() != b._cache_key()
+
+
+def test_the_raw_token_never_lands_in_the_key():
+    """The key becomes a cache filename and shows up in verbose output; only a digest belongs in it."""
+    token = "s3cret-infrahub-token"
+
+    assert token not in _module(token=token)._cache_key()
+
+
+def test_prefetch_relationships_changes_the_key():
+    """It decides which relationship data reaches the host variables."""
+    a = _module(prefetch_relationships=True)
+    b = _module(prefetch_relationships=False)
+
+    assert a._cache_key() != b._cache_key()
+
+
+def test_a_missing_token_still_builds_a_key():
+    plugin = _module()
+    plugin.token = None
+
+    assert plugin._cache_key() == _module()._cache_key()
 
 
 def test_key_order_in_the_node_spec_does_not_matter():

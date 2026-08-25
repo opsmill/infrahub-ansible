@@ -265,14 +265,26 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         ``get_cache_key`` hashes the plugin name plus whatever it is handed. Handing
         it only the endpoint means two inventory files pointing at one Infrahub share
         a single entry, and switching ``branch`` serves the other branch's hosts.
-        The branch, the node spec and a schema version travel in the key instead, so
-        a different request is a different entry.
+        The branch, the node spec, the token, the ``prefetch_relationships`` setting
+        and a schema version travel in the key instead, so a different request is a
+        different entry.
+
+        Infrahub applies permissions per token, so the token identity has to be part
+        of the key or a low-privilege run can be served hosts a privileged token
+        fetched. Only a digest of the token goes in: the key ends up in a cache
+        filename and in verbose output, and the secret must not be recoverable from
+        either. ``prefetch_relationships`` decides which relationship data lands in
+        the host variables, so prefetched and non-prefetched runs need their own
+        entries too.
         """
+        token = getattr(self, "token", None)
         request = json.dumps(
             {
                 "endpoint": self.api_endpoint,
                 "branch": self.branch,
                 "nodes": self.nodes,
+                "token": hashlib.sha256(token.encode()).hexdigest() if token else None,
+                "prefetch_relationships": getattr(self, "prefetch_relationships", None),
                 "version": CACHE_SCHEMA_VERSION,
             },
             sort_keys=True,
