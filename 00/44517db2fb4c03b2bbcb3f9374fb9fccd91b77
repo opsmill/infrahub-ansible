@@ -1,0 +1,20 @@
+tests/integration/_harness.py
+  s_430068875b317b::t_86a4724b1b9bbf 64-75
+  s_430068875b317b::t_d6b17f6f35024a 156-159,161-164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "0044517db2fb4c03b2bbcb3f9374fb9fccd91b77",
+  "prompts": {},
+  "sessions": {
+    "s_430068875b317b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe890077-57c0-4423-a319-e0c0d93e9b1f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
