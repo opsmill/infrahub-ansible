@@ -43,7 +43,7 @@ def _handle_exc(
             display.error(msg1)
         else:
             display.warning(msg1)
-        display.verbose(f"Full error: {exc}", caplevel=4)
+        display.verbose(f"Full error: {exc}", caplevel=2)
         display.verbose(msg2, caplevel=2)
     elif exc.__class__ == BranchNotFoundError:
         raise exc
@@ -85,7 +85,7 @@ def handle_infrahub_exceptions(display: Display | None) -> Callable[[Callable], 
                 if display:
                     display.warning(msg1)
                     display.warning(f"Reason: {error_msg}")
-                    display.verbose(f"Full error: {exc}", caplevel=4)
+                    display.verbose(f"Full error: {exc}", caplevel=2)
                     display.verbose(msg2, caplevel=2)
                 else:
                     raise Exception(exc)
