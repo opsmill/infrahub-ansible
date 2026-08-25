@@ -249,7 +249,7 @@ def test_warm_records_nothing_when_the_fetch_is_swallowed():
     warmer.warm({"LocationSite": {"s1"}})
 
     assert warmer.loaded == set()
-    assert [kind for kind, _ in errors] == ["LocationSite"]
+    assert [kind for kind, _exc in errors] == ["LocationSite"]
     assert "fetch failed" in str(errors[0][1])
     # Counted once, by the branch that saw the None -- not again by the `except`.
     assert warmer.stats["LocationSite"]["failed"] == 1

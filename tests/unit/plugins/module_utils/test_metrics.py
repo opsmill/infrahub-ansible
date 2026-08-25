@@ -18,7 +18,7 @@ def test_counter_starts_at_zero():
 
 def test_counter_increments_once_per_response():
     counter = metrics.RequestCounter()
-    for _ in range(3):
+    for _response in range(3):
         counter.record(response=None)
     assert counter.responses == 3
 

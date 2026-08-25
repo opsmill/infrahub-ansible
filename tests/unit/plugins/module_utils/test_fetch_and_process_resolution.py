@@ -239,7 +239,7 @@ def test_run_cost_reports_this_run_not_the_client_lifetime(mocker):
     from ansible_collections.opsmill.infrahub.plugins.module_utils.metrics import RequestCounter
 
     counter = RequestCounter()
-    for _ in range(5):  # an earlier run on the same client
+    for _earlier_request in range(5):  # an earlier run on the same client
         counter.record(response=None)
 
     nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
