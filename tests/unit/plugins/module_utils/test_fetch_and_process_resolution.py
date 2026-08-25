@@ -268,17 +268,40 @@ def test_run_cost_reports_this_run_not_the_client_lifetime(mocker):
 
 
 def test_run_cost_degrades_when_no_counter_is_attached(mocker):
-    """A wrapper without a counter still reports the peer figures, and does not raise."""
+    """A wrapper without a counter still reports the peer figures, and does not raise.
+
+    The attribute is deleted rather than left to the mock: a `MagicMock` conjures
+    `request_counter` on access, so the default fixture exercises `request_count`'s
+    *non-int* branch instead of the missing-attribute one this test is named for. A
+    wrapper built through `__new__`, which is the real case, has no attribute at all.
+    """
     nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
-    processor, _wrapper = _make_processor(mocker, nodes_by_kind)
+    processor, wrapper = _make_processor(mocker, nodes_by_kind)
+    del wrapper.request_counter
     processor.display = mocker.MagicMock()
     mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
 
+    assert iu.request_count(wrapper) is None
     processor.fetch_and_process(nodes={"KindA": {}})
 
     cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
     assert "unavailable" in cost_line
     assert "node(s) loaded" in cost_line
+
+
+def test_run_cost_degrades_when_the_counter_reading_is_not_a_number(mocker):
+    """The other way `request_count` gives up: a counter whose `responses` is not an int."""
+    nodes_by_kind = {"KindA": [FakeNode("KindA", "a1")]}
+    processor, wrapper = _make_processor(mocker, nodes_by_kind)
+    wrapper.request_counter.responses = "not-a-number"
+    processor.display = mocker.MagicMock()
+    mocker.patch.object(processor, "resolve_node_mapping", return_value={"id": "x"})
+
+    assert iu.request_count(wrapper) is None
+    processor.fetch_and_process(nodes={"KindA": {}})
+
+    cost_line = next(line for line in _display_lines(processor.display) if "Inventory fetch cost" in line)
+    assert "unavailable" in cost_line
 
 
 def test_run_cost_counts_the_peer_batches_it_issued(mocker):
