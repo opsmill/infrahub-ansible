@@ -1,0 +1,21 @@
+plugins/inventory/inventory.py
+  s_385feaaff8b791::t_83ff9844d6f31b 327,330-338
+tests/unit/plugins/inventory/test_inventory_population.py
+  s_385feaaff8b791::t_8c1f91b0fabea8 205-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "2a98120bf5737bdd73aabc84e849f9f5c1f9a063",
+  "prompts": {},
+  "sessions": {
+    "s_385feaaff8b791": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "332dcdae-d2aa-47dd-b7e6-a411e9700ed6",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
