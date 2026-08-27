@@ -76,6 +76,22 @@ TEXT_MIME_TYPES = frozenset(
     }
 )
 
+
+def unwrap_wrapped_error(exc: BaseException) -> BaseException:
+    """Return the SDK error that `handle_infrahub_exceptions` replaced with a bare `Exception`.
+
+    `InfrahubclientWrapper.__init__` wraps every one of its public methods in that
+    decorator, and with no `Display` attached the decorator re-raises the original as
+    `Exception(exc)`. A caller that formats the exception it caught would therefore
+    report the type as "Exception" -- which names nothing -- and chain to the stand-in
+    rather than to the GraphQL, HTTP or timeout error that explains the failure. The
+    original is the stand-in's only argument, so hand that back instead.
+    """
+    if exc.__class__ is Exception and len(exc.args) == 1 and isinstance(exc.args[0], BaseException):
+        return exc.args[0]
+    return exc
+
+
 if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
 
@@ -1672,8 +1688,11 @@ if HAS_INFRAHUBCLIENT:
                 # comes out of here as `AnsibleError(str(exc))`, so a message built
                 # only from the query text is the entirety of what a playbook author
                 # sees -- the status code, the GraphQL error list or the timeout that
-                # explains the failure never reached them.
-                raise Exception(f"Failed to execute the GraphQL query: {type(exc).__name__}: {exc}") from exc
+                # explains the failure never reached them. Unwrap first: the client
+                # wrapper's exception decorator hands us the SDK error boxed in a bare
+                # `Exception`, and naming that box reports the type as "Exception".
+                cause = unwrap_wrapped_error(exc)
+                raise Exception(f"Failed to execute the GraphQL query: {type(cause).__name__}: {cause}") from cause
 
             if not response:
                 # Not an empty result set: `handle_infrahub_exceptions` logs and returns

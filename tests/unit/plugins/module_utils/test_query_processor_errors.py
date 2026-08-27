@@ -19,18 +19,43 @@ from __future__ import annotations
 
 import pytest
 from ansible_collections.opsmill.infrahub.plugins.module_utils import infrahub_utils as iu
+from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
+from infrahub_sdk.exceptions import GraphQLError
 
 QUERY = {"ZoneBNG": {"edges": {"node": {"name": {"value": None}}}}}
+RENDERED = "query { ZoneBNG { edges { node { name { value } } } } }"
 
 
 def _processor(mocker, *, side_effect=None, return_value=None):
     """A query processor whose ``execute_graphql`` behaves as the test asks."""
     wrapper = mocker.MagicMock()
-    wrapper._render_query.return_value = "query { ZoneBNG { edges { node { name { value } } } } }"
+    wrapper._render_query.return_value = RENDERED
     wrapper.execute_graphql.side_effect = side_effect
     if side_effect is None:
         wrapper.execute_graphql.return_value = return_value
     return iu.InfrahubQueryProcessor(client=wrapper)
+
+
+def _decorated_processor(error):
+    """A query processor whose client is decorated the way the real wrapper decorates itself.
+
+    A ``MagicMock`` raises whatever the test hands it, which is exactly what the
+    production wrapper never does: ``InfrahubclientWrapper.__init__`` runs every
+    public method through ``handle_infrahub_exceptions_decorator``, so the caller
+    sees the decorator's output, not the SDK's. These tests reproduce that
+    decoration rather than mocking past it.
+    """
+
+    class _Client:
+        def _render_query(self, query, variables=None):
+            return RENDERED
+
+        def execute_graphql(self, query, variables=None, branch=None):
+            raise error
+
+    client = _Client()
+    client.execute_graphql = handle_infrahub_exceptions_decorator(None)(client.execute_graphql)
+    return iu.InfrahubQueryProcessor(client=client)
 
 
 def test_raised_failure_keeps_its_cause_and_message(mocker):
@@ -51,6 +76,41 @@ def test_raised_failure_keeps_its_cause_and_message(mocker):
     # And it is legible without a traceback, which is all AnsibleError(str(exc)) shows.
     assert "Server returned HTTP 502" in str(excinfo.value)
     assert "RuntimeError" in str(excinfo.value)
+
+
+def test_decorated_graphql_error_is_named_not_the_wrapper_stand_in():
+    """Through the real decorator, the reported type is ``GraphQLError``, not ``Exception``.
+
+    With no ``Display`` attached the decorator re-raises the SDK error as a bare
+    ``Exception(exc)``. Formatting that directly reported the type as "Exception" and
+    chained ``__cause__`` to the stand-in, leaving the real error one level further
+    away than the message and the traceback both claimed.
+    """
+    original = GraphQLError(errors=[{"message": "Zone 'bng' does not exist"}])
+    processor = _decorated_processor(original)
+
+    with pytest.raises(Exception) as excinfo:
+        processor.fetch_and_process(query=QUERY)
+
+    message = str(excinfo.value)
+    assert "GraphQLError" in message
+    assert "Zone 'bng' does not exist" in message
+    assert "query: Exception:" not in message
+    assert excinfo.value.__cause__ is original
+
+
+def test_decorated_unexpected_error_keeps_its_own_type_and_cause():
+    """The same holds for the decorator's catch-all branch, which goes through ``_handle_exc``."""
+    original = RuntimeError("Server returned HTTP 502")
+    processor = _decorated_processor(original)
+
+    with pytest.raises(Exception) as excinfo:
+        processor.fetch_and_process(query=QUERY)
+
+    message = str(excinfo.value)
+    assert "RuntimeError" in message
+    assert "Server returned HTTP 502" in message
+    assert excinfo.value.__cause__ is original
 
 
 def test_empty_response_says_the_call_failed_not_that_the_query_is_bad(mocker):
