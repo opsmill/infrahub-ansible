@@ -12,7 +12,9 @@ author:
     - Benoit Kohler (@bearchitek)
 short_description: Infrahub inventory source (using GraphQL)
 description:
-    - Get inventory hosts from Infrahub
+    - Get inventory hosts from Infrahub.
+    - When strict is false, a compose, groups or keyed_groups expression that fails to resolve
+      emits one warning per distinct failure naming the affected hosts, instead of failing silently.
 extends_documentation_fragment:
     - constructed
     - inventory_cache
@@ -179,7 +181,11 @@ RETURN = """
 import hashlib
 import json
 import os
-from typing import Any
+from functools import partial
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
@@ -190,6 +196,8 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     InfrahubNodesProcessor,
 )
 
+# Additional failing hosts listed by name in an aggregated strict:false warning.
+MAX_LISTED_FAILURE_HOSTS = 5
 # Bump when the shape of the cached host variables changes, so an upgrade does not
 # read an older release's entries back as if they were current.
 CACHE_SCHEMA_VERSION = 2
@@ -332,6 +340,65 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if self.user_cache_setting:
             self._cache[self._cache_key()] = json.dumps(host_node_attributes)
 
+    def _apply_constructed_or_record(self, apply_entry: Callable[..., None], entry_label: str, host: str) -> None:
+        """
+        Apply a single constructed-inventory entry (compose / groups / keyed_groups),
+        recording expression failures when strict mode is off.
+
+        The Constructable helpers silently skip an entry whose expression fails to
+        resolve under strict=False, which leaves group membership quietly incomplete
+        (#385). Evaluate the entry strictly instead and record the failure for a
+        per-failure warning; errors that strict=False would raise as well (invalid
+        entry configuration) stay fatal.
+
+        Parameters:
+            apply_entry (Callable): applies one entry, accepting a `strict` keyword.
+            entry_label (str): the entry as the operator wrote it, part of the failure's identity.
+            host (str): host the entry is being applied to.
+        """
+        try:
+            apply_entry(strict=True)
+        except AnsibleError as exc:
+            apply_entry(strict=False)
+            # Group on the wrapped error, never on Ansible's own message: that message
+            # mixes the cause with the host, so hosts sharing one cause would look like
+            # separate failures. Constructable raises from the underlying template
+            # error, and that error is the host-independent part.
+            cause = exc.__cause__ or exc.__context__
+            if cause is None:
+                # A keyed group's key resolving empty is the only failure that reaches
+                # here without a wrapped error: Constructable's other cause-less errors
+                # (a non-dict entry, an invalid group-name type, default_value together
+                # with trailing_separator) are raised regardless of strict, so the
+                # non-strict retry re-raises them and they stay fatal. Its message names
+                # one host, which an aggregate warning would present as the shared
+                # cause, so describe the condition the hosts actually share.
+                detail = "the key resolved to an empty value and no default_value applies"
+                group_by = type(exc).__name__
+            else:
+                detail = group_by = str(cause)
+            self._constructed_failures.setdefault((entry_label, group_by), (detail, []))[1].append(host)
+
+    def _warn_constructed_failures(self) -> None:
+        """
+        Emit one warning per distinct failure instead of one per host, so a single
+        broken expression on a large inventory does not flood the output, while an
+        expression failing for two different reasons keeps both diagnostics.
+
+        The warning is composed here rather than taken from Ansible's message, which
+        mixes the failing host into its text: the entry is named as the operator wrote
+        it, every affected host is named exactly once, and the cause follows.
+        """
+        for (entry_label, _group_by), (detail, hosts) in self._constructed_failures.items():
+            if len(hosts) == 1:
+                affected = f"host {hosts[0]}"
+            else:
+                listed = ", ".join(hosts[:MAX_LISTED_FAILURE_HOSTS])
+                if len(hosts) > MAX_LISTED_FAILURE_HOSTS:
+                    listed += ", ..."
+                affected = f"{len(hosts)} host(s) ({listed})"
+            self.display.warning(f"Could not apply {entry_label} for {affected}: {detail}")
+
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
         Set host variables and add host to keyed groups based on the provided attributes.
@@ -340,24 +407,55 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             host_node_attributes (dict[str, Any]): dictionary containing attributes for each host node.
         """
 
+        self._constructed_failures: dict[tuple[str, str], tuple[str, list[str]]] = {}
+
         for host_node, attributes in host_node_attributes.items():
             self.inventory.add_host(host_node)
 
             trusted_attributes = _mark_trusted(attributes)
             self.set_host_variables(host_node=host_node, attributes=trusted_attributes)
 
-            self._add_host_to_composed_groups(
-                groups=self.groups,
-                variables=trusted_attributes,
-                host=host_node,
-                strict=self.strict,
-            )
-            self._add_host_to_keyed_groups(
-                keys=self.keyed_groups,
-                variables=trusted_attributes,
-                host=host_node,
-                strict=self.strict,
-            )
+            if self.strict:
+                self._add_host_to_composed_groups(
+                    groups=self.groups,
+                    variables=trusted_attributes,
+                    host=host_node,
+                    strict=True,
+                )
+                self._add_host_to_keyed_groups(
+                    keys=self.keyed_groups,
+                    variables=trusted_attributes,
+                    host=host_node,
+                    strict=True,
+                )
+            else:
+                for group_name, expression in (self.groups or {}).items():
+                    self._apply_constructed_or_record(
+                        partial(
+                            self._add_host_to_composed_groups,
+                            groups={group_name: expression},
+                            variables=trusted_attributes,
+                            host=host_node,
+                        ),
+                        entry_label=f"groups entry {group_name!r}",
+                        host=host_node,
+                    )
+                for keyed_group in self.keyed_groups or []:
+                    # A non-dict entry is Ansible's own hard error; keep it reachable
+                    # by not indexing into the entry while building the label.
+                    keyed_key = keyed_group.get("key") if isinstance(keyed_group, dict) else keyed_group
+                    self._apply_constructed_or_record(
+                        partial(
+                            self._add_host_to_keyed_groups,
+                            keys=[keyed_group],
+                            variables=trusted_attributes,
+                            host=host_node,
+                        ),
+                        entry_label=f"keyed_groups key {keyed_key!r}",
+                        host=host_node,
+                    )
+
+        self._warn_constructed_failures()
 
     def set_host_variables(self, host_node: str, attributes: dict[str, Any]) -> None:
         """
@@ -371,7 +469,20 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for key, value in attributes.items():
             self.inventory.set_variable(host_node, key, value)
 
-        self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=self.strict)
+        if self.strict:
+            self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=True)
+        else:
+            for varname, expression in (self.compose or {}).items():
+                self._apply_constructed_or_record(
+                    partial(
+                        self._set_composite_vars,
+                        compose={varname: expression},
+                        variables=attributes,
+                        host=host_node,
+                    ),
+                    entry_label=f"compose var {varname!r}",
+                    host=host_node,
+                )
 
     def main(self) -> None:
         """Main function"""
