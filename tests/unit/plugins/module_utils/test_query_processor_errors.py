@@ -117,9 +117,10 @@ def test_decorated_unexpected_error_keeps_its_own_type_and_cause():
 def test_empty_response_says_the_call_failed_not_that_the_query_is_bad(mocker):
     """``None`` back means the decorator swallowed a failure, and the message says so.
 
-    ``handle_infrahub_exceptions`` turns a ``GraphQLError`` into ``display.warning``
-    and returns ``None`` whenever a ``Display`` is attached. Reporting that as a bad
-    query sent people looking at their query text for a server-side problem.
+    ``handle_infrahub_exceptions`` logs and returns ``None`` whenever a ``Display`` is
+    attached. Reporting that as a bad query sent people looking at their query text for
+    a server-side problem. The message names the line that was logged and where the
+    reason lives, without claiming the reason itself is already on screen.
     """
     processor = _processor(mocker, return_value=None)
 
@@ -128,13 +129,20 @@ def test_empty_response_says_the_call_failed_not_that_the_query_is_bad(mocker):
 
     message = str(excinfo.value)
     assert "no response" in message.lower()
-    # Points at where the detail actually is, rather than echoing the query back.
-    assert "reported above" in message.lower()
+    # Points at the line the decorator logged, rather than echoing the query back.
+    assert "logged above" in message.lower()
     assert RENDERED not in message
-    # The level is deliberately unnamed: `handle_infrahub_exceptions` reports an
-    # unreachable or unresponsive server through ``display.error``, so promising a
-    # warning would send those authors looking for a line that was never logged.
-    assert "warning" not in message.lower()
+    # Both levels are named: `handle_infrahub_exceptions` reports an unreachable or
+    # unresponsive server through ``display.error`` and everything else through
+    # ``display.warning``, so naming only one sends half the authors looking for a
+    # line that was never logged.
+    assert "warning" in message.lower()
+    assert "error" in message.lower()
+    # Outside the ``GraphQLError`` path that logged line is only a generic prefix --
+    # the reason sits behind ``display.verbose(..., caplevel=2)``. So the message
+    # routes people to -vvv instead of claiming the reason was already printed.
+    assert "-vvv" in message
+    assert "reported above" not in message.lower()
 
 
 def test_typo_free_message(mocker):

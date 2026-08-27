@@ -1697,14 +1697,17 @@ if HAS_INFRAHUBCLIENT:
             if not response:
                 # Not an empty result set: `handle_infrahub_exceptions` logs and returns
                 # None rather than raising whenever a Display is attached, which every
-                # plugin does. So a failed call arrives here as nothing at all, with the
-                # reason already reported above -- as a warning for most failures, but
-                # through `display.error` when the server was unreachable or
-                # unresponsive. Point at it without naming a level, instead of blaming
-                # the query.
+                # plugin does. So a failed call arrives here as nothing at all, and what
+                # reached the operator is a single line -- a warning for most failures,
+                # but `display.error` when the server was unreachable or unresponsive.
+                # That line only carries the reason on the `GraphQLError` path; the
+                # others keep it behind `display.verbose(..., caplevel=2)`, so -vvv.
+                # Point at both, instead of blaming the query or promising a reason that
+                # may not be on screen.
                 raise Exception(
-                    "Failed to execute the GraphQL query: no response was returned. "
-                    "The reason was reported above; re-run with -vvv for the full error."
+                    "Failed to execute the GraphQL query: the call returned no response. "
+                    "A line was logged above -- a warning, or an error when the server was "
+                    "unreachable or unresponsive -- re-run with -vvv to see the reason itself."
                 )
 
             if any(key.endswith(("Create", "Update", "Delete")) for key in response):
