@@ -1664,14 +1664,27 @@ if HAS_INFRAHUBCLIENT:
             else:
                 raise Exception("query is neither a string nor a dict")
 
+            results = {}
             try:
-                results = {}
                 response = self.client.execute_graphql(query=query_str, variables=variables)
-                if not response:
-                    raise Exception
+            except Exception as exc:
+                # Name the cause and chain it. The lookup plugin re-raises whatever
+                # comes out of here as `AnsibleError(str(exc))`, so a message built
+                # only from the query text is the entirety of what a playbook author
+                # sees -- the status code, the GraphQL error list or the timeout that
+                # explains the failure never reached them.
+                raise Exception(f"Failed to execute the GraphQL query: {type(exc).__name__}: {exc}") from exc
 
-            except Exception:
-                raise Exception(f"Failed to execute the grapqhl query '{query}'")
+            if not response:
+                # Not an empty result set: `handle_infrahub_exceptions` logs and returns
+                # None rather than raising whenever a Display is attached, which every
+                # plugin does. So a failed call arrives here as nothing at all, with the
+                # reason already emitted as a warning -- point at it instead of blaming
+                # the query.
+                raise Exception(
+                    "Failed to execute the GraphQL query: no response was returned. "
+                    "The reason was reported as a warning above; re-run with -vvv for the full error."
+                )
 
             if any(key.endswith(("Create", "Update", "Delete")) for key in response):
                 # Handle mutation response
