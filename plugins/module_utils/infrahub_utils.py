@@ -1684,13 +1684,19 @@ if HAS_INFRAHUBCLIENT:
             try:
                 response = self.client.execute_graphql(query=query_str, variables=variables)
             except Exception as exc:
-                # Name the cause and chain it. The lookup plugin re-raises whatever
-                # comes out of here as `AnsibleError(str(exc))`, so a message built
-                # only from the query text is the entirety of what a playbook author
-                # sees -- the status code, the GraphQL error list or the timeout that
-                # explains the failure never reached them. Unwrap first: the client
-                # wrapper's exception decorator hands us the SDK error boxed in a bare
-                # `Exception`, and naming that box reports the type as "Exception".
+                # Defensive: the client wrapper's exception decorator only re-raises for
+                # a caller that built the wrapper without a Display. Both shipped plugins
+                # pass one, so their failures are logged, come back as None, and land in
+                # the `if not response:` branch below rather than here.
+                #
+                # For the callers that do reach here, name the cause and chain it. The
+                # lookup plugin re-raises whatever comes out of here as
+                # `AnsibleError(str(exc))`, so a message built only from the query text is
+                # the entirety of what a playbook author sees -- the status code, the
+                # GraphQL error list or the timeout that explains the failure never
+                # reached them. Unwrap first: the decorator hands a Display-less caller
+                # the SDK error boxed in a bare `Exception`, and naming that box reports
+                # the type as "Exception".
                 cause = unwrap_wrapped_error(exc)
                 raise Exception(f"Failed to execute the GraphQL query: {type(cause).__name__}: {cause}") from cause
 
