@@ -12,7 +12,8 @@ Two distinct failures reach this code, and they need different messages:
 * ``execute_graphql`` raised -- the cause is the exception.
 * ``execute_graphql`` returned ``None`` -- the wrapper's exception decorator logs and
   swallows whenever a ``Display`` is attached, which every plugin does, so a failed
-  call arrives here as an empty return with the detail already in a warning.
+  call arrives here as an empty return with the detail already reported -- as a
+  warning for most failures, as an error for an unreachable or unresponsive server.
 """
 
 from __future__ import annotations
@@ -128,7 +129,12 @@ def test_empty_response_says_the_call_failed_not_that_the_query_is_bad(mocker):
     message = str(excinfo.value)
     assert "no response" in message.lower()
     # Points at where the detail actually is, rather than echoing the query back.
-    assert "warning" in message.lower()
+    assert "reported above" in message.lower()
+    assert RENDERED not in message
+    # The level is deliberately unnamed: `handle_infrahub_exceptions` reports an
+    # unreachable or unresponsive server through ``display.error``, so promising a
+    # warning would send those authors looking for a line that was never logged.
+    assert "warning" not in message.lower()
 
 
 def test_typo_free_message(mocker):
