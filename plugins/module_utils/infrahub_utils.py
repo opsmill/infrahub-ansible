@@ -76,6 +76,22 @@ TEXT_MIME_TYPES = frozenset(
     }
 )
 
+
+def unwrap_wrapped_error(exc: BaseException) -> BaseException:
+    """Return the SDK error that `handle_infrahub_exceptions` replaced with a bare `Exception`.
+
+    `InfrahubclientWrapper.__init__` wraps every one of its public methods in that
+    decorator, and with no `Display` attached the decorator re-raises the original as
+    `Exception(exc)`. A caller that formats the exception it caught would therefore
+    report the type as "Exception" -- which names nothing -- and chain to the stand-in
+    rather than to the GraphQL, HTTP or timeout error that explains the failure. The
+    original is the stand-in's only argument, so hand that back instead.
+    """
+    if exc.__class__ is Exception and len(exc.args) == 1 and isinstance(exc.args[0], BaseException):
+        return exc.args[0]
+    return exc
+
+
 if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
 
@@ -1664,14 +1680,41 @@ if HAS_INFRAHUBCLIENT:
             else:
                 raise Exception("query is neither a string nor a dict")
 
+            results = {}
             try:
-                results = {}
                 response = self.client.execute_graphql(query=query_str, variables=variables)
-                if not response:
-                    raise Exception
+            except Exception as exc:
+                # Defensive: the client wrapper's exception decorator only re-raises for
+                # a caller that built the wrapper without a Display. Both shipped plugins
+                # pass one, so their failures are logged, come back as None, and land in
+                # the `if not response:` branch below rather than here.
+                #
+                # For the callers that do reach here, name the cause and chain it. The
+                # lookup plugin re-raises whatever comes out of here as
+                # `AnsibleError(str(exc))`, so a message built only from the query text is
+                # the entirety of what a playbook author sees -- the status code, the
+                # GraphQL error list or the timeout that explains the failure never
+                # reached them. Unwrap first: the decorator hands a Display-less caller
+                # the SDK error boxed in a bare `Exception`, and naming that box reports
+                # the type as "Exception".
+                cause = unwrap_wrapped_error(exc)
+                raise Exception(f"Failed to execute the GraphQL query: {type(cause).__name__}: {cause}") from cause
 
-            except Exception:
-                raise Exception(f"Failed to execute the grapqhl query '{query}'")
+            if not response:
+                # Not an empty result set: `handle_infrahub_exceptions` logs and returns
+                # None rather than raising whenever a Display is attached, which every
+                # plugin does. So a failed call arrives here as nothing at all, and what
+                # reached the operator is a single line -- a warning for most failures,
+                # but `display.error` when the server was unreachable or unresponsive.
+                # That line only carries the reason on the `GraphQLError` path; the
+                # others keep it behind `display.verbose(..., caplevel=2)`, so -vvv.
+                # Point at both, instead of blaming the query or promising a reason that
+                # may not be on screen.
+                raise Exception(
+                    "Failed to execute the GraphQL query: the call returned no response. "
+                    "A line was logged above -- a warning, or an error when the server was "
+                    "unreachable or unresponsive -- re-run with -vvv to see the reason itself."
+                )
 
             if any(key.endswith(("Create", "Update", "Delete")) for key in response):
                 # Handle mutation response

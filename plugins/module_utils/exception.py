@@ -48,7 +48,7 @@ def _handle_exc(
     elif exc.__class__ == BranchNotFoundError:
         raise exc
     else:
-        raise Exception(exc)
+        raise Exception(exc) from exc
 
 
 def handle_infrahub_exceptions_decorator(display: Display | None) -> Callable[[Callable], Callable]:
