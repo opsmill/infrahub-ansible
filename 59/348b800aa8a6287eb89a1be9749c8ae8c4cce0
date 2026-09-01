@@ -1,0 +1,33 @@
+specs/001-inventory-fetch-performance/contracts/inventory-options.md
+  s_6113f99c26ba56::t_e8caf81992178f 69-71
+specs/001-inventory-fetch-performance/quickstart.md
+  s_6113f99c26ba56::t_e8caf81992178f 8
+plugins/inventory/inventory.py
+  s_6113f99c26ba56::t_e8caf81992178f 390-391
+dev/guides/running-tests.md
+  s_6113f99c26ba56::t_e8caf81992178f 128,134-136
+specs/001-inventory-fetch-performance/research.md
+  s_6113f99c26ba56::t_e8caf81992178f 21
+specs/001-inventory-fetch-performance/data-model.md
+  s_6113f99c26ba56::t_e8caf81992178f 44
+dev/knowledge/inventory-and-lookup.md
+  s_6113f99c26ba56::t_e8caf81992178f 44-48,58
+specs/001-inventory-fetch-performance/tasks.md
+  s_6113f99c26ba56::t_e8caf81992178f 208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "59348b800aa8a6287eb89a1be9749c8ae8c4cce0",
+  "prompts": {},
+  "sessions": {
+    "s_6113f99c26ba56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f43e03c-b322-4581-a84b-9429911272e8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
