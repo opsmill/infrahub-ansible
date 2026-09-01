@@ -101,7 +101,7 @@ def test_counter_totals_correctly_when_pages_are_recorded_concurrently():
     original_interval = sys.getswitchinterval()
     sys.setswitchinterval(1e-6)
     try:
-        workers = [threading.Thread(target=record_many) for _ in range(threads)]
+        workers = [threading.Thread(target=record_many) for _worker in range(threads)]
         for worker in workers:
             worker.start()
         for worker in workers:
