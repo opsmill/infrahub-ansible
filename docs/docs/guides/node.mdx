@@ -36,13 +36,22 @@ export INFRAHUB_API_TOKEN="your-api-token-here"
 
 ### Playbook Configuration
 
-Alternatively, you can set these values directly in your playbook using the `environment` directive or module parameters:
+Alternatively, set them on the play with the `environment` keyword, which applies to every task in it:
 
 ```yaml
-- name: Set environment variables for Infrahub
+- name: Work against Infrahub
+  hosts: localhost
+  gather_facts: false
   environment:
     INFRAHUB_ADDRESS: "http://localhost:8000"
-    INFRAHUB_API_TOKEN: "{{ lookup('ansible.builtin.env', 'INFRAHUB_API_TOKEN') }}"
+    INFRAHUB_API_TOKEN: "your-api-token-here"
+
+  tasks:
+    - name: Create a node
+      opsmill.infrahub.node:
+        kind: "InfraDevice"
+        data:
+          name: "device1"
 ```
 
 Or pass them directly to the modules:
