@@ -12,8 +12,11 @@ in the nightly that needs docker.
 
 from __future__ import annotations
 
+import shutil
 import sys
 from pathlib import Path
+
+import pytest
 
 _INTEGRATION_ROOT = Path(__file__).resolve().parents[1] / "integration"
 if str(_INTEGRATION_ROOT) not in sys.path:
@@ -22,6 +25,34 @@ if str(_INTEGRATION_ROOT) not in sys.path:
 import _harness
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.fixture(autouse=True)
+def _remove_staged_roots(monkeypatch: pytest.MonkeyPatch):
+    """Delete the staging trees these tests create.
+
+    `_staged_collection_root` mkdtemps outside the repo and hands the path back with
+    nobody owning it, so every call leaks a `/tmp/infrahub-ansible-collection-*` tree.
+    Three tests here reach it -- two directly, one through `collection_root` -- and
+    this suite runs on every pull request, so a developer's `/tmp` accumulates a pair
+    per run.
+
+    Patched rather than cleaned per-test so a test added later is covered without
+    remembering to opt in. `rmtree` unlinks the symlink into the checkout rather than
+    descending through it.
+    """
+    staged: list[Path] = []
+    stage = _harness._staged_collection_root
+
+    def record() -> Path:
+        root = stage()
+        staged.append(root)
+        return root
+
+    monkeypatch.setattr(_harness, "_staged_collection_root", record)
+    yield
+    for root in staged:
+        shutil.rmtree(root, ignore_errors=True)
 
 
 def test_staging_puts_the_collection_where_ansible_looks_for_it():
