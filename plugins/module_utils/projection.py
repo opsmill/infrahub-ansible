@@ -63,12 +63,15 @@ class NodeProjection:
         include: list[str] | None,
         exclude: list[str] | None,
         narrowed: bool,
+        *,
+        known: set[str] | None = None,
     ) -> None:
         self.attrs = attrs
         self.roots = roots
         self.include = include
         self.exclude = exclude
         self.narrowed = narrowed
+        self.known = known if known is not None else set()
 
     def projected(self, root_attr: str) -> bool:
         """Whether ``root_attr`` was requested from the server for this kind.
@@ -81,10 +84,20 @@ class NodeProjection:
         named in both never reached the wire, so its empty value is not a null.
         ``ALWAYS_QUERIED`` still wins over everything -- the SDK puts those in
         the query whatever the caller asks for.
+
+        Asking for a root is not the same as the query carrying it. The SDK builds a
+        query from *this* kind's schema, so a name that schema does not define reaches
+        neither ``include`` nor ``exclude`` and is simply absent from the wire -- which
+        is what happens to a concrete kind's own attribute when the node was fetched
+        through a generic that does not declare it. Judging that on ``roots`` alone
+        answered "asked for, so the empty is a null", and the value stayed empty
+        instead of being refilled.
         """
         if root_attr in ALWAYS_QUERIED:
             return True
         if self.exclude and root_attr in self.exclude:
+            return False
+        if root_attr not in self.known:
             return False
         if not self.narrowed:
             return True
@@ -111,6 +124,12 @@ class NodeProjection:
         Returns:
             NodeProjection: the fetch arguments and the resolution list.
         """
+        # What this kind's query can carry at all: its own schema, plus the pseudo-schema
+        # hierarchy fields the SDK adds without declaring them in `relationship_names`.
+        # `projected` reads it to tell "asked for and answered null" from "never on the
+        # wire because this kind's schema does not define it".
+        on_the_wire = set(schema.attribute_names) | set(schema.relationship_names) | HIERARCHICAL_FIELDS
+
         if not include:
             # No explicit request: keep the historical wide query. Narrowing here
             # would change what a bare `nodes: {Kind: {}}` returns.
@@ -120,6 +139,7 @@ class NodeProjection:
                 include=None,
                 exclude=exclude,
                 narrowed=False,
+                known=on_the_wire,
             )
 
         roots = {attr.split(".", 1)[0] for attr in include}
@@ -154,4 +174,5 @@ class NodeProjection:
             include=sorted((roots & known) - excluded_roots),
             exclude=merged_exclude or None,
             narrowed=True,
+            known=on_the_wire,
         )

@@ -194,3 +194,19 @@ def test_a_requested_hierarchy_field_is_reported_projected():
 
     assert projection.projected("parent") is True
     assert projection.projected("children") is False
+
+
+@pytest.mark.parametrize("include", [["name", "environment"], None])
+def test_a_root_this_kinds_schema_does_not_define_is_not_projected(include):
+    """Asking for a root is not the same as the query carrying it.
+
+    The SDK builds the query from this kind's schema, so a name that schema does
+    not define lands in neither ``include`` nor ``exclude`` and never reaches the
+    wire. That is a concrete kind's own attribute when the node came back through
+    a generic that does not declare it -- and reporting it projected told the
+    refill ledger the empty value was a genuine null, so it stayed empty.
+    """
+    projection = NodeProjection.build(schema=SCHEMA, include=include, exclude=None, resolvable_attrs=DEFAULT_ATTRS)
+
+    assert projection.projected("environment") is False
+    assert projection.projected("name") is True

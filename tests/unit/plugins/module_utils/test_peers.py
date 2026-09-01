@@ -10,6 +10,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer, RefillLedger
+from ansible_collections.opsmill.infrahub.plugins.module_utils.projection import NodeProjection
 
 
 class FakePeer:
@@ -400,3 +401,29 @@ def test_collect_still_warms_a_peer_whose_attribute_is_none():
     )
 
     assert referenced == {"LocationSite": {"s1"}}
+
+
+def test_ledger_refills_a_concrete_attribute_a_generics_query_could_not_carry():
+    """The seam the stubs on either side of it hid.
+
+    The ledger tests above stub ``projected``; the projection tests never asked it
+    about a root the schema does not define. Wired together with a real
+    ``NodeProjection``, a concrete kind's own attribute requested through a generic
+    that does not declare it has to be refilled -- it was never on the wire, so its
+    empty value is not an answer.
+    """
+    generic_schema = SimpleNamespace(attribute_names=["name"], relationship_names=[])
+    projection = NodeProjection.build(
+        schema=generic_schema,
+        include=["name", "environment"],
+        exclude=None,
+        resolvable_attrs=["name"],
+    )
+    # The node reports its concrete kind, which is what the ledger keys on.
+    ledger = RefillLedger(projections={"ConcreteDevice": projection})
+
+    ledger.record(FakeNode("ConcreteDevice", "d1"), "environment")
+    ledger.record(FakeNode("ConcreteDevice", "d2"), "name")
+
+    # `environment` never reached the wire; `name` did and answered empty.
+    assert ledger.pending == {"ConcreteDevice": {"d1"}}
