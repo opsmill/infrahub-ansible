@@ -14,7 +14,7 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 | Component | Version/Tool |
 |-----------|-------------|
 | Python | >=3.11, <3.15 |
-| ansible-core | >=2.19.11rc1 |
+| ansible-core | >=2.19.0 |
 | infrahub-sdk | >=1.19.0, <2.0 |
 | Linter/Formatter | Ruff (pinned in pyproject.toml) |
 | Tests | pytest, ansible-test sanity (Docker-based) |
