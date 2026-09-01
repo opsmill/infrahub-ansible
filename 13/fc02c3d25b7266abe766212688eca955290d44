@@ -1,0 +1,29 @@
+AGENTS.md
+  s_6113f99c26ba56::t_0b755bd94e3b5b 17
+docs/docs/guides/installation.mdx
+  s_6113f99c26ba56::t_0b755bd94e3b5b 23
+meta/runtime.yml
+  s_6113f99c26ba56::t_0b755bd94e3b5b 2
+pyproject.toml
+  s_6113f99c26ba56::t_0b755bd94e3b5b 11
+README.md
+  s_6113f99c26ba56::t_0b755bd94e3b5b 21
+uv.lock
+  s_6113f99c26ba56::t_f33686f2d3987e 928
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "13fc02c3d25b7266abe766212688eca955290d44",
+  "prompts": {},
+  "sessions": {
+    "s_6113f99c26ba56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f43e03c-b322-4581-a84b-9429911272e8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
