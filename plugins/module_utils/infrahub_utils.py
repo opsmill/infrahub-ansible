@@ -6,13 +6,19 @@ import base64
 import hashlib
 import traceback
 from copy import deepcopy
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ansible.module_utils.basic import env_fallback
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
+from ansible_collections.opsmill.infrahub.plugins.module_utils.metrics import RequestCounter, request_count
+from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import PeerWarmer, RefillLedger
+from ansible_collections.opsmill.infrahub.plugins.module_utils.projection import NodeProjection
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from ansible.module_utils.basic import AnsibleModule, Display
     from infrahub_sdk.branch import BranchData
 
@@ -43,6 +49,11 @@ except ImportError:
 else:
     HAS_INFRAHUBCLIENT = True
 
+# How many ids a short-refill warning names per kind before it switches to a count.
+# The point of the warning is which kinds lost nodes and how many, and a refill can
+# legitimately cover hundreds of them.
+REFILL_MISSING_IDS_NAMED = 5
+
 INFRAHUB_ARG_SPEC = dict(
     api_endpoint=dict(type="str", required=False, fallback=(env_fallback, ["INFRAHUB_ADDRESS"])),
     token=dict(type="str", required=False, no_log=True, fallback=(env_fallback, ["INFRAHUB_API_TOKEN"])),
@@ -64,6 +75,22 @@ TEXT_MIME_TYPES = frozenset(
         "application/xml",
     }
 )
+
+
+def unwrap_wrapped_error(exc: BaseException) -> BaseException:
+    """Return the SDK error that `handle_infrahub_exceptions` replaced with a bare `Exception`.
+
+    `InfrahubclientWrapper.__init__` wraps every one of its public methods in that
+    decorator, and with no `Display` attached the decorator re-raises the original as
+    `Exception(exc)`. A caller that formats the exception it caught would therefore
+    report the type as "Exception" -- which names nothing -- and chain to the stand-in
+    rather than to the GraphQL, HTTP or timeout error that explains the failure. The
+    original is the stand-in's only argument, so hand that back instead.
+    """
+    if exc.__class__ is Exception and len(exc.args) == 1 and isinstance(exc.args[0], BaseException):
+        return exc.args[0]
+    return exc
+
 
 if HAS_INFRAHUBCLIENT:
     TYPE_MAPPING = {"str": str, "int": int, "float": float, "bool": bool}
@@ -110,17 +137,31 @@ if HAS_INFRAHUBCLIENT:
             if not isinstance(validate_certs, bool):
                 raise ValueError(f"validate_certs must be a bool, got {type(validate_certs).__name__}")
 
+            # Handed to the SDK as its recorder so the count is taken below pagination,
+            # where the round-trips actually happen. Held here so callers can read it
+            # back without reaching into the client's config.
+            self.request_counter = RequestCounter()
+
             if branch:
                 self.client = InfrahubClientSync(
                     address=api_endpoint,
                     config=Config(
-                        api_token=token, timeout=timeout, default_branch=branch, tls_insecure=not validate_certs
+                        api_token=token,
+                        timeout=timeout,
+                        default_branch=branch,
+                        tls_insecure=not validate_certs,
+                        custom_recorder=self.request_counter,
                     ),
                 )
             else:
                 self.client = InfrahubClientSync(
                     address=api_endpoint,
-                    config=Config(api_token=token, timeout=timeout, tls_insecure=not validate_certs),
+                    config=Config(
+                        api_token=token,
+                        timeout=timeout,
+                        tls_insecure=not validate_certs,
+                        custom_recorder=self.request_counter,
+                    ),
                 )
             self.display = display
             for method_name in dir(self):
@@ -331,6 +372,7 @@ if HAS_INFRAHUBCLIENT:
             branch: str | None = None,
             prefetch_relationships: bool | None = True,
             order: Order | None = None,
+            parallel: bool = True,
         ) -> list[InfrahubNodeSync]:
             """
             Retrieve all nodes of a given kind
@@ -343,6 +385,8 @@ if HAS_INFRAHUBCLIENT:
                 branch (str, optional): Name of the branch to query from. Defaults to default_branch.
                 prefetch_relationships (bool, optional): Whether to prefetch relationships when fetching nodes. Defaults to True.
                 order (Order, optional): Ordering related options. Setting disable=True enhances performances.
+                parallel (bool, optional): Whether to page the query in parallel. Parallel mode spends an
+                    extra round-trip on a count first, so it is a loss when the result fits one page.
             Returns:
                 list[InfrahubNodeSync]: list of Nodes
             """
@@ -356,7 +400,7 @@ if HAS_INFRAHUBCLIENT:
                     exclude=exclude,
                     branch=branch,
                     prefetch_relationships=prefetch_relationships,
-                    parallel=True,
+                    parallel=parallel,
                     property=False,
                     order=order,
                 )
@@ -368,7 +412,7 @@ if HAS_INFRAHUBCLIENT:
                     exclude=exclude,
                     branch=branch,
                     prefetch_relationships=prefetch_relationships,
-                    parallel=True,
+                    parallel=parallel,
                     property=False,
                     order=order,
                     **filters,
@@ -613,6 +657,8 @@ if HAS_INFRAHUBCLIENT:
                     self.display.warning(error_msg)
                 elif level == "INFO":
                     self.display.v(error_msg)
+                elif level == "VVV":
+                    self.display.vvv(error_msg)
                 elif level == "DEBUG":
                     self.display.debug(error_msg)
 
@@ -656,25 +702,57 @@ if HAS_INFRAHUBCLIENT:
             return parsed
 
         def _resolve_schema_attribute(
-            self, node: InfrahubNodeSync, root_attr: str, node_attr: Any, refetch_cache: dict[str, Any]
-        ) -> str | None:
-            """Resolve a schema attribute value, handling inherited attributes.
+            self,
+            node: InfrahubNodeSync,
+            root_attr: str,
+            node_attr: Any,
+            refetch_cache: dict[str, Any],
+            refill: RefillLedger | None = None,
+        ) -> Any:
+            """Resolve a schema attribute value, handling attributes the query never carried.
 
-            Inherited attributes are not populated in the store, so a falsy value
-            triggers a refetch of the full node. ``refetch_cache`` holds that node for
-            the duration of one ``resolve_node_mapping`` call, so a node with several
-            empty/inherited attributes is refetched once instead of once per attribute.
+            The return type is deliberately wide: a populated value is stringified, but a
+            falsy-but-present one (``False``, ``0``, ``""``) is handed back as it came, so
+            this is not ``str | None``. mypy does not currently check this file, so the
+            annotation is the only thing saying so.
+
+            An attribute can come back empty for two different reasons: the server
+            answered null, or nobody asked for it. The second happens whenever the
+            node was built from a relationship payload projected off a *generic* peer
+            schema, which exposes fewer attributes than the concrete kind does.
+
+            When ``refill`` is given, this records the node instead of refetching it, so
+            the caller can load every affected node in one batched pass. Without it the
+            node is refetched here and cached for the rest of this
+            ``resolve_node_mapping`` call, so several empty attributes on one node cost
+            one request rather than one each.
             """
             if node_attr.value:
                 return str(node_attr.value)
-            # FIXME: If the attribute is inherited, it's not populated properly in store
+
+            if refill is not None:
+                # Only a genuinely absent value is worth reloading. `False`, `0` and
+                # `""` are falsy but present, and the truthiness test above cannot
+                # tell them from "never queried" -- so without this, a peer with a
+                # boolean attribute set to False would be refetched and re-resolved
+                # on every single run. The return value keeps the historical
+                # truthiness semantics; only the decision to reload is narrowed.
+                if node_attr.value is None:
+                    refill.record(node, root_attr)
+                return node_attr.value
+
             if "node" not in refetch_cache:
                 refetch_cache["node"] = node._client.get(id=node.id, kind=node._schema.kind)
             tmp_attr = getattr(refetch_cache["node"], root_attr, None)
             return str(tmp_attr.value) if tmp_attr.value else tmp_attr.value
 
         def _resolve_many_relationship(
-            self, node_attr: RelationshipManagerSync, nested_attrs: list[str], has_nested: bool, schemas: dict[str, Any]
+            self,
+            node_attr: RelationshipManagerSync,
+            nested_attrs: list[str],
+            has_nested: bool,
+            schemas: dict[str, Any],
+            refill: RefillLedger | None = None,
         ) -> list[Any]:
             """Resolve a many-cardinality relationship (RelationshipManagerSync)."""
             store = self.client.client.store
@@ -686,6 +764,12 @@ if HAS_INFRAHUBCLIENT:
             if not node_attr.initialized:
                 node_attr.fetch()
 
+            if not has_nested:
+                # The result is the peer ids, which the relationship already carries.
+                # Resolving each peer through the store (and fetching it when the store
+                # misses) would spend a round-trip per peer to learn an id we hold.
+                return [peer.id for peer in node_attr.peers if peer.id]
+
             for peer in node_attr.peers:
                 related_node = store.get(key=peer.id, raise_when_missing=False)
                 if not related_node:
@@ -695,25 +779,37 @@ if HAS_INFRAHUBCLIENT:
                 if not related_node or not hasattr(related_node._schema, "attribute_names"):
                     continue
 
-                if has_nested:
-                    # include_id=True already prepends {"id": related_node.id}, matching
-                    # _resolve_one_relationship — no need to build/merge the dict by hand.
-                    nested_result = self.resolve_node_mapping(
-                        node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
-                    )
-                    if nested_result:
-                        peers.append(nested_result)
-                else:
-                    peers.append(related_node.id)
+                # include_id=True already prepends {"id": related_node.id}, matching
+                # _resolve_one_relationship — no need to build/merge the dict by hand.
+                nested_result = self.resolve_node_mapping(
+                    node=related_node,
+                    attrs=nested_attrs,
+                    schemas=schemas,
+                    include_id=True,
+                    refill=refill,
+                )
+                if nested_result:
+                    peers.append(nested_result)
 
             return peers
 
         def _resolve_one_relationship(
-            self, node_attr: RelatedNodeSync, nested_attrs: list[str], has_nested: bool, schemas: dict[str, Any]
+            self,
+            node_attr: RelatedNodeSync,
+            nested_attrs: list[str],
+            has_nested: bool,
+            schemas: dict[str, Any],
+            refill: RefillLedger | None = None,
         ) -> dict[str, Any] | str | None:
             """Resolve a one-cardinality relationship (RelatedNodeSync)."""
             if not (node_attr.id and node_attr.schema.peer):
                 return None
+
+            if not has_nested:
+                # The result is the peer id, which the relationship already carries.
+                # Resolving the peer (and fetching it when the store misses) would spend
+                # a round-trip per host node to learn an id we hold.
+                return node_attr.id
 
             store = self.client.client.store
             related_node = store.get(key=node_attr.id, raise_when_missing=False)
@@ -724,14 +820,21 @@ if HAS_INFRAHUBCLIENT:
             if not related_node:
                 return None
 
-            if has_nested:
-                return self.resolve_node_mapping(
-                    node=related_node, attrs=nested_attrs, schemas=schemas, include_id=True
-                )
-            return related_node.id
+            return self.resolve_node_mapping(
+                node=related_node,
+                attrs=nested_attrs,
+                schemas=schemas,
+                include_id=True,
+                refill=refill,
+            )
 
         def resolve_node_mapping(
-            self, node: InfrahubNodeSync, attrs: list[str], schemas: dict[str, Any], include_id: bool = True
+            self,
+            node: InfrahubNodeSync,
+            attrs: list[str],
+            schemas: dict[str, Any],
+            include_id: bool = True,
+            refill: RefillLedger | None = None,
         ) -> dict[str, Any] | None:
             """
             Resolve the attributes and relationships of a given node based on a list of desired attributes.
@@ -741,6 +844,9 @@ if HAS_INFRAHUBCLIENT:
                 attrs (list[str]): A list of attribute names that should be fetched for the node.
                 schemas dict[str, Any]: A dictionary of Node Kind name, Any
                 include_id (bool): Whether to include the node ID in the result. Defaults to True.
+                refill (RefillLedger, optional): When given, nodes with an attribute the query
+                    never carried are recorded there instead of being refetched one at a time, so
+                    the caller can load them in a single batched pass.
 
             Returns:
                 dict[str, Any]: A dictionary mapping attribute/relationship names to their respective values.
@@ -773,17 +879,17 @@ if HAS_INFRAHUBCLIENT:
                 # Handle schema attributes
                 if root_attr in node_schema.attribute_names and has_simple and not has_nested:
                     attribute_dict[root_attr] = self._resolve_schema_attribute(
-                        node, root_attr, node_attr, refetch_cache
+                        node, root_attr, node_attr, refetch_cache, refill
                     )
 
                 # Handle relationships
                 elif root_attr in node_schema.relationship_names:
                     if isinstance(node_attr, RelationshipManagerSync):
-                        peers = self._resolve_many_relationship(node_attr, nested_attrs, has_nested, schemas)
+                        peers = self._resolve_many_relationship(node_attr, nested_attrs, has_nested, schemas, refill)
                         if peers:
                             attribute_dict[root_attr] = peers
                     elif isinstance(node_attr, RelatedNodeSync):
-                        result = self._resolve_one_relationship(node_attr, nested_attrs, has_nested, schemas)
+                        result = self._resolve_one_relationship(node_attr, nested_attrs, has_nested, schemas, refill)
                         if result is not None:
                             attribute_dict[root_attr] = result
 
@@ -791,6 +897,75 @@ if HAS_INFRAHUBCLIENT:
                 attribute_dict["id"] = node.id
 
             return attribute_dict
+
+    @dataclass
+    class HostContext:
+        """One fetch's own resolution context: what was asked for, and what came back.
+
+        A generic and one of its concrete kinds can both be requested, and both fetches
+        then answer with the same concrete ``__typename``. Keyed by concrete kind alone,
+        one spec's attribute list and projection stand in for the other's: attributes
+        are read that the query never projected, and the empty they come back as is
+        judged against a projection saying they *were* asked for. Each fetch keeps its
+        own context here instead, so its nodes are resolved with the spec that got them.
+
+        Attributes:
+            kind: the kind that was *requested*. For a generic that is not the kind the
+                nodes themselves report.
+            nodes: the nodes this fetch answered with.
+            attrs: the dotted attribute paths to resolve out of them.
+            projection: what this fetch actually asked the server for.
+        """
+
+        kind: str
+        nodes: list[InfrahubNodeSync]
+        attrs: list[str]
+        projection: NodeProjection
+
+        def scoped_projections(self, fallback: dict[str, NodeProjection]) -> dict[str, NodeProjection]:
+            """``fallback`` with every kind this fetch answered with mapped to its projection.
+
+            ``RefillLedger`` keys on a node's own kind, which is all it can see, so the
+            override has to name the concrete kinds rather than the requested one: that
+            is what makes a node fetched through a generic get judged against the
+            generic's projection instead of the concrete kind's own spec. The rest of
+            ``fallback`` is left in place as the fallback for peer nodes reached through
+            relationships -- peers have no projection of their own, and narrowing the map
+            to this one would queue pointless refills for genuinely-null peer attributes.
+            """
+            scoped = dict(fallback)
+            scoped[self.kind] = self.projection
+            for node in self.nodes:
+                scoped[node._schema.kind] = self.projection
+            return scoped
+
+    @dataclass
+    class HostFetch:
+        """Host nodes plus the schema and projection context needed to resolve them.
+
+        Filled in as each requested kind is fetched, so the collections are mutable
+        and start empty.
+
+        ``contexts`` holds one entry per successful fetch and is what resolution drives
+        off: it is the only view that survives two specs answering with the same
+        concrete kind. The by-kind maps stay alongside it for the paths that are
+        deliberately kind-level: the cost breakdown, which tolerates a concrete kind
+        having no projection of its own, and resolution's fallback for a fetch
+        assembled without contexts. Peer warming is kind-level too but wants the
+        *union* of every spec, which these cannot give -- one spec's list stands for
+        both once two answer with the same concrete kind -- so it unions ``contexts``
+        itself in ``_warming_attrs``. ``_fetch_host_nodes`` is the only place that
+        fills either, so they cannot drift.
+        """
+
+        nodes: list[InfrahubNodeSync] = field(default_factory=list)
+        contexts: list[HostContext] = field(default_factory=list)
+        schemas: dict[str, Any] = field(default_factory=dict)
+        attrs_by_kind: dict[str, list[str]] = field(default_factory=dict)
+        projections: dict[str, NodeProjection] = field(default_factory=dict)
+        # Kinds that could not be fetched, and why. A kind that returned no nodes is
+        # not a failure -- it answered, the answer was empty.
+        failures: dict[str, str] = field(default_factory=dict)
 
     class InfrahubNodesProcessor(InfrahubBaseProcessor):
         @staticmethod
@@ -831,23 +1006,6 @@ if HAS_INFRAHUBCLIENT:
                     attributes_by_kind.append(rel_name)
             return attributes_by_kind
 
-        @staticmethod
-        def get_related_nodes(
-            schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, attrs: list[str]
-        ) -> list[str]:
-            """
-            Build a list of Node Kind base on the relationships of a given schema
-
-            Parameters:
-                schema (NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI): The schema from which relationship are loaded
-                attrs list[str]: list of attributes to compare to the schema
-
-            Returns:
-                list[str]: The node kind of the related nodes
-            """
-            relationship_schemas = [schema.peer for schema in schema.relationships if schema.name in attrs]
-            return list(set(relationship_schemas))
-
         def fetch_and_process(
             self,
             nodes: dict[str, Any],
@@ -866,37 +1024,270 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict[str, Any] | None: A dictionary with processed host node attributes, or None if no nodes were processed.
             """
-            all_nodes: list[InfrahubNodeSync] = []
-            schema_dict = {}
-            node_attributes_dict = {}
-            order = Order(disable=True)
-
             if not nodes:
                 return None
 
-            for node_kind in nodes:
-                schema_dict[node_kind] = self.client.fetch_single_schema(kind=node_kind)
-                node_options = nodes.get(node_kind, {})
-                if node_options:
-                    include = node_options.get("include", None)
-                    exclude = node_options.get("exclude", None)
-                    filters = node_options.get("filters", None)
+            # Snapshot rather than read the running total: the counter belongs to the
+            # client, which outlives a single call. Reporting the absolute value would
+            # attribute an earlier run's requests to this one.
+            requests_before = request_count(self.client)
+
+            fetched = self._fetch_host_nodes(nodes=nodes, prefetch_relationships=prefetch_relationships)
+            if not fetched.nodes:
+                if fetched.failures:
+                    # Nothing was fetched AND something went wrong. Returning an empty
+                    # result here is indistinguishable from "the query matched nothing",
+                    # so a transient API error would look like an empty inventory and a
+                    # playbook would quietly no-op against zero hosts. Fail loudly instead.
+                    detail = "; ".join(f"{kind}: {why}" for kind, why in sorted(fetched.failures.items()))
+                    raise RuntimeError(f"No nodes could be fetched. Failures -- {detail}")
+                # Every requested kind answered, and the answer was empty. Still
+                # report: the schema lookups and the empty query cost round-trips.
+                self._report_run_cost(requests_before=requests_before, fetched=fetched)
+                return None
+
+            warmer = PeerWarmer(
+                fetch=self.client.fetch_nodes,
+                store=self.client.client.store,
+                # One id short of a full page. The SDK's non-parallel pager only stops
+                # once `count - (offset + pagination_size)` goes negative, so a chunk of
+                # exactly `pagination_size` costs a second, empty round-trip.
+                page_size=max(1, self.client.client.pagination_size - 1),
+                on_error=lambda kind, exc: self._handle_display(
+                    exception=exc,
+                    message=f"Failed to fetch peers for kind '{kind}'",
+                    level="WARNING",
+                ),
+                order=Order(disable=True),
+            )
+            peer_batches = self._warm_peers(warmer=warmer, fetched=fetched)
+
+            # `refill` collects nodes whose attributes the query never carried rather than
+            # refetching them one by one. Anything it finds is loaded in one batched pass,
+            # after which a second resolve reads the refreshed nodes back. Peers the
+            # warmer already loaded in full are exempt: a value still empty after a
+            # complete fetch is a genuine null, and queueing it would buy a redundant
+            # refetch plus a second full resolution pass on every run.
+            refill = RefillLedger(projections=fetched.projections, already_loaded=warmer.loaded)
+            host_node_attributes = self._resolve_hosts(fetched=fetched, include_id=include_id, refill=refill)
+
+            if refill:
+                self._handle_display(
+                    message=f"Refilling nodes with unqueried attributes: {dict.fromkeys(refill.pending)}",
+                    level="DEBUG",
+                )
+                # Snapshot before warming: this is the ledger's own state, and reading
+                # it back afterwards would report whatever the warm left there rather
+                # than what was asked for.
+                queued = {kind: set(ids) for kind, ids in refill.pending.items()}
+                peer_batches += warmer.warm(refill.pending)
+                self._warn_on_short_refill(queued=queued, loaded=warmer.loaded)
+                host_node_attributes = self._resolve_hosts(
+                    fetched=fetched, include_id=include_id, refill=RefillLedger.disabled(), refreshed=True
+                )
+
+            self._report_run_cost(
+                requests_before=requests_before,
+                peer_batches=peer_batches,
+                peers_loaded=len(warmer.loaded),
+                fetched=fetched,
+                warmer=warmer,
+            )
+
+            return host_node_attributes
+
+        def _warn_on_short_refill(self, queued: dict[str, set[str]], loaded: set[str]) -> None:
+            """Say so when the refill pass came back without every node it asked for.
+
+            The second resolution pass runs on a disabled ledger, so a node the refill
+            never reloaded resolves exactly as the first pass resolved it: the
+            attributes its query never carried stay empty. That is the right trade for
+            a dynamic inventory -- one peer deleted between the host query and the
+            refill must not abort a run and hand Ansible zero hosts -- but it cannot be
+            silent, or the values are simply missing with nothing saying why.
+
+            Like ``_run_cost_breakdown``, this is a diagnostic, so it works off plain
+            sets of ids and cannot raise into the run it is reporting on. Only the
+            first few ids per kind are named: a refill covering hundreds of nodes would
+            otherwise bury the count that matters in a wall of UUIDs.
+
+            Parameters:
+                queued (dict[str, set[str]]): the ids the refill asked for, per kind,
+                    snapshotted before the warm.
+                loaded (set[str]): every id the warmer has loaded in full this run.
+            """
+            missing = {kind: sorted(ids - loaded) for kind, ids in queued.items()}
+            missing = {kind: ids for kind, ids in missing.items() if ids}
+            if not missing:
+                return
+
+            details = []
+            for kind in sorted(missing):
+                ids = missing[kind]
+                shown = ids[:REFILL_MISSING_IDS_NAMED]
+                listed = ", ".join(shown)
+                if len(ids) > len(shown):
+                    listed += f", and {len(ids) - len(shown)} more"
+                details.append(f"{kind} ({listed})")
+
+            total = sum(len(ids) for ids in missing.values())
+            self._handle_display(
+                message=(
+                    f"Refill came back short: {total} node(s) never returned, so the attributes "
+                    f"their query never carried stay empty -- {'; '.join(details)}"
+                ),
+                level="WARNING",
+            )
+
+        def _report_run_cost(
+            self,
+            requests_before: int | None,
+            fetched: HostFetch,
+            peer_batches: int = 0,
+            peers_loaded: int = 0,
+            warmer: PeerWarmer | None = None,
+        ) -> None:
+            """State what the run cost, at raised verbosity only.
+
+            The point is that the next report of slowness arrives as a number rather
+            than an anecdote. It is deliberately not printed at default verbosity: an
+            inventory run's output belongs to the playbook, not to diagnostics.
+
+            The request count covers every HTTP round-trip, schema lookups included --
+            those are not GraphQL queries but they cost the server the same. When no
+            counter is attached (a wrapper built through ``__new__``, as the tests do)
+            the peer figures are still worth reporting on their own.
+
+            At ``-vvv`` the totals are followed by the breakdown behind them: what each
+            requested kind cost and how far its query was narrowed, and what each peer
+            kind cost. A total that looks wrong is only actionable once you can see
+            which kind produced it.
+
+            Parameters:
+                requests_before (int | None): counter reading taken before this run began,
+                    so the figure reported is this run's cost and not the client's lifetime total.
+                fetched (HostFetch): the host nodes and their projections, for the per-kind lines.
+                peer_batches (int): how many batched peer fetches came back.
+                peers_loaded (int): how many nodes those batches loaded.
+                warmer (PeerWarmer | None): carries the per-kind tallies. ``None`` when
+                    the query matched no hosts, so nothing was warmed.
+            """
+            requests_now = request_count(self.client)
+            unavailable = requests_before is None or requests_now is None
+            cost = "unavailable" if unavailable else f"{requests_now - requests_before} request(s)"
+            # "node(s)", not "related node(s)": the refill pass shares this warmer, so
+            # host nodes are counted here too.
+            message = (
+                f"Inventory fetch cost: {cost} to Infrahub, {peers_loaded} node(s) loaded in {peer_batches} batch(es)"
+            )
+            failed_batches = sum(stat["failed"] for stat in warmer.stats.values()) if warmer else 0
+            if failed_batches:
+                # A failed batch cost a round-trip too, so it belongs in the cost line
+                # rather than only in the -vvv breakdown.
+                message += f", {failed_batches} batch(es) failed"
+            self._handle_display(message=message, level="INFO")
+            for line in self._run_cost_breakdown(fetched=fetched, warmer=warmer):
+                self._handle_display(message=line, level="VVV")
+
+        @staticmethod
+        def _run_cost_breakdown(fetched: HostFetch, warmer: PeerWarmer | None) -> list[str]:
+            """The per-kind detail behind the run-cost totals.
+
+            Separate from the emitting method so it can be asserted on directly, and so
+            nothing here can raise into a run: this is a diagnostic, and a diagnostic
+            that breaks the thing it reports on is worse than no diagnostic.
+            """
+            lines: list[str] = []
+
+            hosts_by_kind: dict[str, int] = {}
+            for node in fetched.nodes:
+                kind = getattr(getattr(node, "_schema", None), "kind", "unknown")
+                hosts_by_kind[kind] = hosts_by_kind.get(kind, 0) + 1
+
+            for kind in sorted(hosts_by_kind):
+                projection = fetched.projections.get(kind)
+                if projection is None:
+                    # A concrete kind a generic answered with: it has no projection of
+                    # its own, and saying "not narrowed" would be a lie.
+                    detail = "answered via a requested generic"
+                elif not projection.narrowed:
+                    detail = "no include given, full attribute set requested"
                 else:
-                    include = None
-                    exclude = None
-                    filters = None
-                # The SDK only prefetches a relationship when its top-level field name is in
-                # `include`; a dotted path like "animals.name" doesn't match, so relationship
-                # membership isn't prefetched and each host node costs an extra round-trip to
-                # fetch it. Pass the flattened top-level names so membership comes back in the
-                # main query. `include` (with dotted paths) is still used for resolution below.
-                fetch_include = sorted({attr.split(".", 1)[0] for attr in include}) if include else include
+                    requested = ", ".join(sorted(projection.roots)) or "none"
+                    excluded = len(projection.exclude or ())
+                    detail = f"requested [{requested}], {excluded} field(s) excluded"
+                lines.append(f"  host kind {kind}: {hosts_by_kind[kind]} node(s), {detail}")
+
+            for kind in sorted(warmer.stats if warmer else {}):
+                stat = warmer.stats[kind]  # type: ignore[union-attr]
+                detail = f"{stat['requested']} id(s) referenced, {stat['batches']} batch(es), {stat['loaded']} loaded"
+                if stat["failed"]:
+                    detail += f", {stat['failed']} batch(es) failed"
+                # A host kind here came from the refill pass, not a relationship.
+                # `RefillLedger` keys on the same `_schema.kind` counted above, so
+                # membership is what tells the two apart.
+                label = "refilled host kind" if kind in hosts_by_kind else "peer kind"
+                lines.append(f"  {label} {kind}: {detail}")
+
+            if not lines:
+                return []
+            return ["Inventory fetch cost, by kind:", *lines]
+
+        def _fetch_host_nodes(self, nodes: dict[str, Any], prefetch_relationships: bool | None) -> HostFetch:
+            """Fetch every requested kind, narrowed to what the user actually asked for.
+
+            Parameters:
+                nodes (dict[str, Any]): A dictionary of node kinds to fetch.
+                prefetch_relationships (bool, optional): Whether to prefetch relationships.
+
+            Returns:
+                HostFetch: the host nodes plus the schema and projection context to resolve them.
+            """
+            fetched = HostFetch()
+            order = Order(disable=True)
+
+            for node_kind in nodes:
+                # `raise_when_missing=False` makes an unknown kind return None here
+                # regardless of whether the wrapper's exception decorator is installed.
+                # Relying on the decorator alone is not enough: it is attached in
+                # __init__, so any caller that builds the wrapper another way gets the
+                # raw SchemaNotFoundError instead.
+                node_schema = self.client.fetch_single_schema(kind=node_kind, raise_when_missing=False)
+                if node_schema is None:
+                    # An unknown kind -- a typo, or a kind that does not exist on this
+                    # branch. Skip it the way a failed fetch is skipped: reading
+                    # attribute_names off None would abort the whole inventory over one
+                    # bad entry. It can also mean the lookup itself failed and the
+                    # wrapper's decorator swallowed it (server unreachable, bad token),
+                    # which is why the wording does not promise the kind is unknown.
+                    self._handle_display(
+                        message=f"No schema available for kind '{node_kind}', skipping it",
+                        level="WARNING",
+                    )
+                    fetched.failures[node_kind] = "no schema found, or the schema lookup failed"
+                    continue
+                fetched.schemas[node_kind] = node_schema
+                node_options = nodes.get(node_kind) or {}
+                exclude = node_options.get("exclude", None)
+
+                # `include` is not a projection as far as the SDK is concerned: it only
+                # opts cardinality-many relationships into the query, and a dotted path
+                # matches nothing at all. NodeProjection turns the user's spec into the
+                # arguments that do narrow it -- the exclude complement plus the
+                # relationship opt-ins -- so an explicit request stops paying for the
+                # whole node on every page.
+                projection = NodeProjection.build(
+                    schema=fetched.schemas[node_kind],
+                    include=node_options.get("include", None),
+                    exclude=exclude,
+                    resolvable_attrs=self.get_attributes_for_schema(schema=fetched.schemas[node_kind], exclude=exclude),
+                )
                 try:
                     nodes_from_kind = self.client.fetch_nodes(
                         kind=node_kind,
-                        include=fetch_include,
-                        exclude=exclude,
-                        filters=filters,
+                        include=projection.include,
+                        exclude=projection.exclude,
+                        filters=node_options.get("filters", None),
                         prefetch_relationships=prefetch_relationships,
                         order=order,
                     )
@@ -906,71 +1297,267 @@ if HAS_INFRAHUBCLIENT:
                         message=f"Failed to fetch_nodes for kind '{node_kind}'",
                         level="WARNING",
                     )
+                    fetched.failures[node_kind] = str(exc) or type(exc).__name__
+                    continue
+
+                if nodes_from_kind is None:
+                    # `None` is not an empty result: the wrapper's exception decorator
+                    # logs the failure and returns nothing rather than raising whenever a
+                    # Display is attached -- which it always is in the inventory. Without
+                    # this the `except` above never fires there, `failures` stays empty,
+                    # and a broken fetch is indistinguishable from a kind that legitimately
+                    # matched nothing: the run hands Ansible zero hosts and reports success.
+                    # Level-neutral for the same reason as the peer path: the swallowed
+                    # failure was logged through `display.error` for an unreachable or
+                    # unresponsive server and `display.warning` otherwise.
+                    fetched.failures[node_kind] = (
+                        "fetch failed; a line was logged for it above -- re-run with -vvv for the reason"
+                    )
                     continue
 
                 if not nodes_from_kind:
                     continue
-                node_attributes_dict[node_kind] = include or self.get_attributes_for_schema(
-                    schema=schema_dict[node_kind], exclude=exclude
-                )
-                all_nodes.extend(nodes_from_kind)
-
-            if not all_nodes:
-                return None
-
-            host_node_attributes = {}
-
-            # Phase 1: bulk-prefetch every related (peer) kind into the store, each kind
-            # at most once. Deduping across host kinds avoids re-fetching a peer kind that
-            # several host kinds point at, and pulling all of them before resolution means
-            # every host node below resolves against a fully-populated store.
-            prefetched_related: set[str] = set()
-            for node_kind, node_attributes in node_attributes_dict.items():
-                related_kinds = self.get_related_nodes(schema=schema_dict[node_kind], attrs=node_attributes)
-                self._handle_display(
-                    message=f"Prefetching schema for related nodes of kind '{node_kind}'",
-                    level="DEBUG",
-                )
-                for related_kind in related_kinds:
-                    if related_kind in prefetched_related:
-                        continue
-                    prefetched_related.add(related_kind)
-                    schema_dict[related_kind] = self.client.fetch_single_schema(kind=related_kind)
-                    self._handle_display(
-                        message=f"Prefetching related nodes for kind '{related_kind}'",
-                        level="DEBUG",
+                fetched.attrs_by_kind[node_kind] = projection.attrs
+                fetched.projections[node_kind] = projection
+                # A generic kind answers with nodes of its concrete kinds, and resolution
+                # looks the attribute list up by the node's own kind -- so register those
+                # too, or `nodes: {SomeGeneric: {}}` dies on a KeyError in `_resolve_hosts`
+                # and warms no peers. `setdefault` so an explicitly requested kind keeps
+                # its own spec.
+                for fetched_node in nodes_from_kind:
+                    fetched.attrs_by_kind.setdefault(fetched_node._schema.kind, projection.attrs)
+                # The per-fetch record that resolution drives off. The by-kind maps above
+                # cannot tell two specs apart once both answer with the same concrete
+                # kind -- one of them ends up speaking for both -- and this can.
+                fetched.contexts.append(
+                    HostContext(
+                        kind=node_kind,
+                        nodes=list(nodes_from_kind),
+                        attrs=projection.attrs,
+                        projection=projection,
                     )
-                    try:
-                        # prefetch_relationships=True so the peers' own relationships (depth-2,
-                        # e.g. animals.owner) come back populated, avoiding a per-peer round-trip
-                        # during nested resolution.
-                        self.client.fetch_nodes(kind=related_kind, prefetch_relationships=True, order=order)
-                    except Exception as exc:
-                        self._handle_display(
-                            exception=exc,
-                            message=f"Failed to fetch_nodes for kind '{related_kind}'",
-                            level="WARNING",
-                        )
-                        continue
+                )
+                fetched.nodes.extend(nodes_from_kind)
 
-            # Phase 2: resolve each host node exactly once (using its own kind's attributes).
-            # Previously this loop was nested inside the per-kind loop above, so every node
-            # was resolved once per requested kind (N x K) with all the fetches that implies.
-            for host_node in all_nodes:
+            return fetched
+
+        @staticmethod
+        def _warming_attrs(fetched: HostFetch) -> dict[str, list[str]]:
+            """Every spec's attribute paths, unioned per concrete kind.
+
+            Warming is deliberately kind-level and wants the union: a nested path only
+            one spec named still has to be warmed, or resolution falls back to a fetch
+            per peer -- the cost this whole pass exists to remove. ``attrs_by_kind``
+            cannot supply that. A generic and one of its concrete kinds both answering
+            with the same concrete kind leave one spec's list standing for both, since
+            the requested kind is assigned outright and the kinds it answered with are
+            only ``setdefault``-ed.
+
+            Taken over ``contexts`` instead, the view that keeps each fetch separate,
+            and keyed on the kinds the nodes themselves report -- ``collect`` looks a
+            node up by its own kind, so a generic's name would never be read. Falls back
+            to the by-kind map for a ``HostFetch`` assembled without contexts, the way
+            ``_resolution_passes`` does.
+            """
+            if not fetched.contexts:
+                return fetched.attrs_by_kind
+
+            merged: dict[str, list[str]] = {}
+            for context in fetched.contexts:
+                for kind in {node._schema.kind for node in context.nodes}:
+                    known = merged.setdefault(kind, [])
+                    known.extend(attr for attr in context.attrs if attr not in known)
+            return merged
+
+        def _warm_peers(self, warmer: PeerWarmer, fetched: HostFetch) -> int:
+            """Load the peers that nested paths are about to read.
+
+            Only ids the host nodes reference are fetched, and only where the inline peer
+            payload came back short, so this costs one request per page of peers rather
+            than one pass over every peer kind in the database.
+
+            Returns:
+                int: how many peer batches were issued.
+            """
+            referenced = warmer.collect(nodes=fetched.nodes, attrs_by_kind=self._warming_attrs(fetched))
+            if not referenced:
+                return 0
+
+            self._handle_display(
+                message=f"Loading referenced peers: {dict.fromkeys(referenced)}",
+                level="DEBUG",
+            )
+            # No schema fetch for the peer kinds: `resolve_node_mapping` reads a node's
+            # own `_schema`, never the `schemas` mapping it is handed, so loading them
+            # here would be a round-trip nothing reads back.
+            return warmer.warm(referenced)
+
+        @staticmethod
+        def _resolution_passes(
+            fetched: HostFetch, refill: RefillLedger
+        ) -> Iterator[tuple[InfrahubNodeSync, list[str], RefillLedger]]:
+            """Each host node paired with the attribute list and ledger of the fetch that got it.
+
+            Driven off ``fetched.contexts``, the only view that survives two specs
+            answering with the same concrete kind. A ``HostFetch`` assembled by hand
+            without contexts falls back to the by-kind attribute map, which is what this
+            did before per-fetch context existed.
+            """
+            if fetched.contexts:
+                for context in fetched.contexts:
+                    ledger = refill.scoped(context.scoped_projections(fetched.projections))
+                    for host_node in context.nodes:
+                        yield host_node, context.attrs, ledger
+                return
+
+            for host_node in fetched.nodes:
+                yield host_node, fetched.attrs_by_kind[host_node._schema.kind], refill
+
+        @staticmethod
+        def _is_placeholder(value: Any) -> bool:
+            """Whether a resolved value is the placeholder a root gets when nothing resolved.
+
+            ``resolve_node_mapping`` seeds every requested root with ``None`` or ``{}``
+            and overwrites only what it could resolve, so those are what "this spec had
+            no answer for this field" looks like. ``False``, ``0`` and ``""`` are answers.
+            """
+            return value is None or (isinstance(value, (dict, list)) and not value)
+
+        @staticmethod
+        def _is_structured(value: Any) -> bool:
+            """Whether a resolved relationship carries its peer's attributes, not just an id.
+
+            A root asked for bare (``site``) resolves to the peer id, or a list of them
+            for cardinality-many; asked for with a nested path (``site.name``) it
+            resolves to a dict per peer. The dict is the richer answer and contains the
+            id anyway, so it is the one to keep when two specs disagree.
+
+            Empty does not count. A nested root that resolved nothing is seeded ``{}``,
+            which carries less than the id the other spec did resolve -- treating it as
+            structured would drop that id, and put the outcome back at the mercy of the
+            order the kinds were listed in.
+            """
+            if isinstance(value, dict):
+                return bool(value)
+            return isinstance(value, list) and any(isinstance(item, dict) and bool(item) for item in value)
+
+        @classmethod
+        def _merge_host_result(cls, existing: dict[str, Any], addition: dict[str, Any]) -> None:
+            """Fold one fetch's resolution of a host into what another fetch resolved for it.
+
+            Each result carries only what its own query projected, so the two are not
+            interchangeable and the union is what the user asked for. Nested roots merge
+            in place rather than being replaced wholesale: two specs naming different
+            nested paths under one relationship must not erase each other. Where both
+            answered for the same field the first stands, unless it is a placeholder or
+            an id where the other spec resolved the peer's attributes -- keeping ``id``
+            consistent, both passes having resolved the same node, and keeping the
+            result independent of the order the kinds were listed in.
+            """
+            for key, value in addition.items():
+                if key not in existing:
+                    existing[key] = value
+                elif isinstance(existing[key], dict) and isinstance(value, dict):
+                    cls._merge_host_result(existing[key], value)
+                elif (
+                    isinstance(existing[key], list)
+                    and isinstance(value, list)
+                    and cls._is_structured(existing[key])
+                    and cls._is_structured(value)
+                ):
+                    # The cardinality-many form of the branch above. One spec asked for
+                    # `interfaces.name`, the other for `interfaces.description`: each list
+                    # carries only its own field, so keeping the first wholesale drops the
+                    # other spec's -- the erasure this docstring says must not happen.
+                    cls._merge_peer_lists(existing[key], value)
+                elif cls._is_structured(value) and not cls._is_structured(existing[key]):
+                    # One spec asked for `site`, the other for `site.name`: the id-only
+                    # answer loses to the one carrying the attributes. Without this the
+                    # winner would be whichever kind the user happened to list first.
+                    existing[key] = value
+                elif cls._is_placeholder(existing[key]) and not cls._is_placeholder(value):
+                    existing[key] = value
+
+        @classmethod
+        def _merge_peer_lists(cls, existing: list[Any], addition: list[Any]) -> None:
+            """Fold one fetch's list of peers into another's, pairing them by id.
+
+            A cardinality-many root resolves to one dict per peer, so the two lists
+            describe the same peers through different projections rather than being
+            alternative answers. Pairing on ``id`` merges each peer the way a
+            cardinality-one root is merged; a peer only one side resolved is appended,
+            because the union is what the user asked for.
+
+            Peers without an id cannot be paired, so they are appended only when the
+            list does not already carry an equal one -- duplicating them would inflate
+            a relationship the caller reads as a peer set.
+            """
+            by_id = {item["id"]: item for item in existing if isinstance(item, dict) and item.get("id")}
+            for item in addition:
+                if not isinstance(item, dict):
+                    continue
+                peer_id = item.get("id")
+                paired = by_id.get(peer_id) if peer_id else None
+                if paired is not None:
+                    cls._merge_host_result(paired, item)
+                elif item not in existing:
+                    existing.append(item)
+                    if peer_id:
+                        by_id[peer_id] = item
+
+        def _resolve_hosts(
+            self,
+            fetched: HostFetch,
+            include_id: bool,
+            refill: RefillLedger,
+            refreshed: bool = False,
+        ) -> dict[str, Any]:
+            """Resolve every host node against the warmed store, with the spec that fetched it.
+
+            A node is resolved once per fetch that answered with it -- once, except where
+            a generic and one of its concrete kinds were both requested and both came
+            back with the same host.
+
+            Parameters:
+                fetched (HostFetch): the host nodes and their resolution context.
+                include_id (bool): Whether to include the node ID in each result.
+                refill (RefillLedger): where to record attributes the query never carried.
+                    Each fetch resolves against a view of it scoped to that fetch's own
+                    projections, every view sharing this ledger's pending set.
+                refreshed (bool): read each node back from the store first. A refill
+                    replaces the node in the store rather than mutating the instance in
+                    hand, so the second pass has to look it up again.
+            """
+            store = self.client.client.store
+            resolved: dict[str, Any] = {}
+
+            for host_node, attrs, ledger in self._resolution_passes(fetched=fetched, refill=refill):
+                node = (store.get(key=host_node.id, raise_when_missing=False) or host_node) if refreshed else host_node
                 result = self.resolve_node_mapping(
-                    node=host_node,
-                    attrs=node_attributes_dict[host_node._schema.kind],
-                    schemas=schema_dict,
+                    node=node,
+                    attrs=attrs,
+                    schemas=fetched.schemas,
                     include_id=include_id,
+                    refill=ledger,
                 )
                 self._handle_display(
                     message=f"Resolved attributes for node '{get_node_identifier(host_node)}'",
                     level="DEBUG",
                 )
-                if result:
-                    host_node_attributes[str(host_node)] = result
+                if not result:
+                    continue
 
-            return host_node_attributes
+                key = str(host_node)
+                if key in resolved:
+                    # One host reachable through two specs gets the union of both. Each
+                    # node was resolved with the spec that fetched it, so the results are
+                    # complementary rather than redundant -- the last-write-wins this
+                    # replaces silently dropped whichever spec resolved first.
+                    self._merge_host_result(resolved[key], result)
+                else:
+                    resolved[key] = result
+
+            return resolved
 
         @staticmethod
         def resolve_dotted_path(attributes: dict, path: str) -> str | None:
@@ -1167,14 +1754,41 @@ if HAS_INFRAHUBCLIENT:
             else:
                 raise Exception("query is neither a string nor a dict")
 
+            results = {}
             try:
-                results = {}
                 response = self.client.execute_graphql(query=query_str, variables=variables)
-                if not response:
-                    raise Exception
+            except Exception as exc:
+                # Defensive: the client wrapper's exception decorator only re-raises for
+                # a caller that built the wrapper without a Display. Both shipped plugins
+                # pass one, so their failures are logged, come back as None, and land in
+                # the `if not response:` branch below rather than here.
+                #
+                # For the callers that do reach here, name the cause and chain it. The
+                # lookup plugin re-raises whatever comes out of here as
+                # `AnsibleError(str(exc))`, so a message built only from the query text is
+                # the entirety of what a playbook author sees -- the status code, the
+                # GraphQL error list or the timeout that explains the failure never
+                # reached them. Unwrap first: the decorator hands a Display-less caller
+                # the SDK error boxed in a bare `Exception`, and naming that box reports
+                # the type as "Exception".
+                cause = unwrap_wrapped_error(exc)
+                raise Exception(f"Failed to execute the GraphQL query: {type(cause).__name__}: {cause}") from cause
 
-            except Exception:
-                raise Exception(f"Failed to execute the grapqhl query '{query}'")
+            if not response:
+                # Not an empty result set: `handle_infrahub_exceptions` logs and returns
+                # None rather than raising whenever a Display is attached, which every
+                # plugin does. So a failed call arrives here as nothing at all, and what
+                # reached the operator is a single line -- a warning for most failures,
+                # but `display.error` when the server was unreachable or unresponsive.
+                # That line only carries the reason on the `GraphQLError` path; the
+                # others keep it behind `display.verbose(..., caplevel=2)`, so -vvv.
+                # Point at both, instead of blaming the query or promising a reason that
+                # may not be on screen.
+                raise Exception(
+                    "Failed to execute the GraphQL query: the call returned no response. "
+                    "A line was logged above -- a warning, or an error when the server was "
+                    "unreachable or unresponsive -- re-run with -vvv to see the reason itself."
+                )
 
             if any(key.endswith(("Create", "Update", "Delete")) for key in response):
                 # Handle mutation response

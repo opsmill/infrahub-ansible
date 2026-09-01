@@ -142,6 +142,7 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     INFRAHUB_ARG_SPEC,
 )
 
+
 class NodeModule(InfrahubModule):
     def run(self):
         kind = self.data.get("kind")
@@ -254,3 +255,80 @@ The SDK wrapper respects these environment variables as fallbacks:
 |----------|---------|
 | `INFRAHUB_ADDRESS` | API endpoint URL |
 | `INFRAHUB_API_TOKEN` | Authentication token |
+
+## SDK Behaviours That Surprise
+
+Each of these cost real debugging time. They are properties of `infrahub-sdk`, not of this collection,
+so they can change under a version bump — re-verify rather than trusting this list blindly.
+
+### `include` does not narrow a query
+
+Only `exclude` narrows. `include` opts cardinality-many relationships *in*; it does not restrict the
+attributes requested. Verified by rendering the query both ways: with and without `include`, the SDK
+produced byte-identical output.
+
+The consequence is that a user writing `include: [name]` pays for every attribute on the kind unless the
+caller computes the complement itself — "everything the schema declares, minus what the user asked for" —
+and passes that as `exclude`. `include` still has to carry the top-level name of any cardinality-many
+relationship that must be prefetched, so the two lists are derived together, not either/or.
+
+### A relationship's peer payload is projected off the *declared* peer schema
+
+When a relationship declares a generic as its peer (`Device.location` → a location generic), the inline
+peer payload carries only what the **generic** exposes. An attribute that lives on the concrete kind is
+never requested and never arrives, no matter how many times the host query is retried.
+
+This is the most common shape in real schemas and the source of most apparent "the value is empty"
+reports. The fix is to load the peers by id in a second, batched pass — not to retry the host query.
+
+### Hierarchy fields escape an `exclude` complement built from the schema
+
+`parent`, `children`, `ancestors` and `descendants` are pseudo-schemas the SDK synthesises for any kind
+with `hierarchy` set (`hierarchical_relationship_schemas`). They are **not** in `relationship_names`, so
+an exclude list computed as "everything the schema declares, minus what the user asked for" never
+reaches them — and `_process_hierarchical_fields` adds all four to the query whenever
+`prefetch_relationships` is on. A narrowed query against Location, Organization or an IPAM prefix
+therefore still drags two full hierarchies down on every page unless the four names are added to
+`exclude` explicitly. Name them unconditionally: doing so on a non-hierarchical kind is free, because the
+SDK only ever tests membership in `exclude`.
+
+### The wrapper swallows exceptions whenever a Display is attached
+
+`handle_infrahub_exceptions_decorator` is applied to every public `InfrahubclientWrapper` method in
+`__init__`. With a `Display` (always, in the inventory) it logs and **returns `None`**; only without one
+does it re-raise. So `try: ... except Exception` around a wrapper call is dead code in the inventory
+path — check for a `None` return instead, and treat it as distinct from an empty list.
+
+### The non-parallel pager costs an extra empty request on a full page
+
+`filters(parallel=False)` stops only once `count - (offset + pagination_size)` goes negative, so a chunk
+of exactly `pagination_size` triggers one more, empty round-trip. Batch ids at `pagination_size - 1`.
+
+### `Config.custom_recorder` is the supported instrumentation hook
+
+`Recorder` is a runtime-checkable protocol with a single method, `record(response: httpx.Response)`,
+invoked from `InfrahubClientSync._record` on every HTTP response — below pagination. Passing a counter
+as `custom_recorder` is how to measure real round-trips without monkeypatching `execute_graphql`.
+
+Note it counts *every* response, REST schema lookups included, so the figure is legitimately higher than
+a GraphQL-only count.
+
+### Raising `pagination_size` does not make things faster
+
+Measured on a ~650-device estate: 50 → 500 cut the request count from 20 to 4 and moved wall-clock the
+wrong way, 7.10s → 7.60s. Fewer, larger pages is not a win here. Concurrency is the lever that helped.
+
+## Naming Trap: `self.client.client`
+
+`InfrahubclientWrapper` holds the SDK client as `.client`, and the processors hold the *wrapper* as
+`.client`. So inside `InfrahubNodesProcessor`:
+
+```python
+self.client  # the InfrahubclientWrapper
+self.client.client  # the raw InfrahubClientSync
+self.client.client.store  # the SDK's NodeStore
+```
+
+`self.client.client` reads like a typo and is not one. A review bot flagged it as such during the
+inventory performance work; applying the suggested "fix" broke three tests. Verify with
+`processor.client.client.store is wrapper.client.store` before changing anything in this area.

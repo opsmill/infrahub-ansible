@@ -84,7 +84,7 @@ jobs:
         uses: "actions/checkout@v7"
 
       - name: "Set up Python"
-        uses: "actions/setup-python@v6"
+        uses: "actions/setup-python@v7"
         with:
           python-version: "3.12"
 
@@ -108,7 +108,10 @@ jobs:
       run:
         working-directory: ./docs
     if: needs.files-changed.outputs.documentation == 'true'
-    needs: ["files-changed", "python-lint"]
+    # Gated on the documentation filter alone. Depending on python-lint made this
+    # inherit that job's skips: a docs-only change skips python-lint, and a skipped
+    # dependency skips its dependents, so the docs build silently never ran.
+    needs: ["files-changed"]
     runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:
@@ -117,11 +120,11 @@ jobs:
         with:
           submodules: true
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 11
       - name: Install NodeJS
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22  # pnpm 11 requires Node >= 22.13
           cache: "pnpm"
@@ -134,7 +137,12 @@ jobs:
         run: "invoke docusaurus"
 
   validate-documentation-style:
-    needs: ["files-changed", "python-lint"]
+    # Same fix as documentation-lint, plus the filter it never had: this job was
+    # gated only by inheriting python-lint's outcome, so it ran whenever Python
+    # changed and skipped whenever Python did not — neither of which has anything
+    # to do with prose style.
+    if: needs.files-changed.outputs.documentation == 'true'
+    needs: ["files-changed"]
     runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     steps:

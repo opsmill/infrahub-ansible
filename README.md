@@ -18,7 +18,7 @@ To keep the code simple, we only officially support the two latest releases of I
 - Python >=3.11, <3.15
 - Python modules:
   - infrahub-sdk >= 1.5.0
-  - Ansible 2.18+
+  - Ansible 2.19+
 - Infrahub write-enabled token when using modules or read-only token for `lookup/inventory`
 
 ## Documentation

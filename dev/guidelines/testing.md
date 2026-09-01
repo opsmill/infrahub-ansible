@@ -104,6 +104,7 @@ Since tests run without an Infrahub instance, mock the SDK client:
 ```python
 from unittest.mock import MagicMock, patch
 
+
 @patch("ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils.InfrahubClientSync")
 def test_wrapper_creation(mock_client_class):
     mock_client_class.return_value = MagicMock()
@@ -124,6 +125,7 @@ Use `ansible.module_utils.basic.AnsibleModule` with mocked `exit_json` and `fail
 
 ```python
 from unittest.mock import patch, MagicMock
+
 
 def test_node_module_create():
     mock_module = MagicMock()
@@ -165,11 +167,55 @@ tests/
 
 Integration tests are Ansible playbooks that exercise the full module → API path.
 
+There is a second kind. `tests/integration/processor/` and `tests/integration/inventory/` use pytest
+against a real Infrahub started by the SDK's testcontainers helper. They need their own dependency group
+and a handful of flags — see
+[../guides/running-tests.md](../guides/running-tests.md) for the exact invocation and why each flag is
+required.
+
+## Practices Worth Following
+
+These come from defects that reached a branch and were caught late, not from theory.
+
+### Verify a new test by collection, not by the pass count
+
+A test method attached to the wrong class still leaves a green suite — the count simply goes down by
+one, which nobody notices. After adding or moving a test, confirm the runner can see it:
+
+```bash
+uv run pytest tests/unit --collect-only -q | grep <your_test_name>
+```
+
+"N passed" answers whether the tests that ran succeeded. It does not answer whether your test ran.
+
+### Mutation-check a test that claims to protect a behaviour
+
+Before writing "this test guards X" in a docstring, disable X and confirm the test fails. A test can
+pass for reasons unrelated to the thing it names — in this collection an integration test asserting that
+peer warming resolved a generic-peer attribute passed with warming disabled, because a separate refill
+path recovered the value. The docstring was the defect, not the code.
+
+### Re-verify remembered facts against the code
+
+Notes carried between sessions go stale. A refetch path recorded as "dead code, does not fire" turned
+out to fire once per node — 653 times on a 652-device estate — and was the only thing resolving
+attributes declared through a generic peer. Removing it on the strength of the note would have silently
+emptied those attributes. Confirm behaviour by instrumenting or testing it before acting on a memory.
+
+### Derive round-trip budgets, do not hardcode them
+
+Integration tests that assert a request count share a container and accumulate data, so a fixed ceiling
+quietly stops meaning anything. Compute the budget from `pagination_size` and the actual result size,
+and record which SDK and image version a measured budget came from.
+
 ## CI Pipeline
 
 Tests run on every PR to `develop`:
 
-1. **Linter job** — Ruff check + format, yamllint, Vale
+1. **Linter job** — Ruff check + format, **mypy**, yamllint, rumdl, Vale
 2. **Ansible linter and tests job** — ansible-lint, sanity tests, unit tests
+
+`invoke lint` covers ruff, yamllint, and rumdl — but **not mypy**. Run `uv run mypy .` separately, or
+the first sign of a type error will be a red CI job.
 
 The CI workflow is in `.github/workflows/trigger-pr-develop.yml`.

@@ -33,3 +33,7 @@ secrets.yaml
 **/node_modules/
 docs/.docusaurus/
 docs/build/
+
+# Local spec-kit state: points at the feature the current session is working on.
+# Per-checkout, not shared.
+.specify/feature.json

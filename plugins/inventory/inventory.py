@@ -12,7 +12,9 @@ author:
     - Benoit Kohler (@bearchitek)
 short_description: Infrahub inventory source (using GraphQL)
 description:
-    - Get inventory hosts from Infrahub
+    - Get inventory hosts from Infrahub.
+    - When strict is false, a compose, groups or keyed_groups expression that fails to resolve
+      emits one warning per distinct failure naming the affected hosts, instead of failing silently.
 extends_documentation_fragment:
     - constructed
     - inventory_cache
@@ -37,7 +39,7 @@ options:
         required: False
         description: Timeout for Infrahub requests in seconds
         type: int
-        default: 10
+        default: 60
     prefetch_relationships:
         required: False
         description: Prefetch relationships for Infrahub nodes
@@ -176,9 +178,14 @@ RETURN = """
       - list of composed dictionaries with key and value
     type: list
 """
+import hashlib
 import json
 import os
-from typing import Any
+from functools import partial
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
@@ -188,6 +195,12 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
     InfrahubclientWrapper,
     InfrahubNodesProcessor,
 )
+
+# Additional failing hosts listed by name in an aggregated strict:false warning.
+MAX_LISTED_FAILURE_HOSTS = 5
+# Bump when the shape of the cached host variables changes, so an upgrade does not
+# read an older release's entries back as if they were current.
+CACHE_SCHEMA_VERSION = 2
 
 PACKAGING_IMPORT_ERROR: ImportError | None = None
 
@@ -254,6 +267,44 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self.templar.available_variables = self._vars
             self.token = self.templar.template(self.get_option("token"), fail_on_undefined=False)
 
+    def _cache_key(self) -> str:
+        """Build a cache key that covers everything shaping the cached data.
+
+        ``get_cache_key`` hashes the plugin name plus whatever it is handed. Handing
+        it only the endpoint means two inventory files pointing at one Infrahub share
+        a single entry, and switching ``branch`` serves the other branch's hosts.
+        The branch, the node spec, the token, the ``prefetch_relationships`` setting
+        and a schema version travel in the key instead, so a different request is a
+        different entry.
+
+        Infrahub applies permissions per token, so the token identity has to be part
+        of the key or a low-privilege run can be served hosts a privileged token
+        fetched. Only a digest of the token goes in: the key ends up in a cache
+        filename and in verbose output, and the secret must not be recoverable from
+        either. ``prefetch_relationships`` decides which relationship data lands in
+        the host variables, so prefetched and non-prefetched runs need their own
+        entries too.
+        """
+        token = getattr(self, "token", None)
+        request = json.dumps(
+            {
+                "endpoint": self.api_endpoint,
+                "branch": self.branch,
+                "nodes": self.nodes,
+                # `str` first: the option declares no type, so a token written as a
+                # bare number (as the example in this file's EXAMPLES does) arrives as
+                # an int and has no `encode`.
+                "token": hashlib.sha256(str(token).encode()).hexdigest() if token else None,
+                "prefetch_relationships": getattr(self, "prefetch_relationships", None),
+                "version": CACHE_SCHEMA_VERSION,
+            },
+            sort_keys=True,
+            default=str,
+        )
+        digest = hashlib.sha256(request.encode()).hexdigest()[:16]
+        cache_key: str = self.get_cache_key(f"{self.api_endpoint}|{digest}")
+        return cache_key
+
     def _fetch_from_cache(self) -> tuple[dict | None, bool]:
         """
         Fetches data from the cache (if available)
@@ -267,12 +318,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not self.use_cache:
             return None, True
 
-        cache_key: str = self.get_cache_key(self.api_endpoint)
-
         if self.user_cache_setting and self.use_cache:
             self.display.v("Fetching cache.")
             try:
-                host_node_attributes: dict = json.loads(self._cache[cache_key])
+                host_node_attributes: dict = json.loads(self._cache[self._cache_key()])
                 return host_node_attributes, not bool(host_node_attributes)
             except KeyError:
                 self.display.v("Cache key not found. Need to load from API.")
@@ -289,8 +338,67 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         """
 
         if self.user_cache_setting:
-            cache_key: str = self.get_cache_key(self.api_endpoint)
-            self._cache[cache_key] = json.dumps(host_node_attributes)
+            self._cache[self._cache_key()] = json.dumps(host_node_attributes)
+
+    def _apply_constructed_or_record(self, apply_entry: Callable[..., None], entry_label: str, host: str) -> None:
+        """
+        Apply a single constructed-inventory entry (compose / groups / keyed_groups),
+        recording expression failures when strict mode is off.
+
+        The Constructable helpers silently skip an entry whose expression fails to
+        resolve under strict=False, which leaves group membership quietly incomplete
+        (#385). Evaluate the entry strictly instead and record the failure for a
+        per-failure warning; errors that strict=False would raise as well (invalid
+        entry configuration) stay fatal.
+
+        Parameters:
+            apply_entry (Callable): applies one entry, accepting a `strict` keyword.
+            entry_label (str): the entry as the operator wrote it, part of the failure's identity.
+            host (str): host the entry is being applied to.
+        """
+        try:
+            apply_entry(strict=True)
+        except AnsibleError as exc:
+            apply_entry(strict=False)
+            # Group on the wrapped error, never on Ansible's own message: that message
+            # mixes the cause with the host, so hosts sharing one cause would look like
+            # separate failures. Constructable raises from the underlying template
+            # error, and that error is the host-independent part.
+            cause = exc.__cause__ or exc.__context__
+            if cause is None:
+                # A keyed group's key resolving empty is the only failure that reaches
+                # here without a wrapped error: Constructable's other cause-less errors
+                # (a non-dict entry, an invalid group-name type, default_value together
+                # with trailing_separator) are raised regardless of strict, so the
+                # non-strict retry re-raises them and they stay fatal. Its message names
+                # one host, which an aggregate warning would present as the shared
+                # cause, so describe the condition the hosts actually share.
+                detail = "the key resolved to an empty value and no default_value applies"
+                group_by = type(exc).__name__
+            else:
+                detail = group_by = str(cause)
+            self._constructed_failures.setdefault((entry_label, group_by), (detail, []))[1].append(host)
+
+    def _warn_constructed_failures(self) -> None:
+        """
+        Emit one warning per distinct failure instead of one per host, so a single
+        broken expression on a large inventory does not flood the output, while an
+        expression failing for two different reasons keeps both diagnostics.
+
+        The warning is composed here rather than taken from Ansible's message, which
+        mixes the failing host into its text: the entry is named as the operator wrote
+        it, then the affected hosts -- a single one by name, several as a count with the
+        first ``MAX_LISTED_FAILURE_HOSTS`` named and the rest elided -- and the cause.
+        """
+        for (entry_label, _group_by), (detail, hosts) in self._constructed_failures.items():
+            if len(hosts) == 1:
+                affected = f"host {hosts[0]}"
+            else:
+                listed = ", ".join(hosts[:MAX_LISTED_FAILURE_HOSTS])
+                if len(hosts) > MAX_LISTED_FAILURE_HOSTS:
+                    listed += ", ..."
+                affected = f"{len(hosts)} host(s) ({listed})"
+            self.display.warning(f"Could not apply {entry_label} for {affected}: {detail}")
 
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
@@ -300,24 +408,55 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             host_node_attributes (dict[str, Any]): dictionary containing attributes for each host node.
         """
 
+        self._constructed_failures: dict[tuple[str, str], tuple[str, list[str]]] = {}
+
         for host_node, attributes in host_node_attributes.items():
             self.inventory.add_host(host_node)
 
             trusted_attributes = _mark_trusted(attributes)
             self.set_host_variables(host_node=host_node, attributes=trusted_attributes)
 
-            self._add_host_to_composed_groups(
-                groups=self.groups,
-                variables=trusted_attributes,
-                host=host_node,
-                strict=self.strict,
-            )
-            self._add_host_to_keyed_groups(
-                keys=self.keyed_groups,
-                variables=trusted_attributes,
-                host=host_node,
-                strict=self.strict,
-            )
+            if self.strict:
+                self._add_host_to_composed_groups(
+                    groups=self.groups,
+                    variables=trusted_attributes,
+                    host=host_node,
+                    strict=True,
+                )
+                self._add_host_to_keyed_groups(
+                    keys=self.keyed_groups,
+                    variables=trusted_attributes,
+                    host=host_node,
+                    strict=True,
+                )
+            else:
+                for group_name, expression in (self.groups or {}).items():
+                    self._apply_constructed_or_record(
+                        partial(
+                            self._add_host_to_composed_groups,
+                            groups={group_name: expression},
+                            variables=trusted_attributes,
+                            host=host_node,
+                        ),
+                        entry_label=f"groups entry {group_name!r}",
+                        host=host_node,
+                    )
+                for keyed_group in self.keyed_groups or []:
+                    # A non-dict entry is Ansible's own hard error; keep it reachable
+                    # by not indexing into the entry while building the label.
+                    keyed_key = keyed_group.get("key") if isinstance(keyed_group, dict) else keyed_group
+                    self._apply_constructed_or_record(
+                        partial(
+                            self._add_host_to_keyed_groups,
+                            keys=[keyed_group],
+                            variables=trusted_attributes,
+                            host=host_node,
+                        ),
+                        entry_label=f"keyed_groups key {keyed_key!r}",
+                        host=host_node,
+                    )
+
+        self._warn_constructed_failures()
 
     def set_host_variables(self, host_node: str, attributes: dict[str, Any]) -> None:
         """
@@ -331,7 +470,20 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for key, value in attributes.items():
             self.inventory.set_variable(host_node, key, value)
 
-        self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=self.strict)
+        if self.strict:
+            self._set_composite_vars(compose=self.compose, variables=attributes, host=host_node, strict=True)
+        else:
+            for varname, expression in (self.compose or {}).items():
+                self._apply_constructed_or_record(
+                    partial(
+                        self._set_composite_vars,
+                        compose={varname: expression},
+                        variables=attributes,
+                        host=host_node,
+                    ),
+                    entry_label=f"compose var {varname!r}",
+                    host=host_node,
+                )
 
     def main(self) -> None:
         """Main function"""
@@ -369,9 +521,11 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not host_node_attributes:
             self.display.v("No nodes processed.")
         else:
-            # Store raw (pre-resolution) data in cache so hostname config
-            # changes are always applied on next load.
-            self._store_in_cache(host_node_attributes=host_node_attributes)
+            if need_to_load_from_api:
+                # Store raw (pre-resolution) data in cache so hostname config
+                # changes are always applied on next load. Only on a miss: writing
+                # on a hit renews the TTL on every run, so the entry never ages out.
+                self._store_in_cache(host_node_attributes=host_node_attributes)
             host_node_attributes = processor.resolve_hostnames(host_node_attributes, self.hostnames)
             self.set_hosts_and_groups(host_node_attributes=host_node_attributes)
 

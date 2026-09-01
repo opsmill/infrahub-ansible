@@ -9,8 +9,15 @@ ansible_plugins: &ansible_plugins
 ansible_docs: &ansible_docs
   - "docs/**"
 
+# The Python linters are configured by pyproject.toml and pinned by uv.lock, so a
+# change to either can change what `ruff`/`mypy` report without touching a single
+# .py file. Leaving them out meant the job that runs those linters never fired on
+# the change that altered them — which is how a ruff bump landed on develop and
+# left it failing lint for anyone who ran it locally.
 python_all:
   - "**/*.py"
+  - "pyproject.toml"
+  - "uv.lock"
 
 yaml_all:
   - "**/*.{yml,yaml}"
