@@ -1,0 +1,19 @@
+.github/workflows/workflow-integration-testcontainers.yml
+  s_6113f99c26ba56::t_5a97b4eff56e3f 60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "2437bd820094ebe5cec99cb14788568782646da3",
+  "prompts": {},
+  "sessions": {
+    "s_6113f99c26ba56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f43e03c-b322-4581-a84b-9429911272e8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
