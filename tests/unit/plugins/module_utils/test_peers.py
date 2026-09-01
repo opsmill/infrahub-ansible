@@ -126,18 +126,34 @@ def test_warm_issues_one_call_per_page():
 
 
 def test_warm_survives_one_bad_kind():
+    """A kind that raises must not stop the others, and must not vanish either.
+
+    `on_error` is the only place a failed kind surfaces by name, and the tally is the
+    only place the run-cost breakdown can see it, so both are asserted alongside the
+    good kind still being fetched.
+    """
     seen = []
+    errors = []
+    boom = RuntimeError("boom")
 
     def fetch(**kwargs):
         if kwargs["kind"] == "Broken":
-            raise RuntimeError("boom")
+            raise boom
         seen.append(kwargs["kind"])
         return []
 
-    warmer = PeerWarmer(fetch=fetch, store=SimpleNamespace(get=lambda **kw: None), on_error=lambda k, e: None)
+    warmer = PeerWarmer(
+        fetch=fetch,
+        store=SimpleNamespace(get=lambda **kw: None),
+        on_error=lambda kind, exc: errors.append((kind, exc)),
+    )
     warmer.warm({"Broken": {"x"}, "Fine": {"y"}})
 
     assert seen == ["Fine"]
+    assert errors == [("Broken", boom)]
+    assert warmer.stats["Broken"]["failed"] == 1
+    assert warmer.stats["Broken"]["batches"] == 0
+    assert warmer.stats["Fine"]["failed"] == 0
 
 
 def test_ledger_ignores_a_null_that_was_actually_queried():
