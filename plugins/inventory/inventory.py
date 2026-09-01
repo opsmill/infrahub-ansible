@@ -15,6 +15,7 @@ description:
     - Get inventory hosts from Infrahub.
     - When strict is false, a compose, groups or keyed_groups expression that fails to resolve
       emits one warning per distinct failure naming the affected hosts, instead of failing silently.
+    - Set strict_warnings to false to restore Ansible's silent skip for those entries.
 extends_documentation_fragment:
     - constructed
     - inventory_cache
@@ -111,6 +112,19 @@ options:
         type: list
         elements: str
         default: []
+    strict_warnings:
+        required: False
+        description:
+          - Whether a compose, groups or keyed_groups expression that fails to resolve is
+            reported when strict is false.
+          - When true, one warning per distinct failure names the affected hosts, so an
+            expression no host can evaluate does not silently empty a group.
+          - Set to false when the failures are expected -- an optional relationship that is
+            unset on some hosts, say -- to get Ansible's silent skip back. The entry is still
+            skipped either way; only the reporting changes.
+          - Has no effect when strict is true, where a failing expression is fatal.
+        type: bool
+        default: True
     validate_certs:
         description:
           - Whether or not to validate SSL of the Infrahub instance
@@ -190,6 +204,7 @@ if TYPE_CHECKING:
 from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
+from ansible.utils.vars import combine_vars
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import (
     HAS_INFRAHUBCLIENT,
     InfrahubclientWrapper,
@@ -200,7 +215,10 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
 MAX_LISTED_FAILURE_HOSTS = 5
 # Bump when the shape of the cached host variables changes, so an upgrade does not
 # read an older release's entries back as if they were current.
-CACHE_SCHEMA_VERSION = 2
+# 3: an empty cardinality-many relationship is `[]`, where 2 wrote `None` (bare) or
+#    `{}` (nested). Serving a v2 entry back would keep handing out the old shape for
+#    the rest of the entry's TTL, so the upgrade would look like it changed nothing.
+CACHE_SCHEMA_VERSION = 3
 
 PACKAGING_IMPORT_ERROR: ImportError | None = None
 
@@ -389,7 +407,14 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         mixes the failing host into its text: the entry is named as the operator wrote
         it, then the affected hosts -- a single one by name, several as a count with the
         first ``MAX_LISTED_FAILURE_HOSTS`` named and the rest elided -- and the cause.
+
+        ``strict_warnings: false`` demotes the whole report to verbose output: an
+        operator who knows an optional relationship is unset on some hosts asked for
+        ``strict: false`` precisely so those entries would be skipped, and repeating the
+        skip on every run is noise. The diagnostic is kept rather than dropped, so
+        ``-v`` still answers "why is this group empty".
         """
+        emit = self.display.warning if self.strict_warnings else self.display.v
         for (entry_label, _group_by), (detail, hosts) in self._constructed_failures.items():
             if len(hosts) == 1:
                 affected = f"host {hosts[0]}"
@@ -398,7 +423,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 if len(hosts) > MAX_LISTED_FAILURE_HOSTS:
                     listed += ", ..."
                 affected = f"{len(hosts)} host(s) ({listed})"
-            self.display.warning(f"Could not apply {entry_label} for {affected}: {detail}")
+            emit(f"Could not apply {entry_label} for {affected}: {detail}")
 
     def set_hosts_and_groups(self, host_node_attributes: dict[str, Any]) -> None:
         """
@@ -430,13 +455,20 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                     strict=True,
                 )
             else:
+                # `_add_host_to_composed_groups` folds the host's own vars into the
+                # variables it templates against, once per call. Applying one entry per
+                # call would repeat that per group rather than per host, so do it here
+                # and hand each call the result -- Ansible's own cost, and its own
+                # semantics: it combines once, before iterating the group entries.
+                group_variables = combine_vars(trusted_attributes, self.inventory.get_host(host_node).get_vars())
                 for group_name, expression in (self.groups or {}).items():
                     self._apply_constructed_or_record(
                         partial(
                             self._add_host_to_composed_groups,
                             groups={group_name: expression},
-                            variables=trusted_attributes,
+                            variables=group_variables,
                             host=host_node,
+                            fetch_hostvars=False,
                         ),
                         entry_label=f"groups entry {group_name!r}",
                         host=host_node,
@@ -555,6 +587,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.nodes = self.get_option("nodes")
 
         self.strict = self.get_option("strict")
+        self.strict_warnings = self.get_option("strict_warnings")
         self.compose = self.get_option("compose")
         self.keyed_groups = self.get_option("keyed_groups")
         self.groups = self.get_option("groups")

@@ -5,7 +5,7 @@ description: Infrahub inventory source (using GraphQL)
 
 # Inventory inventory
 
-Get inventory hosts from Infrahub. When strict is false, a compose, groups or keyed_groups expression that fails to resolve emits one warning per distinct failure naming the affected hosts, instead of failing silently. 
+Get inventory hosts from Infrahub. When strict is false, a compose, groups or keyed_groups expression that fails to resolve emits one warning per distinct failure naming the affected hosts, instead of failing silently. Set strict_warnings to false to restore Ansible's silent skip for those entries. 
 
 ## Parameters
 
@@ -22,6 +22,7 @@ Get inventory hosts from Infrahub. When strict is false, a compose, groups or ke
 | `keyed_groups` | `list` | No | [] | Create groups based on attributes or relationships. groups is created as `attribute__value` |
 | `groups` | `dict` | No | {} | Create groups based on jinja filter. |
 | `hostnames` | `list` | No | [] | A list of attribute paths used to determine the inventory hostname. Each entry is a dotted path resolved against node attributes (e.g., "name", "primary_address.address"). The special value "display_label" resolves to the node's display label. First non-empty string value wins. Falls back to display_label if none resolve. Referenced attributes must be present in the node's include list. |
+| `strict_warnings` | `bool` | No | True | Whether a compose, groups or keyed_groups expression that fails to resolve is reported when strict is false. When true, one warning per distinct failure names the affected hosts, so an expression no host can evaluate does not silently empty a group. Set to false when the failures are expected -- an optional relationship that is unset on some hosts, say -- to get Ansible's silent skip back. The entry is still skipped either way; only the reporting changes. Has no effect when strict is true, where a failing expression is fatal. |
 | `validate_certs` | `` | No | True | Whether or not to validate SSL of the Infrahub instance |
 
 ## Examples

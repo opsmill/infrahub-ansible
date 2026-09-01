@@ -701,6 +701,43 @@ if HAS_INFRAHUBCLIENT:
                     parsed[attr]["has_simple"] = True
             return parsed
 
+        @staticmethod
+        def _empty_value(node_schema: Any, root_attr: str, node_attr: Any, has_nested: bool) -> Any:
+            """The value a root gets when the node had nothing to resolve for it.
+
+            The seed has to match the shape the *populated* value would have taken, or
+            an expression that works for every host with data breaks on the one host
+            without it. A cardinality-many relationship resolves to a list -- peer ids,
+            or a dict per peer for a nested path -- so an empty one is ``[]``, not the
+            ``None``/``{}`` a scalar or a cardinality-one root gets. Seeded ``None``,
+            ``tags`` turned ``'edge' in tags`` into "argument of type 'NoneType' is not
+            iterable" on exactly the hosts carrying no tags, which under ``strict:
+            false`` dropped them from the group instead of evaluating the condition;
+            seeded ``{}`` for ``tags.name`` it handed a mapping where every other host
+            got a list.
+
+            Cardinality comes from the relationship manager the SDK put on the node, and
+            from the schema only when the node carries no such attribute at all -- which
+            is what a peer built from a generic's projection looks like.
+
+            Parameters:
+                node_schema: the node's schema.
+                root_attr (str): the top-level name being resolved.
+                node_attr (Any): whatever the node carries under that name, if anything.
+                has_nested (bool): whether a dotted path was requested under this root.
+            """
+            if isinstance(node_attr, RelationshipManagerSync):
+                return []
+            if node_attr is None and root_attr in node_schema.relationship_names:
+                # `get_relationship_or_none` is a schema-model method; guard it so a
+                # schema stand-in without one falls back to the scalar seed rather than
+                # raising.
+                get_relationship = getattr(node_schema, "get_relationship_or_none", None)
+                rel_schema = get_relationship(name=root_attr) if get_relationship else None
+                if rel_schema is not None and rel_schema.cardinality == RelationshipCardinality.MANY:
+                    return []
+            return {} if has_nested else None
+
         def _resolve_schema_attribute(
             self,
             node: InfrahubNodeSync,
@@ -866,7 +903,7 @@ if HAS_INFRAHUBCLIENT:
                     bool(attr_info["nested"]),
                 )
                 node_attr = getattr(node, root_attr, None)
-                attribute_dict[root_attr] = {} if has_nested else None
+                attribute_dict[root_attr] = self._empty_value(node_schema, root_attr, node_attr, has_nested)
 
                 # Handle special node properties (display_label, hfid)
                 if root_attr in ("display_label", "hfid") and has_simple and not has_nested:
@@ -885,9 +922,12 @@ if HAS_INFRAHUBCLIENT:
                 # Handle relationships
                 elif root_attr in node_schema.relationship_names:
                     if isinstance(node_attr, RelationshipManagerSync):
-                        peers = self._resolve_many_relationship(node_attr, nested_attrs, has_nested, schemas, refill)
-                        if peers:
-                            attribute_dict[root_attr] = peers
+                        # Assigned whatever came back, empty included: the result is
+                        # always a list, and guarding on it being non-empty would put
+                        # the seed's shape back in play for a relationship with no peers.
+                        attribute_dict[root_attr] = self._resolve_many_relationship(
+                            node_attr, nested_attrs, has_nested, schemas, refill
+                        )
                     elif isinstance(node_attr, RelatedNodeSync):
                         result = self._resolve_one_relationship(node_attr, nested_attrs, has_nested, schemas, refill)
                         if result is not None:
@@ -1417,7 +1457,8 @@ if HAS_INFRAHUBCLIENT:
         def _is_placeholder(value: Any) -> bool:
             """Whether a resolved value is the placeholder a root gets when nothing resolved.
 
-            ``resolve_node_mapping`` seeds every requested root with ``None`` or ``{}``
+            ``resolve_node_mapping`` seeds every requested root with ``None``, ``{}`` or
+            ``[]`` -- whichever matches the shape a populated value would have taken --
             and overwrites only what it could resolve, so those are what "this spec had
             no answer for this field" looks like. ``False``, ``0`` and ``""`` are answers.
             """

@@ -329,6 +329,64 @@ def test_non_strict_resolving_expressions_do_not_warn(tmp_path):
     assert warnings == []
 
 
+def test_strict_warnings_false_silences_the_report(tmp_path):
+    # `strict: false` means "skip the entry" in every other Ansible inventory plugin.
+    # An operator who knows an optional relationship is unset on some hosts has to be
+    # able to get that silence back instead of re-reading the same warning every run.
+    config = BASE_CONFIG + "strict_warnings: false\n" + "keyed_groups:\n  - prefix: region\n    key: site.region_name\n"
+    inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    assert warnings == []
+    # Silenced, not ignored: the entry is still skipped, and the host still exists.
+    assert "web1" in inv.hosts
+    assert not any(group.startswith("region_") for group in inv.get_groups_dict())
+
+
+def test_strict_warnings_false_keeps_the_diagnostic_at_verbose(tmp_path):
+    # Demoted, not dropped -- `-v` still answers "why is this group empty".
+    config = BASE_CONFIG + "strict_warnings: false\n" + "keyed_groups:\n  - prefix: region\n    key: site.region_name\n"
+    verbose: list[str] = []
+    with mock.patch(
+        "ansible.utils.display.Display.v",
+        side_effect=lambda msg, *args, **kwargs: verbose.append(msg),
+    ):
+        run_inventory(tmp_path, config, _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}))
+
+    assert any("Could not apply" in line and "site.region_name" in line for line in verbose)
+
+
+def test_strict_warnings_defaults_to_reporting(tmp_path):
+    # The default stays the 1.9.0 behaviour: an expression no host can evaluate must
+    # not empty a group in silence (#385).
+    config = BASE_CONFIG + "keyed_groups:\n  - prefix: region\n    key: site.region_name\n"
+    _inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    assert len(warnings) == 1
+
+
+def test_non_strict_groups_see_host_variables(tmp_path):
+    # Group conditionals are templated against the host's own vars as well as the
+    # resolved attributes -- applying one entry per call must not lose them.
+    config = BASE_CONFIG + (
+        "compose:\n  site_tier: \"'core'\"\ngroups:\n  core: \"site_tier == 'core'\"\n  edges: \"role == 'edge'\"\n"
+    )
+    inv, warnings = run_inventory_with_warnings(
+        tmp_path,
+        config,
+        _hosts({"web1": {"name": "web1", "role": "edge", "id": "1"}}),
+    )
+    groups = inv.get_groups_dict()
+    assert warnings == []
+    assert groups["core"] == ["web1"]
+    assert groups["edges"] == ["web1"]
+
+
 def test_non_strict_keyed_group_config_error_still_fatal(tmp_path):
     # default_value and trailing_separator are mutually exclusive regardless of strict;
     # the warning downgrade must not swallow entry misconfiguration.

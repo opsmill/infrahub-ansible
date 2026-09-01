@@ -7,6 +7,7 @@ the other branch's hosts. Everything that shapes the fetched data belongs in it.
 
 from __future__ import annotations
 
+from ansible_collections.opsmill.infrahub.plugins.inventory import inventory as inventory_module
 from ansible_collections.opsmill.infrahub.plugins.inventory.inventory import InventoryModule
 
 
@@ -105,3 +106,16 @@ def test_a_numeric_token_is_hashed_without_raising():
 def test_a_numeric_token_and_its_string_spelling_share_an_entry():
     """Same credential, same cache scope -- the YAML quoting is not part of the request."""
     assert _module(token=42)._cache_key() == _module(token="42")._cache_key()
+
+
+def test_the_schema_version_changes_the_key(monkeypatch):
+    """A bump retires the previous release's entries instead of serving them back.
+
+    The cached value is the resolved host variables, so a release that changes their
+    shape has to change the key too -- otherwise the upgrade appears to do nothing
+    until every entry ages out on its own.
+    """
+    before = _module()._cache_key()
+    monkeypatch.setattr(inventory_module, "CACHE_SCHEMA_VERSION", inventory_module.CACHE_SCHEMA_VERSION + 1)
+
+    assert _module()._cache_key() != before
