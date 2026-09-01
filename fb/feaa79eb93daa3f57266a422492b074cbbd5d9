@@ -1,0 +1,22 @@
+plugins/module_utils/infrahub_utils.py
+  s_6113f99c26ba56::t_9807219f3d6110 1426-1436,1445-1470
+  s_6113f99c26ba56::t_8b6aa611a5d7b5 1471
+tests/unit/plugins/module_utils/test_fetch_and_process_resolution.py
+  s_6113f99c26ba56::t_8562385470e545 697-752
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "fbfeaa79eb93daa3f57266a422492b074cbbd5d9",
+  "prompts": {},
+  "sessions": {
+    "s_6113f99c26ba56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f43e03c-b322-4581-a84b-9429911272e8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
