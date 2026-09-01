@@ -1307,7 +1307,12 @@ if HAS_INFRAHUBCLIENT:
                     # this the `except` above never fires there, `failures` stays empty,
                     # and a broken fetch is indistinguishable from a kind that legitimately
                     # matched nothing: the run hands Ansible zero hosts and reports success.
-                    fetched.failures[node_kind] = "fetch failed, see the warning above"
+                    # Level-neutral for the same reason as the peer path: the swallowed
+                    # failure was logged through `display.error` for an unreachable or
+                    # unresponsive server and `display.warning` otherwise.
+                    fetched.failures[node_kind] = (
+                        "fetch failed; a line was logged for it above -- re-run with -vvv for the reason"
+                    )
                     continue
 
                 if not nodes_from_kind:

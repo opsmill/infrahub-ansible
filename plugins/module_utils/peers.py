@@ -297,7 +297,18 @@ class PeerWarmer:
                             # failure to load. There is no exception to hand over --
                             # the decorator already logged and discarded it -- so say
                             # exactly that rather than invent a traceback.
-                            self.on_error(kind, RuntimeError("fetch failed, see the warning above"))
+                            #
+                            # No level is named: `_handle_exc` logs through
+                            # `display.error` for an unreachable or unresponsive server
+                            # and `display.warning` for everything else, so promising a
+                            # warning points at a line that may not exist. The reason
+                            # itself stays behind `display.verbose(..., caplevel=2)`.
+                            self.on_error(
+                                kind,
+                                RuntimeError(
+                                    "fetch failed; a line was logged for it above -- re-run with -vvv for the reason"
+                                ),
+                            )
                         continue
                     calls += 1
                     stat["batches"] += 1
