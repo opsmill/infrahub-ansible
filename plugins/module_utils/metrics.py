@@ -22,6 +22,7 @@ from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type
 
+import threading
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -37,14 +38,29 @@ class RequestCounter:
     The count covers *every* response, not only GraphQL ones -- schema lookups go
     over REST and cost a round-trip just the same. Reporting the smaller,
     GraphQL-only figure would understate what the run actually asked of the server.
+
+    Counting is locked because the SDK reaches this from several threads at once:
+    its parallel pager runs pages through ``InfrahubBatchSync``, which is a
+    ``ThreadPoolExecutor``, and the collection asks for parallel paging by default.
+
+    ``+= 1`` is a read and a write, atomic only by accident: on a GIL build the pair
+    happens to hold the GIL throughout, and no increment could be made to go missing
+    here even at 32 threads and a nanosecond switch interval. That is a CPython
+    implementation detail, not a guarantee, and it stops being true on the
+    free-threaded builds inside this project's supported range (3.13t, 3.14). The
+    lock costs nothing at this call rate and makes the count correct by construction
+    rather than by luck -- an undercount is the one thing a round-trip diagnostic
+    must not report.
     """
 
     def __init__(self) -> None:
         self.responses = 0
+        self._lock = threading.Lock()
 
     def record(self, response: httpx.Response) -> None:  # noqa: ARG002
         """Called by the SDK for each response. The response itself is not retained."""
-        self.responses += 1
+        with self._lock:
+            self.responses += 1
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(responses={self.responses})"

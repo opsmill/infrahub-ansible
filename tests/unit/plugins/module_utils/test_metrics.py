@@ -7,6 +7,8 @@ detached counter turns the diagnostic back into an anecdote.
 
 from __future__ import annotations
 
+import sys
+import threading
 from types import SimpleNamespace
 
 from ansible_collections.opsmill.infrahub.plugins.module_utils import metrics
@@ -32,8 +34,9 @@ def test_counter_ignores_the_response_it_is_given():
     counter = metrics.RequestCounter()
     counter.record(response=SimpleNamespace(content=b"secret", status_code=200))
     assert counter.responses == 1
-    # The count is the only state. Anything else here would be a retained response.
-    assert list(vars(counter)) == ["responses"]
+    # The count and the lock guarding it are the only state. Anything else appearing
+    # here would be a retained response.
+    assert sorted(vars(counter)) == ["_lock", "responses"]
 
 
 def test_module_has_no_runtime_sdk_dependency():
@@ -70,3 +73,40 @@ def test_request_count_rejects_a_non_integer_counter():
     mock-based test would print a nonsense number and nobody would notice.
     """
     assert metrics.request_count(SimpleNamespace(request_counter=SimpleNamespace(responses="lots"))) is None
+
+
+def test_counter_totals_correctly_when_pages_are_recorded_concurrently():
+    """Recording from many threads must yield the exact total.
+
+    Parallel paging runs pages through ``InfrahubBatchSync``, a ``ThreadPoolExecutor``,
+    and the collection asks for parallel paging by default -- so ``record`` really is
+    called concurrently.
+
+    This pins the guarantee, not a reproduction: on a GIL build the unlocked ``+= 1``
+    could not be made to lose a count even at 32 threads and a nanosecond switch
+    interval, so this passes with or without the lock today. It is the free-threaded
+    builds in this project's supported range (3.13t, 3.14) where the lock is what
+    keeps this green, and the interpreter this runs on is not the assertion's business.
+    """
+    counter = metrics.RequestCounter()
+    threads = 8
+    per_thread = 2000
+    start = threading.Barrier(threads)
+
+    def record_many():
+        start.wait()
+        for _response in range(per_thread):
+            counter.record(response=None)
+
+    original_interval = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    try:
+        workers = [threading.Thread(target=record_many) for _ in range(threads)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+    finally:
+        sys.setswitchinterval(original_interval)
+
+    assert counter.responses == threads * per_thread
