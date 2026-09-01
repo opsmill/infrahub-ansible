@@ -57,7 +57,7 @@ permissions:
 jobs:
   integration-testcontainers:
     name: "Integration tests (testcontainers)"
-    runs-on: ${{ inputs.runs-on || 'ubuntu-22.04' }}
+    runs-on: ${{ inputs.runs-on || 'ubuntu-latest' }}
     timeout-minutes: 45
     env:
       # Pin the Infrahub image version to validate against a specific (e.g. newly
