@@ -1,0 +1,23 @@
+plugins/module_utils/metrics.py
+  s_6113f99c26ba56::t_d3f93566d65aa9 25,41-44,58,62-63
+  s_6113f99c26ba56::t_4670c7a090d22b 45-53
+tests/unit/plugins/module_utils/test_metrics.py
+  s_6113f99c26ba56::t_92472197e9865d 10-11,37-39,76-77,80,84,90-112
+  s_6113f99c26ba56::t_ea49ab8bbd4088 78-79,81-83,85-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7780ffba70c5025acd08e1d4b54eb4d1e7df9aa5",
+  "prompts": {},
+  "sessions": {
+    "s_6113f99c26ba56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f43e03c-b322-4581-a84b-9429911272e8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
