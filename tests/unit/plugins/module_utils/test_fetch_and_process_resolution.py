@@ -556,6 +556,57 @@ def test_a_refill_is_judged_by_the_query_that_fetched_the_node(mocker):
     assert refill.pending == {"TestingSite": {"s1"}}
 
 
+def test_warming_unions_the_nested_paths_of_every_spec_that_answered(mocker):
+    """A generic and a concrete kind answering with the same nodes must both be warmed.
+
+    Keyed by concrete kind alone one spec's attribute list stands for both, so the
+    other's nested path is never collected and resolution pays a fetch per peer --
+    the exact cost warming exists to remove.
+    """
+    processor, _wrapper = _make_processor(mocker, {})
+    node = FakeNode("TestingSite", "s1")
+    generic = SimpleNamespace(projected=lambda root: True)
+    concrete = SimpleNamespace(projected=lambda root: True)
+
+    fetched = iu.HostFetch()
+    fetched.nodes = [node]
+    # What `_fetch_host_nodes` would leave behind: the concrete spec assigned outright,
+    # the generic's `setdefault` for the same concrete kind losing.
+    fetched.attrs_by_kind = {"TestingSite": ["name", "owner.name"]}
+    fetched.contexts = [
+        iu.HostContext(kind="TestingLocation", nodes=[node], attrs=["name", "site.name"], projection=generic),
+        iu.HostContext(kind="TestingSite", nodes=[node], attrs=["name", "owner.name"], projection=concrete),
+    ]
+
+    seen = {}
+
+    def collect(nodes, attrs_by_kind):
+        seen.update(attrs_by_kind)
+        return {}
+
+    processor._warm_peers(warmer=SimpleNamespace(collect=collect), fetched=fetched)
+
+    assert seen == {"TestingSite": ["name", "site.name", "owner.name"]}
+
+
+def test_warming_falls_back_to_the_by_kind_attributes_without_contexts(mocker):
+    """A `HostFetch` assembled by hand keeps the pre-context behaviour."""
+    processor, _wrapper = _make_processor(mocker, {})
+    fetched = iu.HostFetch()
+    fetched.nodes = [FakeNode("TestingSite", "s1")]
+    fetched.attrs_by_kind = {"TestingSite": ["name", "site.name"]}
+
+    seen = {}
+
+    def collect(nodes, attrs_by_kind):
+        seen.update(attrs_by_kind)
+        return {}
+
+    processor._warm_peers(warmer=SimpleNamespace(collect=collect), fetched=fetched)
+
+    assert seen == {"TestingSite": ["name", "site.name"]}
+
+
 def test_a_hand_built_fetch_falls_back_to_the_by_kind_attributes(mocker):
     """No per-fetch context: resolve off the by-kind map, exactly as before."""
     from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import RefillLedger

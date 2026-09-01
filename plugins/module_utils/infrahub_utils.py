@@ -949,10 +949,13 @@ if HAS_INFRAHUBCLIENT:
         ``contexts`` holds one entry per successful fetch and is what resolution drives
         off: it is the only view that survives two specs answering with the same
         concrete kind. The by-kind maps stay alongside it for the paths that are
-        deliberately kind-level -- peer warming, which wants the union of every spec,
-        and the cost breakdown, which tolerates a concrete kind having no projection of
-        its own. ``_fetch_host_nodes`` is the only place that fills either, so they
-        cannot drift.
+        deliberately kind-level: the cost breakdown, which tolerates a concrete kind
+        having no projection of its own, and resolution's fallback for a fetch
+        assembled without contexts. Peer warming is kind-level too but wants the
+        *union* of every spec, which these cannot give -- one spec's list stands for
+        both once two answer with the same concrete kind -- so it unions ``contexts``
+        itself in ``_warming_attrs``. ``_fetch_host_nodes`` is the only place that
+        fills either, so they cannot drift.
         """
 
         nodes: list[InfrahubNodeSync] = field(default_factory=list)
@@ -1333,6 +1336,34 @@ if HAS_INFRAHUBCLIENT:
 
             return fetched
 
+        @staticmethod
+        def _warming_attrs(fetched: HostFetch) -> dict[str, list[str]]:
+            """Every spec's attribute paths, unioned per concrete kind.
+
+            Warming is deliberately kind-level and wants the union: a nested path only
+            one spec named still has to be warmed, or resolution falls back to a fetch
+            per peer -- the cost this whole pass exists to remove. ``attrs_by_kind``
+            cannot supply that. A generic and one of its concrete kinds both answering
+            with the same concrete kind leave one spec's list standing for both, since
+            the requested kind is assigned outright and the kinds it answered with are
+            only ``setdefault``-ed.
+
+            Taken over ``contexts`` instead, the view that keeps each fetch separate,
+            and keyed on the kinds the nodes themselves report -- ``collect`` looks a
+            node up by its own kind, so a generic's name would never be read. Falls back
+            to the by-kind map for a ``HostFetch`` assembled without contexts, the way
+            ``_resolution_passes`` does.
+            """
+            if not fetched.contexts:
+                return fetched.attrs_by_kind
+
+            merged: dict[str, list[str]] = {}
+            for context in fetched.contexts:
+                for kind in {node._schema.kind for node in context.nodes}:
+                    known = merged.setdefault(kind, [])
+                    known.extend(attr for attr in context.attrs if attr not in known)
+            return merged
+
         def _warm_peers(self, warmer: PeerWarmer, fetched: HostFetch) -> int:
             """Load the peers that nested paths are about to read.
 
@@ -1343,7 +1374,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 int: how many peer batches were issued.
             """
-            referenced = warmer.collect(nodes=fetched.nodes, attrs_by_kind=fetched.attrs_by_kind)
+            referenced = warmer.collect(nodes=fetched.nodes, attrs_by_kind=self._warming_attrs(fetched))
             if not referenced:
                 return 0
 
