@@ -694,6 +694,62 @@ def test_merging_prefers_nested_peers_over_a_list_of_ids():
     assert existing == {"id": "d1", "tags": [{"id": "t1", "name": "edge"}, {"id": "t2", "name": "core"}]}
 
 
+def test_merging_unions_nested_fields_across_peers_of_a_many_relationship():
+    """`interfaces.name` and `interfaces.description` must not erase each other."""
+    existing = {"id": "d1", "interfaces": [{"id": "i1", "name": "eth0"}, {"id": "i2", "name": "eth1"}]}
+
+    iu.InfrahubNodesProcessor._merge_host_result(
+        existing,
+        {"id": "d1", "interfaces": [{"id": "i1", "description": "uplink"}, {"id": "i2", "description": "peer"}]},
+    )
+
+    assert existing == {
+        "id": "d1",
+        "interfaces": [
+            {"id": "i1", "name": "eth0", "description": "uplink"},
+            {"id": "i2", "name": "eth1", "description": "peer"},
+        ],
+    }
+
+
+def test_merging_peers_of_a_many_relationship_is_order_independent():
+    """Both orders must agree, or output depends on how the kinds were listed."""
+    existing = {"id": "d1", "interfaces": [{"id": "i1", "description": "uplink"}]}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"id": "d1", "interfaces": [{"id": "i1", "name": "eth0"}]})
+
+    assert existing == {"id": "d1", "interfaces": [{"id": "i1", "name": "eth0", "description": "uplink"}]}
+
+
+def test_merging_peers_recurses_into_a_nested_path_under_a_many_relationship():
+    """`interfaces.site.name` and `interfaces.site.id` meet two levels down."""
+    existing = {"id": "d1", "interfaces": [{"id": "i1", "site": {"id": "x1"}}]}
+
+    iu.InfrahubNodesProcessor._merge_host_result(
+        existing, {"id": "d1", "interfaces": [{"id": "i1", "site": {"name": "paris"}}]}
+    )
+
+    assert existing == {"id": "d1", "interfaces": [{"id": "i1", "site": {"id": "x1", "name": "paris"}}]}
+
+
+def test_merging_peers_keeps_one_only_the_other_fetch_resolved():
+    """A peer missing from one projection is added, not dropped: the union is the answer."""
+    existing = {"id": "d1", "interfaces": [{"id": "i1", "name": "eth0"}]}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"id": "d1", "interfaces": [{"id": "i2", "name": "eth1"}]})
+
+    assert existing == {"id": "d1", "interfaces": [{"id": "i1", "name": "eth0"}, {"id": "i2", "name": "eth1"}]}
+
+
+def test_merging_peers_does_not_duplicate_an_equal_peer_without_an_id():
+    """Unpairable peers are appended only when the list does not already carry them."""
+    existing = {"id": "d1", "interfaces": [{"name": "eth0"}]}
+
+    iu.InfrahubNodesProcessor._merge_host_result(existing, {"id": "d1", "interfaces": [{"name": "eth0"}]})
+
+    assert existing == {"id": "d1", "interfaces": [{"name": "eth0"}]}
+
+
 def test_merging_keeps_a_known_peer_id_over_an_unresolved_nested_placeholder():
     """A nested root that resolved nothing is seeded `{}` -- less than the id we have."""
     existing = {"id": "d1", "site": "x1"}

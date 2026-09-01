@@ -1423,6 +1423,17 @@ if HAS_INFRAHUBCLIENT:
                     existing[key] = value
                 elif isinstance(existing[key], dict) and isinstance(value, dict):
                     cls._merge_host_result(existing[key], value)
+                elif (
+                    isinstance(existing[key], list)
+                    and isinstance(value, list)
+                    and cls._is_structured(existing[key])
+                    and cls._is_structured(value)
+                ):
+                    # The cardinality-many form of the branch above. One spec asked for
+                    # `interfaces.name`, the other for `interfaces.description`: each list
+                    # carries only its own field, so keeping the first wholesale drops the
+                    # other spec's -- the erasure this docstring says must not happen.
+                    cls._merge_peer_lists(existing[key], value)
                 elif cls._is_structured(value) and not cls._is_structured(existing[key]):
                     # One spec asked for `site`, the other for `site.name`: the id-only
                     # answer loses to the one carrying the attributes. Without this the
@@ -1430,6 +1441,33 @@ if HAS_INFRAHUBCLIENT:
                     existing[key] = value
                 elif cls._is_placeholder(existing[key]) and not cls._is_placeholder(value):
                     existing[key] = value
+
+        @classmethod
+        def _merge_peer_lists(cls, existing: list[Any], addition: list[Any]) -> None:
+            """Fold one fetch's list of peers into another's, pairing them by id.
+
+            A cardinality-many root resolves to one dict per peer, so the two lists
+            describe the same peers through different projections rather than being
+            alternative answers. Pairing on ``id`` merges each peer the way a
+            cardinality-one root is merged; a peer only one side resolved is appended,
+            because the union is what the user asked for.
+
+            Peers without an id cannot be paired, so they are appended only when the
+            list does not already carry an equal one -- duplicating them would inflate
+            a relationship the caller reads as a peer set.
+            """
+            by_id = {item["id"]: item for item in existing if isinstance(item, dict) and item.get("id")}
+            for item in addition:
+                if not isinstance(item, dict):
+                    continue
+                peer_id = item.get("id")
+                paired = by_id.get(peer_id) if peer_id else None
+                if paired is not None:
+                    cls._merge_host_result(paired, item)
+                elif item not in existing:
+                    existing.append(item)
+                    if peer_id:
+                        by_id[peer_id] = item
 
         def _resolve_hosts(
             self,
