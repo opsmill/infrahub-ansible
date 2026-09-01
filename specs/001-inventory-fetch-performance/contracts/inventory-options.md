@@ -66,8 +66,9 @@ binding statement, verified byte-for-byte across four definition shapes.
 
 ## Cache contract
 
-Not a user-facing option, but observable: two definitions differing only in branch, or only in node
-selection, occupy distinct cache entries (FR-011). Entries written under an older
+Not a user-facing option, but observable: two definitions differing only in branch, only in node
+selection, only in `prefetch_relationships`, or only in the token they authenticate with occupy distinct
+cache entries (FR-011). Entries written under an older
 `CACHE_SCHEMA_VERSION` are not reused (FR-012). The cache is written only on a run that fetched
 (FR-013).
 

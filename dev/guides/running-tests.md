@@ -125,14 +125,15 @@ uv run --no-default-groups --group integration pytest tests/integration/processo
   -m "integration and not measurement" -p no:pytest-infrahub-performance-test -q
 ```
 
-Four details, each of which will otherwise cost you a failed run:
+Four details behind that command, three of which will otherwise cost you a failed run:
 
 - **`--no-default-groups` is mandatory.** `dev` and `integration` are declared as conflicting groups in
   `pyproject.toml` (the `integration` group pulls `prefect-client`, which pins `cachetools<7`, while
   `dev` needs `tox` at `cachetools>=7`). Without it, uv refuses outright:
   `Groups 'dev' (enabled by default) and 'integration' are incompatible`.
-- **`-p no:pytest-infrahub-performance-test`.** That plugin's startup hook calls `psutil.cpu_freq()`,
-  which raises on macOS and aborts collection.
+- **`-p no:pytest-infrahub-performance-test` is already applied.** `addopts` in `pyproject.toml` passes it
+  to every pytest run, so the copy above is redundant and omitting it costs nothing. It is there at all
+  because that plugin's startup hook calls `psutil.cpu_freq()`, which raises on macOS and aborts collection.
 - **`INFRAHUB_TESTING_IMAGE_VER`** selects the Infrahub image. It has no default.
 - **Two markers, two audiences.** `integration` rides the PR gate. `measurement` additionally marks the
   heavy round-trip benchmarks in `test_fetch_roundtrip_measurement.py`, which load a schema and wait for

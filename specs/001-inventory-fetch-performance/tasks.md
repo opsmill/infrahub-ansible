@@ -205,7 +205,7 @@ Paths below are repository-relative, per plan.md.
 - **Phase 2 (Foundational)** → depends on Phase 1; blocks Phases 3–7
 - **Phase 3 (US1)** → depends on Phase 2
 - **Phases 4–7 (US2–US5)** → depend on Phase 2; independent of each other
-- **Phase 8 (FR-020)** → depends on Phase 2 only. It reads `_warm_peers`' return value, so T037 assumes Phase 5's `_warm_peers` exists — already true
+- **Phase 8 (FR-020)** → depends on Phases 2 and 5. It reads `_warm_peers`' return value, so T037 assumes Phase 5's `_warm_peers` exists — already true
 - **Phase 9 (Polish)** → independent of everything; T043–T045 are repo hygiene, not feature work
 
 ### User Story Dependencies

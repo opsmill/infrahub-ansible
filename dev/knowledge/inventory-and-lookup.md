@@ -41,8 +41,11 @@ the next load), then `resolve_hostnames` picks names and `set_hosts_and_groups`
 adds each host, sets its variables, and applies composed/keyed groups. Caching
 is handled by `_fetch_from_cache` / `_store_in_cache`, keyed by `_cache_key()`
 over everything that shapes the fetched data — API endpoint, `branch`, the
-`nodes` spec, and a `CACHE_SCHEMA_VERSION` constant bumped whenever the shape of
-the cached host variables changes. Keying on the endpoint alone would let two
+`nodes` spec, a digest of the token, `prefetch_relationships`, and a
+`CACHE_SCHEMA_VERSION` constant bumped whenever the shape of the cached host
+variables changes. The token is in there because Infrahub applies permissions per
+token, so a low-privilege run must not be served hosts a privileged one fetched;
+only a digest goes in, since the key reaches a cache filename and verbose output. Keying on the endpoint alone would let two
 inventory files against one Infrahub share an entry, and switching `branch`
 would serve the other branch's hosts. The cache is written only on a miss, so an
 entry ages out instead of having its TTL renewed on every run.
@@ -52,7 +55,7 @@ entry ages out instead of having its TTL renewed on every run.
 `fetch_and_process` ends by reporting what the run cost, at raised verbosity only:
 
 ```text
-Inventory fetch cost: 15 request(s) to Infrahub, 41 related node(s) loaded in 2 batch(es)
+Inventory fetch cost: 15 request(s) to Infrahub, 41 node(s) loaded in 2 batch(es)
 ```
 
 The request count comes from a `RequestCounter`

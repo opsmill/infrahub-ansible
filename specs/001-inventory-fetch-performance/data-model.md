@@ -41,7 +41,7 @@ The key a user writes under `nodes:` in the inventory definition. Infrahub calls
 | `attrs` | The full selection, dotted paths included (`site.name`) |
 | `roots` | First path segment of each selection — what a query can actually narrow on |
 | `include` | Roots that exist on the schema; opts cardinality-many relationships in |
-| `exclude` | Complement of `roots` against the schema, merged with any user `exclude` |
+| `exclude` | Complement of `roots` against the schema plus the SDK's hierarchical pseudo-fields (`parent`, `children`, `ancestors`, `descendants`), merged with any user `exclude` |
 | `narrowed` | Whether the user gave a selection at all |
 
 ### Rules

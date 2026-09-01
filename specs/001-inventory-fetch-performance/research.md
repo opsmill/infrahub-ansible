@@ -18,7 +18,7 @@ The SDK exposes a first-class, runtime-checkable `Recorder` protocol — a singl
 `record(response: httpx.Response) -> None` — invoked from `InfrahubClientSync._record` on every HTTP
 response (`infrahub_sdk/client.py:235`, called at four request sites including the sync `_request` at
 `:3788`). `Config` already accepts `custom_recorder`, and the wrapper already constructs `Config` at two
-sites (`infrahub_utils.py:125` and `:136`), so the wiring is a keyword argument in code the wrapper
+sites (`infrahub_utils.py:148` and `:159`), so the wiring is a keyword argument in code the wrapper
 already owns.
 
 **Rationale**:

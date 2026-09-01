@@ -5,7 +5,7 @@ How to reproduce the claims in the spec, and what to run before touching this co
 ## Verify correctness
 
 ```bash
-invoke format && invoke lint          # ruff check + ruff format + yamllint
+invoke format && invoke lint          # autoflake + ruff (check + format) + yamllint + rumdl
 uv run mypy .                         # NOT part of `invoke lint` -- run it explicitly
 invoke tests-sanity                   # ansible-test sanity, Docker
 invoke tests-unit                     # 106 unit tests

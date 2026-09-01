@@ -387,7 +387,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         The warning is composed here rather than taken from Ansible's message, which
         mixes the failing host into its text: the entry is named as the operator wrote
-        it, every affected host is named exactly once, and the cause follows.
+        it, then the affected hosts -- a single one by name, several as a count with the
+        first ``MAX_LISTED_FAILURE_HOSTS`` named and the rest elided -- and the cause.
         """
         for (entry_label, _group_by), (detail, hosts) in self._constructed_failures.items():
             if len(hosts) == 1:
