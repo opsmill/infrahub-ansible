@@ -45,7 +45,16 @@ Alternatively, set them on the play with the `environment` keyword, which applie
     INFRAHUB_API_TOKEN: "your-api-token-here"
 
   tasks:
-    - name: Run a query
+    - name: Build the query
+      ansible.builtin.set_fact:
+        query_dict:
+          InfraDevice:
+            edges:
+              node:
+                name:
+                  value: null
+
+    - name: Run the query
       opsmill.infrahub.query_graphql:
         query: "{{ query_dict }}"
 ```

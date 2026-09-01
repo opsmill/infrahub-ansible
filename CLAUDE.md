@@ -7,7 +7,7 @@ shell commands, and other important information, read the current plan
 
 ## Active Technologies
 
-- Python >=3.11, <3.15 (`pyproject.toml`) + `ansible-core>=2.19.11rc1`; `infrahub-sdk[all]>=1.19.0,<2.0` (synchronous client only) (001-inventory-fetch-performance)
+- Python >=3.11, <3.15 (`pyproject.toml`) + `ansible-core>=2.19.0`; `infrahub-sdk[all]>=1.19.0,<2.0` (synchronous client only) (001-inventory-fetch-performance)
 
 ## Recent Changes
 
