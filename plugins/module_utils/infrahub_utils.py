@@ -769,6 +769,9 @@ if HAS_INFRAHUBCLIENT:
                 return [peer.id for peer in node_attr.peers if peer.id]
 
             for peer in node_attr.peers:
+                # `peer.id` is `str | None` on the SDK side. Guarding it here would change what
+                # this loop does with an id-less peer, so the existing behaviour stands: the store
+                # rejects None just as loudly as mypy does.
                 related_node: Any = store.get(key=peer.id, raise_when_missing=False)  # type: ignore[arg-type]
                 if not related_node:
                     peer.fetch()
@@ -1531,6 +1534,8 @@ if HAS_INFRAHUBCLIENT:
             resolved: dict[str, Any] = {}
 
             for host_node, attrs, ledger in self._resolution_passes(fetched=fetched, refill=refill):
+                # As above: `host_node.id` is optional to the store's signature, and narrowing it
+                # here would add a branch that does not exist today.
                 node = (
                     (store.get(key=host_node.id, raise_when_missing=False) or host_node)  # type: ignore[arg-type]
                     if refreshed
@@ -1818,7 +1823,7 @@ if HAS_INFRAHUBCLIENT:
 
         """
 
-        # Both are set by the subclasses (NodeModule, BranchModule) before any method
+        # All three are set by the subclasses (NodeModule, BranchModule) before any method
         # declared here runs, so they are declared -- not assigned -- at class level.
         result: dict[str, Any]
         infrahub_node: InfrahubNodeSync | None
