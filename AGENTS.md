@@ -41,7 +41,7 @@ All tests run in Docker. Run checks as you go, not just at the end:
 **Version gap:** `invoke tests-sanity` uses the ansible-core version pinned in `uv.lock`. CI runs a matrix over ansible-core 2.19–milestone. For a faster (~90 s) pylint check that matches CI rules without Docker, run directly:
 
 ```bash
-uv run ansible-test sanity --test pylint --python 3.11
+uv run ansible-test sanity --test pylint --requirements --python 3.11
 ```
 
 This works because the repo already lives inside an `ansible_collections/opsmill/infrahub` tree. Use it as a quick gate before committing; `invoke tests-sanity` remains the full Docker gate.
