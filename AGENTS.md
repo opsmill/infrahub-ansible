@@ -48,6 +48,8 @@ Full verification before a PR: `invoke format && invoke lint && invoke tests-san
 
 `invoke lint` runs mypy, so it now covers everything CI's `python-lint` job checks. Nothing under `plugins/` is excluded from the typecheck.
 
+One limit to know: `ansible_collections.opsmill.infrahub.*` is not importable outside an installed collection tree, and `ignore_missing_imports` is on, so anything a plugin imports from a sibling `module_utils` resolves to `Any`. Types are checked within a file and against `infrahub-sdk`, but not across the collection's own modules.
+
 `invoke lint` is not purely a check: its first step is `autoflake --in-place --remove-all-unused-imports --remove-unused-variables`, which edits your working tree before ruff ever runs. Expect it to leave modified files behind, and review that diff rather than assuming a linter only reported.
 
 New-module walkthrough: [dev/guides/creating-a-module.md](dev/guides/creating-a-module.md). Test execution detail: [dev/guides/running-tests.md](dev/guides/running-tests.md).

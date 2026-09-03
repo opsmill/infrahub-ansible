@@ -140,6 +140,13 @@ uv run mypy .
 (`[tool.mypy]` in `pyproject.toml`), so an unannotated helper or a stale `# type: ignore` fails the
 build. Only `tests/` is excluded — every file under `plugins/` is checked.
 
+Cross-module types are not, though. `ansible_collections.opsmill.infrahub.plugins.module_utils.*`
+only resolves inside an installed collection tree, so with `ignore_missing_imports` on, every symbol
+imported that way (`PeerWarmer`, `NodeProjection`, `InfrahubModule` as a base class, …) is `Any` to
+mypy. A subclass in `node.py` is checked against an `Any` base, which is to say barely. Treat a green
+mypy as "this file is internally consistent and uses the SDK correctly", not as
+"the collection typechecks end to end".
+
 Where the SDK's own types defeat the checker — `InfrahubNodeSync.__getattr__` returning a union, the
 `Literal`-keyed `get`/`filters` overloads, the two mutually exclusive `HAS_INFRAHUBCLIENT` blocks —
 suppress at the site with a narrow `# type: ignore[code]` and say why in a comment. Do not widen the

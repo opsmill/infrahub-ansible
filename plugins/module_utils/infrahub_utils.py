@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
     from ansible.module_utils.basic import AnsibleModule, Display
     from infrahub_sdk.branch import BranchData
+    from infrahub_sdk.schema import MainSchemaTypesAPI
 
 try:
     from infrahub_sdk import Config, InfrahubClientSync
@@ -32,7 +33,6 @@ try:
         RelationshipManagerSync,
     )
     from infrahub_sdk.schema import (
-        MainSchemaTypesAPI,
         RelationshipCardinality,
         RelationshipKind,
     )
@@ -1386,6 +1386,9 @@ if HAS_INFRAHUBCLIENT:
             # No schema fetch for the peer kinds: `resolve_node_mapping` reads a node's
             # own `_schema`, never the `schemas` mapping it is handed, so loading them
             # here would be a round-trip nothing reads back.
+            # `PeerWarmer` comes in through an `ansible_collections.*` path mypy cannot resolve,
+            # so `warm` reads as returning `Any` even though it is annotated `-> int`. The cast is
+            # only here to satisfy `warn_return_any`; it goes away once that import resolves.
             return cast("int", warmer.warm(referenced))
 
         @staticmethod
