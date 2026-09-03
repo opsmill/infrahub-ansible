@@ -146,8 +146,8 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
 class NodeModule(InfrahubModule):
     def run(self):
         kind = self.data.get("kind")
-        schema = self.client.fetch_single_schema(kind=kind, branch=self.branch)
-        self.object = self.client.fetch_single_node(...)
+        schema = self.wrapper.fetch_single_schema(kind=kind, branch=self.branch)
+        self.object = self.wrapper.fetch_single_node(...)
 
         if self.state == "present":
             self._ensure_object_exists(kind, self.data.get("data"))
@@ -158,7 +158,7 @@ class NodeModule(InfrahubModule):
 ### Key Properties and Methods
 
 - `self.module` — the `AnsibleModule` instance
-- `self.client` — `InfrahubclientWrapper` instance (auto-created)
+- `self.wrapper` — `InfrahubclientWrapper` instance (auto-created)
 - `self.state` — `"present"` or `"absent"`
 - `self.data` — module parameters dict
 - `self.branch` — target branch name
@@ -318,17 +318,16 @@ a GraphQL-only count.
 Measured on a ~650-device estate: 50 → 500 cut the request count from 20 to 4 and moved wall-clock the
 wrong way, 7.10s → 7.60s. Fewer, larger pages is not a win here. Concurrency is the lever that helped.
 
-## Naming Trap: `self.client.client`
+## Naming Trap: `self.wrapper.client`
 
 `InfrahubclientWrapper` holds the SDK client as `.client`, and the processors hold the *wrapper* as
-`.client`. So inside `InfrahubNodesProcessor`:
+`.wrapper`. So inside `InfrahubNodesProcessor`:
 
 ```python
-self.client  # the InfrahubclientWrapper
-self.client.client  # the raw InfrahubClientSync
-self.client.client.store  # the SDK's NodeStore
+self.wrapper  # the InfrahubclientWrapper
+self.wrapper.client  # the raw InfrahubClientSync
+self.wrapper.client.store  # the SDK's NodeStore
 ```
 
-`self.client.client` reads like a typo and is not one. A review bot flagged it as such during the
-inventory performance work; applying the suggested "fix" broke three tests. Verify with
-`processor.client.client.store is wrapper.client.store` before changing anything in this area.
+`self.wrapper.client` is two layers deep by design. Verify with
+`processor.wrapper.client.store is wrapper.client.store` before changing anything in this area.

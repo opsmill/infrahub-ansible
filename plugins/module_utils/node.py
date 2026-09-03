@@ -36,7 +36,7 @@ class NodeModule(InfrahubModule):
 
         self.result: dict[str, Any] = {"changed": False}
 
-        schema = self.client.fetch_single_schema(kind=kind, raise_when_missing=False)
+        schema = self.wrapper.fetch_single_schema(kind=kind, raise_when_missing=False)
         if not schema:
             self._handle_errors(msg=f"Non-existing kind '{kind}'")
 
@@ -73,7 +73,7 @@ class NodeModule(InfrahubModule):
 
         # US2: return file content if fetch_file is requested
         if fetch_file and not self.check_mode and self.infrahub_node:
-            file_content = self.client.fetch_file_content(self.infrahub_node)
+            file_content = self.wrapper.fetch_file_content(self.infrahub_node)
             self.result.update(file_content)
 
         serialized_object = None
@@ -82,7 +82,7 @@ class NodeModule(InfrahubModule):
             # After create, raw data lacks server-populated fields (id, file_name,
             # checksum, etc.). Re-fetch to get the complete object.
             if (raw is None or "id" not in raw) and self.infrahub_node.id:
-                self.infrahub_node = self.client.fetch_single_node(
+                self.infrahub_node = self.wrapper.fetch_single_node(
                     kind=kind, id=self.infrahub_node.id, raise_when_missing=False
                 )
             if self.infrahub_node:
@@ -118,7 +118,7 @@ class NodeModule(InfrahubModule):
         if is_file_object and not schema.human_friendly_id and "id" not in data and file_path:
             file_name = Path(file_path).name
             try:
-                return self.client.fetch_single_node(
+                return self.wrapper.fetch_single_node(
                     kind=kind, filters={"file_name__value": file_name}, raise_when_missing=False
                 )
             except Exception as exc:
@@ -167,7 +167,7 @@ class NodeModule(InfrahubModule):
         Returns:
             tuple(InfrahubNodeSync, dict): The created node and the Ansible diff.
         """
-        processor = InfrahubNodesProcessor(client=self.client)
+        processor = InfrahubNodesProcessor(client=self.wrapper)
         try:
             node = processor.create_node(kind=kind, data=data)
             if not self.check_mode:
@@ -190,7 +190,7 @@ class NodeModule(InfrahubModule):
         Returns:
             tuple(InfrahubNodeSync, dict | None): The node and the Ansible diff (None if unchanged).
         """
-        local_checksum = self.client.get_file_object_local_checksum(file_path)
+        local_checksum = self.wrapper.get_file_object_local_checksum(file_path)
         server_checksum = self.infrahub_node.checksum.value
         file_changed = local_checksum != server_checksum
 
