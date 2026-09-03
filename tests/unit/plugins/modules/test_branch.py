@@ -24,7 +24,7 @@ def _module(mocker, *, state, existing_branch):
     mod.state = state
     mod.data = {"name": BRANCH, "description": "d", "sync_with_git": False}
     mod.wrapper = mocker.Mock()
-    # _get_branch -> client.fetch_branch(name=...)
+    # _get_branch -> wrapper.fetch_branch(name=...)
     mod.wrapper.fetch_branch.return_value = existing_branch
     return mod
 
