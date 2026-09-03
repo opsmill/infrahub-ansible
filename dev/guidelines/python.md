@@ -130,20 +130,21 @@ Use modern type hints (`str | None` not `Optional[str]`). The `from __future__ i
 
 ### mypy
 
-CI runs `uv run mypy .` as part of the `python-lint` job. **`invoke lint` does not**, so a clean
-`invoke lint` can still fail CI — run mypy explicitly before opening a PR:
+`invoke lint` runs mypy, and so does CI's `python-lint` job. To run it on its own:
 
 ```bash
 uv run mypy .
 ```
 
-Two things to know about the current configuration (`[tool.mypy]` in `pyproject.toml`):
+`warn_return_any`, `disallow_untyped_defs`, and `warn_unused_ignores` are all on
+(`[tool.mypy]` in `pyproject.toml`), so an unannotated helper or a stale `# type: ignore` fails the
+build. Only `tests/` is excluded — every file under `plugins/` is checked.
 
-- `warn_return_any`, `disallow_untyped_defs`, and `warn_unused_ignores` are all on, so an unannotated
-  helper or a stale `# type: ignore` fails the build.
-- `plugins/module_utils/infrahub_utils.py` is **excluded**. That is the largest file in the collection,
-  so a change confined to it gets no type checking whatsoever. Do not read "mypy passed" as "this file
-  is checked".
+Where the SDK's own types defeat the checker — `InfrahubNodeSync.__getattr__` returning a union, the
+`Literal`-keyed `get`/`filters` overloads, the two mutually exclusive `HAS_INFRAHUBCLIENT` blocks —
+suppress at the site with a narrow `# type: ignore[code]` and say why in a comment. Do not widen the
+config: `warn_unused_ignores` retires an inline ignore once it stops being needed, and it cannot do
+that for an exclusion.
 
 ## Dependencies
 

@@ -171,10 +171,10 @@ git worktree add ../infrahub-baseline develop
 ## Linting (Not Tests, But Related)
 
 ```bash
-# Run all linters (ruff check + ruff format + yamllint + rumdl) -- does NOT run mypy
+# Run all linters (ruff check + ruff format + mypy + yamllint + rumdl)
 invoke lint
 
-# Type checking is a separate command, and CI runs it
+# Type checking on its own
 uv run mypy .
 
 # Auto-fix formatting

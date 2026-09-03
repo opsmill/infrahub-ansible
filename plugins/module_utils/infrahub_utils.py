@@ -712,8 +712,7 @@ if HAS_INFRAHUBCLIENT:
 
             The return type is deliberately wide: a populated value is stringified, but a
             falsy-but-present one (``False``, ``0``, ``""``) is handed back as it came, so
-            this is not ``str | None``. mypy does not currently check this file, so the
-            annotation is the only thing saying so.
+            this is not ``str | None``.
 
             An attribute can come back empty for two different reasons: the server
             answered null, or nobody asked for it. The second happens whenever the

@@ -75,9 +75,7 @@ ignore_missing_imports = true
 disallow_untyped_defs = true
 warn_return_any = true
 warn_unused_ignores = true
-# Exclude problematic module that has complex try/except patterns
 exclude = [
-    "plugins/module_utils/infrahub_utils\\.py$",
     "tests/",
 ]
 
