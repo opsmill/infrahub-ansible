@@ -62,12 +62,11 @@ RUN ansible-galaxy collection install ./dist/opsmill-infrahub*.tar.gz -p ${ANSIB
 # Switch to the collection path for tests
 WORKDIR ${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/opsmill/infrahub
 
-# Run sanity tests
+# Run sanity tests against the full collection (plugins/ + tests/) to match CI scope
 RUN ansible-test sanity $ANSIBLE_SANITY_ARGS \
     --requirements \
     --skip-test pep8 \
-    --python ${PYTHON_VERSION} \
-    plugins/
+    --python ${PYTHON_VERSION}
 
 ############
 # Unit Tests
