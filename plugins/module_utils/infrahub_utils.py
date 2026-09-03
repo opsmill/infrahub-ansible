@@ -1823,8 +1823,9 @@ if HAS_INFRAHUBCLIENT:
 
         """
 
-        # All three are set by the subclasses (NodeModule, BranchModule) before any method
-        # declared here runs, so they are declared -- not assigned -- at class level.
+        # Set by the subclasses before any method declared here runs, so they are declared --
+        # not assigned -- at class level. Both subclasses set `result`; `infrahub_node` is
+        # NodeModule's and `branch` is BranchModule's.
         result: dict[str, Any]
         infrahub_node: InfrahubNodeSync | None
         branch: BranchData | str | None
