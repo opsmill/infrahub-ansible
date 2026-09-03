@@ -169,7 +169,7 @@ class TestFetchAndProcessIntegration(TestInfrahubDockerClient):
         original_recorder = client_sync.config.custom_recorder
         client_sync.config.custom_recorder = counter
         processor = processor_for(client_sync)
-        processor.client.request_counter = counter
+        processor.wrapper.request_counter = counter
         processor.display = _CapturingDisplay()
 
         try:

@@ -43,7 +43,7 @@ def _make_processor(mocker, nodes_by_kind, attrs=None):
     )
     wrapper.fetch_nodes.side_effect = lambda kind, **kw: list(nodes_by_kind.get(kind, []))
     # Nothing is in the store, so every referenced peer counts as needing a load.
-    # `self.client` IS this wrapper, so the processor's `self.client.client.store`
+    # `self.wrapper` IS this wrapper, so the processor's `self.wrapper.client.store`
     # resolves to `wrapper.client.store` -- the mock stubbed here.
     wrapper.client.store.get.return_value = None
     wrapper.client.pagination_size = 50

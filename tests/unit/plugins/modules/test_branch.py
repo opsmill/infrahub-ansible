@@ -23,19 +23,19 @@ def _module(mocker, *, state, existing_branch):
     mod.check_mode = False
     mod.state = state
     mod.data = {"name": BRANCH, "description": "d", "sync_with_git": False}
-    mod.client = mocker.Mock()
+    mod.wrapper = mocker.Mock()
     # _get_branch -> client.fetch_branch(name=...)
-    mod.client.fetch_branch.return_value = existing_branch
+    mod.wrapper.fetch_branch.return_value = existing_branch
     return mod
 
 
 def test_create_branch_marks_changed(mocker):
     mod = _module(mocker, state="present", existing_branch=None)
-    mod.client.create_branch.return_value = mocker.Mock()
+    mod.wrapper.create_branch.return_value = mocker.Mock()
 
     mod.run()
 
-    mod.client.create_branch.assert_called_once()
+    mod.wrapper.create_branch.assert_called_once()
     assert mod.result["changed"] is True
     assert "created" in mod.result["msg"]
 
@@ -45,7 +45,7 @@ def test_existing_branch_is_idempotent(mocker):
 
     mod.run()
 
-    mod.client.create_branch.assert_not_called()
+    mod.wrapper.create_branch.assert_not_called()
     assert mod.result["changed"] is False
     assert "already exists" in mod.result["msg"]
 
@@ -55,7 +55,7 @@ def test_delete_existing_branch_marks_changed(mocker):
 
     mod.run()
 
-    mod.client.delete_branch.assert_called_once_with(name=BRANCH)
+    mod.wrapper.delete_branch.assert_called_once_with(name=BRANCH)
     assert mod.result["changed"] is True
     assert "deleted" in mod.result["msg"]
 
@@ -65,6 +65,6 @@ def test_delete_missing_branch_is_idempotent(mocker):
 
     mod.run()
 
-    mod.client.delete_branch.assert_not_called()
+    mod.wrapper.delete_branch.assert_not_called()
     assert mod.result["changed"] is False
     assert "already absent" in mod.result["msg"]
