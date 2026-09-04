@@ -171,7 +171,7 @@ git worktree add ../infrahub-baseline develop
 ## Linting (Not Tests, But Related)
 
 ```bash
-# Run all linters (ruff check + ruff format + mypy + yamllint + rumdl)
+# Run all lint steps (autoflake rewrites Python files + ruff check + ruff format + mypy + yamllint + rumdl)
 invoke lint
 
 # Type checking on its own
