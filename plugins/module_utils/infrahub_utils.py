@@ -8,7 +8,7 @@ import traceback
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from ansible.module_utils.basic import env_fallback
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
@@ -17,10 +17,11 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.peers import Peer
 from ansible_collections.opsmill.infrahub.plugins.module_utils.projection import NodeProjection
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterator, MutableMapping
 
     from ansible.module_utils.basic import AnsibleModule, Display
     from infrahub_sdk.branch import BranchData
+    from infrahub_sdk.schema import MainSchemaTypesAPI
 
 try:
     from infrahub_sdk import Config, InfrahubClientSync
@@ -32,9 +33,6 @@ try:
         RelationshipManagerSync,
     )
     from infrahub_sdk.schema import (
-        GenericSchemaAPI,
-        NodeSchemaAPI,
-        ProfileSchemaAPI,
         RelationshipCardinality,
         RelationshipKind,
     )
@@ -119,8 +117,8 @@ if HAS_INFRAHUBCLIENT:
             api_endpoint: str,
             token: str,
             branch: str | None = None,
-            timeout: int | None = 10,
-            validate_certs: bool | None = True,
+            timeout: int = 10,
+            validate_certs: bool = True,
             display: Display | None = None,
         ):
             """
@@ -185,7 +183,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict: Artifact Content
             """
-            result = {
+            result: dict[str, Any] = {
                 "json": None,
                 "text": None,
             }
@@ -194,8 +192,8 @@ if HAS_INFRAHUBCLIENT:
                 filters=filters,
                 branch=branch,
             )
-            resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")
-            if node.content_type.value == "application/json":
+            resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")  # type: ignore[union-attr]
+            if node.content_type.value == "application/json":  # type: ignore[union-attr]
                 result["json"] = resp.json()
             else:
                 result["text"] = resp.text
@@ -232,7 +230,7 @@ if HAS_INFRAHUBCLIENT:
             }
 
             # Step 1: Fetch the artifact node for the target_id
-            lookup_filters = filters.copy()
+            lookup_filters: dict[str, Any] = filters.copy()
             lookup_filters["object__ids"] = [target_id]
             node = self.fetch_single_node(
                 kind="CoreArtifact",
@@ -246,8 +244,8 @@ if HAS_INFRAHUBCLIENT:
                 return result
 
             result["artifact_id"] = node.id
-            result["artifact_name"] = node.name.value
-            result["definition_id"] = node.definition.id
+            result["artifact_name"] = node.name.value  # type: ignore[union-attr]
+            result["definition_id"] = node.definition.id  # type: ignore[union-attr]
 
             # Step 2: Trigger regeneration using the artifact ID
             url = f"{self.client.address}/api/artifact/generate/{result['definition_id']}?branch={branch}"
@@ -291,12 +289,12 @@ if HAS_INFRAHUBCLIENT:
                 order=order,
             )
             for node in nodes:
-                resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")
+                resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")  # type: ignore[union-attr]
                 result: dict[str, Any] = {
                     "json": None,
                     "text": None,
                 }
-                if node.content_type.value == "application/json":
+                if node.content_type.value == "application/json":  # type: ignore[union-attr]
                     result["json"] = resp.json()
                 else:
                     result["text"] = resp.text
@@ -313,8 +311,8 @@ if HAS_INFRAHUBCLIENT:
             exclude: list[str] | None = None,
             filters: dict[str, str] | None = None,
             branch: str | None = None,
-            prefetch_relationships: bool | None = True,
-            raise_when_missing: bool | None = False,
+            prefetch_relationships: bool = True,
+            raise_when_missing: bool = False,
         ) -> InfrahubNodeSync:
             """
             Retrieve a single node of a given kind based on filters
@@ -336,8 +334,9 @@ if HAS_INFRAHUBCLIENT:
             if not filters and not hfid and not id:
                 raise Exception("At least one filter must be provided.")
 
+            node: InfrahubNodeSync
             if filters:
-                node = self.client.get(
+                node = self.client.get(  # type: ignore[call-overload,misc]
                     kind=kind,
                     id=id,
                     hfid=hfid,
@@ -370,7 +369,7 @@ if HAS_INFRAHUBCLIENT:
             exclude: list[str] | None = None,
             filters: dict[str, str] | None = None,
             branch: str | None = None,
-            prefetch_relationships: bool | None = True,
+            prefetch_relationships: bool = True,
             order: Order | None = None,
             parallel: bool = True,
         ) -> list[InfrahubNodeSync]:
@@ -405,7 +404,7 @@ if HAS_INFRAHUBCLIENT:
                     order=order,
                 )
             else:
-                nodes = self.client.filters(
+                nodes = self.client.filters(  # type: ignore[call-overload]
                     kind=kind,
                     include=include,
                     populate_store=True,
@@ -423,8 +422,8 @@ if HAS_INFRAHUBCLIENT:
             self,
             kind: str,
             branch: str | None = None,
-            raise_when_missing: bool | None = True,
-        ) -> NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI:
+            raise_when_missing: bool = True,
+        ) -> MainSchemaTypesAPI | None:
             """
             Retrieves schema attributes for the given kind.
 
@@ -434,7 +433,8 @@ if HAS_INFRAHUBCLIENT:
                 raise_when_missing (bool, optional): Whether to raise an exception if the schema is not found. Defaults to True.
 
             Returns:
-                NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI: The schema attributes for the given kind.
+                MainSchemaTypesAPI | None: The schema attributes, or None when the kind is unknown
+                    and raise_when_missing is False.
             """
             if raise_when_missing:
                 return self.client.schema.get(kind=kind, branch=branch)
@@ -443,9 +443,7 @@ if HAS_INFRAHUBCLIENT:
             except SchemaNotFoundError:
                 return None
 
-        def fetch_schemas(
-            self, branch: str | None = None
-        ) -> dict[str, NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI] | None:
+        def fetch_schemas(self, branch: str | None = None) -> MutableMapping[str, MainSchemaTypesAPI] | None:
             """
             Retrieves schema attributes for the given kind.
 
@@ -453,7 +451,7 @@ if HAS_INFRAHUBCLIENT:
                 branch (str, optional): Name of the branch to query from. Defaults to default_branch.
 
             Returns:
-                dict[str, NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI]:: A dict of node kind, Schema.
+                MutableMapping[str, MainSchemaTypesAPI]: A mapping of node kind, Schema.
             """
             branch = branch or self.client.config.default_branch
             return self.client.schema.all(branch=branch)
@@ -531,9 +529,7 @@ if HAS_INFRAHUBCLIENT:
             """
             return self.client.create(kind=kind, data=data, branch=branch, kwargs=kwargs)
 
-        def create_branch(
-            self, name: str, description: str | None = "", sync_with_git: bool = False
-        ) -> BranchData | str:
+        def create_branch(self, name: str, description: str = "", sync_with_git: bool = False) -> BranchData | str:
             """
             Create a new InfrahubBranch with provided attributes
 
@@ -598,8 +594,8 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict: {"binary": base64_str, "text": str_or_None}
             """
-            content: bytes = node.download_file()
-            is_text = node.file_type.value in TEXT_MIME_TYPES
+            content = cast("bytes", node.download_file())
+            is_text = node.file_type.value in TEXT_MIME_TYPES  # type: ignore[union-attr]
             return {
                 "binary": base64.b64encode(content).decode("ascii"),
                 "text": content.decode("utf-8", errors="replace") if is_text else None,
@@ -631,7 +627,7 @@ if HAS_INFRAHUBCLIENT:
                 branch=branch,
                 raise_when_missing=True,
             )
-            content: bytes = node.download_file()
+            content = cast("bytes", node.download_file())
             return node, content
 
     class InfrahubBaseProcessor:
@@ -713,8 +709,7 @@ if HAS_INFRAHUBCLIENT:
 
             The return type is deliberately wide: a populated value is stringified, but a
             falsy-but-present one (``False``, ``0``, ``""``) is handed back as it came, so
-            this is not ``str | None``. mypy does not currently check this file, so the
-            annotation is the only thing saying so.
+            this is not ``str | None``.
 
             An attribute can come back empty for two different reasons: the server
             answered null, or nobody asked for it. The second happens whenever the
@@ -743,7 +738,7 @@ if HAS_INFRAHUBCLIENT:
 
             if "node" not in refetch_cache:
                 refetch_cache["node"] = node._client.get(id=node.id, kind=node._schema.kind)
-            tmp_attr = getattr(refetch_cache["node"], root_attr, None)
+            tmp_attr: Any = getattr(refetch_cache["node"], root_attr, None)
             return str(tmp_attr.value) if tmp_attr.value else tmp_attr.value
 
         def _resolve_many_relationship(
@@ -771,7 +766,7 @@ if HAS_INFRAHUBCLIENT:
                 return [peer.id for peer in node_attr.peers if peer.id]
 
             for peer in node_attr.peers:
-                related_node = store.get(key=peer.id, raise_when_missing=False)
+                related_node: Any = store.get(key=peer.id, raise_when_missing=False)  # type: ignore[arg-type]
                 if not related_node:
                     peer.fetch()
                     related_node = peer.peer
@@ -969,14 +964,12 @@ if HAS_INFRAHUBCLIENT:
 
     class InfrahubNodesProcessor(InfrahubBaseProcessor):
         @staticmethod
-        def get_attributes_for_schema(
-            schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, exclude: list[str] | None = None
-        ) -> list[str] | None:
+        def get_attributes_for_schema(schema: MainSchemaTypesAPI, exclude: list[str] | None = None) -> list[str] | None:
             """
             Build the attributes for the given kind.
 
             Parameters:
-                schema (NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI): The schema from which attributes/relationship are used
+                schema (MainSchemaTypesAPI): The schema from which attributes/relationship are used
                 exclude list[str] | None: list of attributes/relationship to ignore
 
             Returns:
@@ -997,10 +990,10 @@ if HAS_INFRAHUBCLIENT:
                 rel_schema = schema.get_relationship_or_none(name=rel_name)
                 if not rel_schema:
                     continue
-                if (
-                    rel_schema.cardinality == RelationshipCardinality.MANY  # type: ignore[union-attr]
-                    and rel_schema.kind not in [RelationshipKind.ATTRIBUTE, RelationshipKind.PARENT]  # type: ignore[union-attr]
-                ):
+                if rel_schema.cardinality == RelationshipCardinality.MANY and rel_schema.kind not in [
+                    RelationshipKind.ATTRIBUTE,
+                    RelationshipKind.PARENT,
+                ]:
                     continue
                 if rel_schema and rel_schema.cardinality in (RelationshipCardinality.ONE, RelationshipCardinality.MANY):
                     attributes_by_kind.append(rel_name)
@@ -1009,7 +1002,7 @@ if HAS_INFRAHUBCLIENT:
         def fetch_and_process(
             self,
             nodes: dict[str, Any],
-            prefetch_relationships: bool | None = True,
+            prefetch_relationships: bool = True,
             include_id: bool = True,
         ) -> dict[str, Any] | None:
             """
@@ -1233,7 +1226,7 @@ if HAS_INFRAHUBCLIENT:
                 return []
             return ["Inventory fetch cost, by kind:", *lines]
 
-        def _fetch_host_nodes(self, nodes: dict[str, Any], prefetch_relationships: bool | None) -> HostFetch:
+        def _fetch_host_nodes(self, nodes: dict[str, Any], prefetch_relationships: bool) -> HostFetch:
             """Fetch every requested kind, narrowed to what the user actually asked for.
 
             Parameters:
@@ -1390,7 +1383,7 @@ if HAS_INFRAHUBCLIENT:
             # No schema fetch for the peer kinds: `resolve_node_mapping` reads a node's
             # own `_schema`, never the `schemas` mapping it is handed, so loading them
             # here would be a round-trip nothing reads back.
-            return warmer.warm(referenced)
+            return cast("int", warmer.warm(referenced))
 
         @staticmethod
         def _resolution_passes(
@@ -1532,7 +1525,11 @@ if HAS_INFRAHUBCLIENT:
             resolved: dict[str, Any] = {}
 
             for host_node, attrs, ledger in self._resolution_passes(fetched=fetched, refill=refill):
-                node = (store.get(key=host_node.id, raise_when_missing=False) or host_node) if refreshed else host_node
+                node = (
+                    (store.get(key=host_node.id, raise_when_missing=False) or host_node)  # type: ignore[arg-type]
+                    if refreshed
+                    else host_node
+                )
                 result = self.resolve_node_mapping(
                     node=node,
                     attrs=attrs,
@@ -1623,7 +1620,7 @@ if HAS_INFRAHUBCLIENT:
                 raise Exception(f"Non-existing kind '{kind}'")
 
             # TODO: Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/268
-            validation_errors = []
+            validation_errors: list[str] = []
             validation_errors.extend(
                 f"Required attribute '{attr.name}' missing for '{kind}"
                 for attr in schema.attributes
@@ -1666,7 +1663,7 @@ if HAS_INFRAHUBCLIENT:
             if not node.id:
                 raise Exception(f"Failed to save node {node}")
 
-        def delete_node(self, node: InfrahubNodeSync) -> bool:
+        def delete_node(self, node: InfrahubNodeSync) -> InfrahubNodeSync:
             """
             Delete a node from Infrahub
 
@@ -1684,9 +1681,7 @@ if HAS_INFRAHUBCLIENT:
 
             return node
 
-        def create_branch(
-            self, name: str, description: str | None = "", sync_with_git: bool = False
-        ) -> BranchData | str:
+        def create_branch(self, name: str, description: str = "", sync_with_git: bool = False) -> BranchData | str:
             """
             Create an InfrahubBranch
 
@@ -1817,6 +1812,10 @@ if HAS_INFRAHUBCLIENT:
 
         """
 
+        result: dict[str, Any]
+        infrahub_node: InfrahubNodeSync | None
+        branch: BranchData | str | None
+
         def __init__(self, module: AnsibleModule, client: InfrahubclientWrapper | None = None) -> None:
             self.module = module
             self.state = self.module.params["state"]
@@ -1856,7 +1855,7 @@ if HAS_INFRAHUBCLIENT:
             # TODO: cleanup and normalized data ?
             self.data = module.params
 
-        def _handle_errors(self, msg: Any):
+        def _handle_errors(self, msg: Any) -> None:
             """
             Returns message and changed = False
 
@@ -1879,9 +1878,7 @@ if HAS_INFRAHUBCLIENT:
             return {"before": before, "after": after}
 
         # TODO: Should be replace after https://github.com/opsmill/infrahub-sdk-python/issues/267
-        def rebuild_hfid_from_data(
-            self, schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, data: dict
-        ) -> list[str] | None:
+        def rebuild_hfid_from_data(self, schema: MainSchemaTypesAPI, data: dict) -> list[str] | None:
             """
             Rebuild the HFID filters from the provided data based on a schema human_friendly_id.
 
@@ -1898,7 +1895,7 @@ if HAS_INFRAHUBCLIENT:
             """
             hfid_values = []
             # Iterate over each composite key defined in the schema.
-            for composite in schema.human_friendly_id:
+            for composite in schema.human_friendly_id:  # type: ignore[union-attr]
                 # Split the composite key into individual field names.
                 element = composite.split("__")[0]
                 value = data.get(element)
@@ -1933,9 +1930,7 @@ if HAS_INFRAHUBCLIENT:
                 )
             return node
 
-        def _get_object(
-            self, schema: NodeSchemaAPI | GenericSchemaAPI | ProfileSchemaAPI, kind: str, data: dict
-        ) -> InfrahubNodeSync | None:
+        def _get_object(self, schema: MainSchemaTypesAPI, kind: str, data: dict) -> InfrahubNodeSync | None:
             """
             Build filters based on the data, and retrieve a single object with these filters
 
@@ -1964,7 +1959,7 @@ if HAS_INFRAHUBCLIENT:
 
             return node
 
-        def _create_branch(self, data: dict) -> tuple[InfrahubNodeSync, dict]:
+        def _create_branch(self, data: dict) -> tuple[BranchData | str, dict]:
             """
             Create an InfrahubBranch after validating required fields.
 
@@ -1972,12 +1967,12 @@ if HAS_INFRAHUBCLIENT:
                 data (dict): The data for this object
 
             Returns:
-                tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
+                tuple(object, diff): tuple of the branch created in Infrahub and the Ansible diff.
             """
             processor = InfrahubNodesProcessor(client=self.client)
-            branch_name = data.get("name")
+            branch_name: Any = data.get("name")
             branch_description = data.get("description") or ""
-            sync_with_git = data.get("sync_with_git")
+            sync_with_git: Any = data.get("sync_with_git")
             try:
                 branch = processor.create_branch(
                     name=branch_name, description=branch_description, sync_with_git=sync_with_git
@@ -2044,8 +2039,10 @@ if HAS_INFRAHUBCLIENT:
             if rel_value is None:
                 return None
 
+            node = cast("InfrahubNodeSync", self.infrahub_node)
+
             rel_schema = next(
-                (rel for rel in self.infrahub_node._schema.relationships if rel.name == rel_name),
+                (rel for rel in node._schema.relationships if rel.name == rel_name),
                 None,
             )
             if not rel_schema:
@@ -2146,7 +2143,7 @@ if HAS_INFRAHUBCLIENT:
 
             return rel_value
 
-        def _update_object(self, data: dict) -> tuple[InfrahubNodeSync, dict]:
+        def _update_object(self, data: dict) -> tuple[InfrahubNodeSync, dict | None]:
             """
             Update an Infrahub Object.
 
@@ -2156,15 +2153,17 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
             """
+            node = cast("InfrahubNodeSync", self.infrahub_node)
+
             # Capture the "before" state by serializing the original node's data
             # We avoid using deepcopy on the node because InfrahubNodeSync contains
             # a reference to InfrahubClientSync which has an SSLContext that cannot be pickled
-            serialized_before = deepcopy(self.infrahub_node._generate_input_data().get("data", {}).get("data", {}))
+            serialized_before = deepcopy(node._generate_input_data().get("data", {}).get("data", {}))
 
             # Normalize relationship UUIDs to HFIDs in the "before" state
             # This ensures consistent comparison when user provides HFID but stored data has UUID
             for key in list(serialized_before.keys()):
-                if key in self.infrahub_node._schema.relationship_names:
+                if key in node._schema.relationship_names:
                     serialized_before[key] = self._normalize_rel_id_to_hfid(key, serialized_before.get(key))
                     # Also normalize the format (e.g., {"hfid": ["single"]} -> {"id": "single"})
                     serialized_before[key] = self._normalize_rel_format(serialized_before[key])
@@ -2172,36 +2171,36 @@ if HAS_INFRAHUBCLIENT:
             # TODO: SDK should provide a way to do that
             # https://github.com/opsmill/infrahub-sdk-python/issues/272
             for attr_name in data:
-                if attr_name in self.infrahub_node._schema.attribute_names:
+                if attr_name in node._schema.attribute_names:
                     attr_value = data.get(attr_name)
                     # Unwrap {"value": ...} dicts from Ansible data format —
                     # setattr on SDK node attributes expects the raw value.
                     if isinstance(attr_value, dict) and "value" in attr_value:
                         attr_value = attr_value["value"]
                     setattr(
-                        self.infrahub_node,
+                        node,
                         attr_name,
                         attr_value,
                     )
-                elif attr_name in self.infrahub_node._schema.relationship_names:
-                    rel_schema = next(rel for rel in self.infrahub_node._schema.relationships if rel.name == attr_name)
+                elif attr_name in node._schema.relationship_names:
+                    rel_schema = next(rel for rel in node._schema.relationships if rel.name == attr_name)
                     rel_data = data.get(attr_name)
                     if rel_schema.cardinality == RelationshipCardinality.ONE:
-                        setattr(self.infrahub_node, f"_{attr_name}", None)
+                        setattr(node, f"_{attr_name}", None)
                         setattr(
-                            self.infrahub_node,
+                            node,
                             attr_name,
                             rel_data,
                         )
                     elif rel_schema.cardinality == RelationshipCardinality.MANY:
                         setattr(
-                            self.infrahub_node,
+                            node,
                             attr_name,
                             RelationshipManagerSync(
                                 name=attr_name,
-                                client=self.infrahub_node._client,
-                                node=self.infrahub_node,
-                                branch=self.infrahub_node._branch,
+                                client=node._client,
+                                node=node,
+                                branch=node._branch,
                                 schema=rel_schema,
                                 data=rel_data,
                             ),
@@ -2209,16 +2208,16 @@ if HAS_INFRAHUBCLIENT:
 
             # TODO: SDK should provide a way to do that too ...
             # https://github.com/opsmill/infrahub-sdk-python/issues/271
-            serialized_after = self.infrahub_node._generate_input_data().get("data", {}).get("data", {})
+            serialized_after = node._generate_input_data().get("data", {}).get("data", {})
 
             # Normalize relationship formats in the "after" state to match "before" canonical format
             # This handles cases where _generate_input_data() produces {"hfid": ["single"]} but we normalized to {"id": "single"}
             for key in list(serialized_after.keys()):
-                if key in self.infrahub_node._schema.relationship_names:
+                if key in node._schema.relationship_names:
                     serialized_after[key] = self._normalize_rel_format(serialized_after.get(key))
 
             if dict_hash(serialized_before) == dict_hash(serialized_after):
-                return self.infrahub_node, None
+                return node, None
 
             data_before, data_after = {}, {}
             for key in data:
@@ -2229,10 +2228,10 @@ if HAS_INFRAHUBCLIENT:
                     data_after[key] = key_after
 
             if not self.check_mode:
-                self.infrahub_node.update()
+                node.update()
 
             diff = self._build_diff(before=data_before, after=data_after)
-            return self.infrahub_node, diff
+            return node, diff
 
         def _delete_object(self) -> dict:
             """
@@ -2244,7 +2243,7 @@ if HAS_INFRAHUBCLIENT:
             if not self.check_mode:
                 try:
                     processor = InfrahubNodesProcessor(client=self.client)
-                    processor.delete_node(self.infrahub_node)
+                    processor.delete_node(cast("InfrahubNodeSync", self.infrahub_node))
                 except Exception as exc:
                     self._handle_errors(msg=str(exc))
 
@@ -2281,7 +2280,7 @@ if HAS_INFRAHUBCLIENT:
             if not self.branch:
                 self.result["msg"] = f"InfrahubBranch {data.get('name')} already absent"
             else:
-                branch_name = data.get("name")
+                branch_name: Any = data.get("name")
                 diff = self._delete_branch(name=branch_name)
                 self.result["msg"] = f"InfrahubBranch {branch_name} deleted"
                 self.result["changed"] = True
@@ -2298,6 +2297,7 @@ if HAS_INFRAHUBCLIENT:
                 data (dict):  User defined data passed into the module
             """
             object_data = data.get("data") or {}
+            diff: dict | None
             if not self.infrahub_node:
                 self.result["msg"] = data
                 self.infrahub_node, diff = self._create_object(kind=kind, data=object_data)
@@ -2334,7 +2334,7 @@ if HAS_INFRAHUBCLIENT:
                 self.result["changed"] = True
                 self.result["diff"] = diff
 
-        def run(self):
+        def run(self) -> None:
             """
             Must be implemented in subclasses
             """
@@ -2343,17 +2343,17 @@ if HAS_INFRAHUBCLIENT:
 
 if not HAS_INFRAHUBCLIENT:
 
-    def get_node_identifier(_node) -> str:  # type: ignore[misc]
+    def get_node_identifier(_node: Any) -> str:  # type: ignore[misc]
         return "unknown"
 
-    class InfrahubclientWrapper:
+    class InfrahubclientWrapper:  # type: ignore[no-redef]
         pass
 
-    class InfrahubNodesProcessor:
+    class InfrahubNodesProcessor:  # type: ignore[no-redef]
         pass
 
-    class InfrahubQueryProcessor:
+    class InfrahubQueryProcessor:  # type: ignore[no-redef]
         pass
 
-    class InfrahubModule:
+    class InfrahubModule:  # type: ignore[no-redef]
         pass
