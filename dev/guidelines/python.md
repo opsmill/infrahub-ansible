@@ -149,9 +149,9 @@ mypy as "this file is internally consistent and uses the SDK correctly", not as
 
 Where the SDK's own types defeat the checker — `InfrahubNodeSync.__getattr__` returning a union, the
 `Literal`-keyed `get`/`filters` overloads, the two mutually exclusive `HAS_INFRAHUBCLIENT` blocks —
-suppress at the site with a narrow `# type: ignore[code]` and say why in a comment. Do not widen the
-config: `warn_unused_ignores` retires an inline ignore once it stops being needed, and it cannot do
-that for an exclusion.
+suppress at the site with a narrow `# type: ignore[code]`. Do not widen the config:
+`warn_unused_ignores` retires an inline ignore once it stops being needed, and it cannot do that for
+an exclusion. The error code carries the reason — do not add a comment restating it.
 
 ## Dependencies
 

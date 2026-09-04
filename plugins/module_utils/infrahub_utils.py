@@ -192,9 +192,6 @@ if HAS_INFRAHUBCLIENT:
                 filters=filters,
                 branch=branch,
             )
-            # `InfrahubNodeSync.__getattr__` is typed `Attribute | RelationshipManagerSync |
-            # RelatedNodeSync`, so mypy cannot tell that an attribute we name explicitly is
-            # always the `Attribute` arm. Same reason for every other `union-attr` ignore below.
             resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")  # type: ignore[union-attr]
             if node.content_type.value == "application/json":  # type: ignore[union-attr]
                 result["json"] = resp.json()
@@ -769,9 +766,6 @@ if HAS_INFRAHUBCLIENT:
                 return [peer.id for peer in node_attr.peers if peer.id]
 
             for peer in node_attr.peers:
-                # `peer.id` is `str | None` on the SDK side. Guarding it here would change what
-                # this loop does with an id-less peer, so the existing behaviour stands: the store
-                # rejects None just as loudly as mypy does.
                 related_node: Any = store.get(key=peer.id, raise_when_missing=False)  # type: ignore[arg-type]
                 if not related_node:
                     peer.fetch()
@@ -1389,9 +1383,6 @@ if HAS_INFRAHUBCLIENT:
             # No schema fetch for the peer kinds: `resolve_node_mapping` reads a node's
             # own `_schema`, never the `schemas` mapping it is handed, so loading them
             # here would be a round-trip nothing reads back.
-            # `PeerWarmer` comes in through an `ansible_collections.*` path mypy cannot resolve,
-            # so `warm` reads as returning `Any` even though it is annotated `-> int`. The cast is
-            # only here to satisfy `warn_return_any`; it goes away once that import resolves.
             return cast("int", warmer.warm(referenced))
 
         @staticmethod
@@ -1534,8 +1525,6 @@ if HAS_INFRAHUBCLIENT:
             resolved: dict[str, Any] = {}
 
             for host_node, attrs, ledger in self._resolution_passes(fetched=fetched, refill=refill):
-                # As above: `host_node.id` is optional to the store's signature, and narrowing it
-                # here would add a branch that does not exist today.
                 node = (
                     (store.get(key=host_node.id, raise_when_missing=False) or host_node)  # type: ignore[arg-type]
                     if refreshed
@@ -1823,9 +1812,6 @@ if HAS_INFRAHUBCLIENT:
 
         """
 
-        # Set by the subclasses before any method declared here runs, so they are declared --
-        # not assigned -- at class level. Both subclasses set `result`; `infrahub_node` is
-        # NodeModule's and `branch` is BranchModule's.
         result: dict[str, Any]
         infrahub_node: InfrahubNodeSync | None
         branch: BranchData | str | None
@@ -1984,9 +1970,6 @@ if HAS_INFRAHUBCLIENT:
                 tuple(object, diff): tuple of the branch created in Infrahub and the Ansible diff.
             """
             processor = InfrahubNodesProcessor(client=self.client)
-            # `data` is the untyped Ansible parameter dict, so `.get` gives back `Any | None`.
-            # Annotating the locals as `Any` keeps that -- rather than claiming a narrower type
-            # the parameter dict does not guarantee.
             branch_name: Any = data.get("name")
             branch_description = data.get("description") or ""
             sync_with_git: Any = data.get("sync_with_git")
@@ -2056,7 +2039,6 @@ if HAS_INFRAHUBCLIENT:
             if rel_value is None:
                 return None
 
-            # Only called from `_update_object`, which has already established the node exists.
             node = cast("InfrahubNodeSync", self.infrahub_node)
 
             rel_schema = next(
@@ -2171,9 +2153,6 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
             """
-            # Reached only from `_ensure_object_exists` (and `NodeModule._update_object_with_file`,
-            # which it calls), both of which branch on `self.infrahub_node` being set first.
-            # The alias is the same object -- it just carries the non-optional type.
             node = cast("InfrahubNodeSync", self.infrahub_node)
 
             # Capture the "before" state by serializing the original node's data
@@ -2264,8 +2243,6 @@ if HAS_INFRAHUBCLIENT:
             if not self.check_mode:
                 try:
                     processor = InfrahubNodesProcessor(client=self.client)
-                    # Reached only from `_ensure_object_absent`, which branches on
-                    # `self.infrahub_node` being set before calling in here.
                     processor.delete_node(cast("InfrahubNodeSync", self.infrahub_node))
                 except Exception as exc:
                     self._handle_errors(msg=str(exc))
