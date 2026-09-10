@@ -128,7 +128,8 @@ Constitution (`.specify/memory/constitution.md`): Principles I–IV govern plugi
 
 - PR labels are applied reliably; conventional-commit type prefixes are **not** trustworthy here, which is why the bump stays label-driven rather than adopting the platform's commit-driven `auto-semver`.
 - Nothing consumes `CHANGELOG.rst` — Galaxy does not require it, no antsibull tooling reads it, and the docs site does not render it.
-- This collection runs a **single long-lived branch, `stable`**. Collapsing the `develop`/`stable` model is delivered by spec `003-collapse-develop-branch` and is a prerequisite for the release path described here; the fragment-accumulation and release-PR flow assume one branch, matching infrahub-mcp and infrahub-skills.
+- The release path described here is **branch-model agnostic** and works under the current `develop`/`stable` split as well as the single-branch model. Collapsing to one branch is delivered by spec `003-collapse-develop-branch`; it simplifies this flow but is **not** a prerequisite for it. Releases are cut from `stable` either way.
+- **Approval on the release pull request is not enforced by this feature.** Merging it is what tags and publishes, so the "reviewable, approved" property in FR-008 depends on branch protection for `stable` requiring a review — a repository setting, not a file in this change. At specification time `stable` required 0 approving reviews and 0 status checks, so FR-008 is only partially satisfied until that is configured.
 - SRE owns the eventual migration onto the shared reusable workflows, on their own timeline.
 - The `opsmill-cicd-workflows` `changelog-towncrier` composite currently hard-codes a `changes/` directory and will need to honour towncrier's configured `directory` before migration; this is tracked separately against that repository.
 

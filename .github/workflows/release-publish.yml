@@ -37,6 +37,18 @@ jobs:
           set -euo pipefail
           VERSION=$(sed -n "s/^version: \\(.*\\)/\\1/p" galaxy.yml)
 
+          # galaxy.yml is canonical, but pyproject.toml mirrors it and nothing
+          # else checks the two agree. A silent drift here ships a collection
+          # whose metadata disagrees with its tag.
+          PYPROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+          if [ "${PYPROJECT_VERSION}" != "${VERSION}" ]; then
+            MSG="Version mismatch: galaxy.yml=${VERSION},"
+            MSG="${MSG} pyproject.toml=${PYPROJECT_VERSION}."
+            MSG="${MSG} Refusing to tag a release whose metadata disagrees."
+            echo "::error::${MSG}"
+            exit 1
+          fi
+
           # Keyed on "is there a tag for the version on disk?" rather than on
           # the commit message, so it behaves the same whether the release PR
           # was squashed, rebased or merged.
