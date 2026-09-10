@@ -1,0 +1,46 @@
+CHANGELOG.md
+  s_e814976895190a::t_b15ef5ada9b777 1-68
+dev/guides/creating-a-module.md
+  s_e814976895190a::t_b3bc82b7e250b5 297,299-306
+changelog/+towncrier-release-process.housekeeping.md
+  s_e814976895190a::t_de66e7d1e087e4 1
+dev/guides/releasing-the-collection.md
+  s_e814976895190a::t_7413b0913bc39e 90-99
+  s_e814976895190a::t_963d25588f7379 20-22,26-54
+.github/workflows/release-publish.yml
+  s_e814976895190a::t_a58628b6e1eed4 1-93
+.github/workflows/changelog-check.yml
+  s_e814976895190a::t_a58628b6e1eed4 1-66
+dev/guidelines/git-workflow.md
+  s_e814976895190a::t_97f0c060aa9582 22,24,26,30-32,34-47
+AGENTS.md
+  s_e814976895190a::t_29f9839b827ecb 56-66
+.github/workflows/trigger-push-stable.yml
+  s_e814976895190a::t_2dd3df37d88e75 157-160
+  s_e814976895190a::t_3ce5695dcb2ab1 25-32
+  s_e814976895190a::t_e2e0a39d7500de 82-150
+changelog/.gitignore
+  s_e814976895190a::t_085c9137a761e5 1
+changelog/towncrier.md.template
+  s_e814976895190a::t_285e563f5ce29e 1-53
+pyproject.toml
+  s_e814976895190a::t_410e6effd70950 40,325-373
+uv.lock
+  s_e814976895190a::t_d772bdeb217eed 6,9-10,12-13,917,953,1379,1560,1562,2668-2680
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "95ae3223dfe8cf3ed7fcea20be5d27c7b525203c",
+  "prompts": {},
+  "sessions": {
+    "s_e814976895190a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f38e30c4-8c78-42ea-9268-f3396fdc0b01",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
