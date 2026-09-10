@@ -1,0 +1,26 @@
+specs/002-towncrier-release-process/plan.md
+  s_e814976895190a::t_55aba57c1f8d06 2,4,6-7,10,12-14,16,18,20,22,24,26,28,30,35,37-38,43,51,53,58-62,67-68,71-73,94-95,97-99
+  s_e814976895190a::t_20695758453d58 1,3,5,8-9,11,15,17,19,21,23,25,27,29,31-34,36,39-42,44-50,52,54-57,63-66,69-70,74-93,96,100
+.github/workflows/release-publish.yml
+  s_e814976895190a::t_8a2ebd1864e48f 40-51
+specs/002-towncrier-release-process/spec.md
+  s_e814976895190a::t_d3d08d3da13593 131-132
+specs/002-towncrier-release-process/tasks.md
+  s_e814976895190a::t_101d7350113cd4 1-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6c094370a16349b7c9e1ac22ed02a73b323cc87e",
+  "prompts": {},
+  "sessions": {
+    "s_e814976895190a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f38e30c4-8c78-42ea-9268-f3396fdc0b01",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
