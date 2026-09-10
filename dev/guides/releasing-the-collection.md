@@ -17,27 +17,41 @@ into `stable` (a PR from `develop` to `stable`). Everything after the push to
 `.github/workflows/trigger-push-stable.yml` fires on every push to `stable`
 (ignoring docs-only changes) and runs three stages:
 
-1. **Skip guard** — if the last commit is the bot's own
-   `chore: update pyproject.toml & galaxy.yml`, the run stops, so the version
-   bump does not re-trigger itself.
+1. **Skip guard** — if the last commit is a `chore(release):` commit (the merge
+   of a release pull request), the run stops, so preparing a release cannot
+   trigger preparing another.
 2. **`prepare_release`** — computes the next version with
    `version-drafter-action` (from the merged PR labels), then applies it:
    `uv version <next>` updates `pyproject.toml`, a `sed` rewrites the
-   `version:` line in `galaxy.yml`, `uv lock` refreshes the lock file, and the
-   `opsmill-bot` account commits `pyproject.toml`, `galaxy.yml`, and `uv.lock`
-   back to `stable` as `chore: update pyproject.toml & galaxy.yml`.
-3. **Docs + release** — it then calls two reusable workflows:
-   - `workflow-changelog-and-docs.yml` regenerates the plugin reference with
-     `uv run invoke generate-doc`, builds the site with `uv run invoke
-     docusaurus`, and commits the result to `stable` as `chore: update docs`.
-   - `workflow-release-drafter.yml` tags the computed version, pushes the tag,
-     and runs `release-drafter` (config `.github/release-drafter.yml`) to draft
-     and publish the GitHub Release.
+   `version:` line in `galaxy.yml`, and `uv lock` refreshes the lock file. It
+   then assembles `CHANGELOG.md` with `uv run towncrier build`, which consumes
+   the news fragments in `changelog/`, and opens a
+   **`chore(release): <version>` pull request** carrying all of it. Nothing is
+   pushed to `stable` directly.
+3. **Docs** — `workflow-changelog-and-docs.yml` regenerates the plugin
+   reference with `uv run invoke generate-doc`, builds the site with
+   `uv run invoke docusaurus`, and commits the result to `stable` as
+   `chore: update docs`.
 
-`galaxy.yml` is the source of truth for the published version — note you never
-edit it by hand for a release; the workflow does. The changelog lives in
-`CHANGELOG.rst` (reStructuredText) and is maintained through the release-drafter
-flow, not a hand-edited changelog fragment system.
+If there are no news fragments, `prepare_release` **fails** rather than cut a
+version with an empty changelog. Add a fragment — `housekeeping` is fine — and
+re-run.
+
+## Merging the release pull request
+
+The release pull request is the review point: it contains only the version bump
+and the assembled changelog, so what users will read is visible in the diff.
+Merging it is what authorises the release.
+
+On merge, `.github/workflows/release-publish.yml` creates the tag and publishes
+the GitHub Release with that changelog section as the body. It decides whether
+to act by checking whether a tag already exists for the version in `galaxy.yml`,
+so it behaves the same whether the pull request was squashed, rebased or merged.
+
+`galaxy.yml` is the source of truth for the published version — you never edit
+it by hand for a release; the workflow does. The changelog is `CHANGELOG.md`,
+assembled by [towncrier](https://towncrier.readthedocs.io/) from per-change
+fragments; it is never hand-edited.
 
 ## Publishing to Ansible Galaxy
 
@@ -73,8 +87,13 @@ does not publish anything.
 1. Ensure `develop` is green (`invoke lint`, `tests-sanity`, `tests-unit`).
 2. Confirm PRs are labelled so `version-drafter-action` computes the intended
    semver bump.
-3. Merge `develop` into `stable`.
-4. Watch `trigger-push-stable.yml`: version bump commit, docs commit, and the
-   drafted GitHub Release should all appear.
-5. Publish the GitHub Release to trigger the Galaxy publish, and confirm the new
-   version appears on Ansible Galaxy.
+3. Confirm the changes going out carry news fragments in `changelog/` —
+   `uv run towncrier build --draft --version <next>` previews exactly what the
+   release will say.
+4. Merge `develop` into `stable`.
+5. Watch `trigger-push-stable.yml`: a `chore(release): <version>` pull request
+   should appear, along with the docs commit.
+6. Review the assembled changelog in that pull request and merge it. The tag
+   and the GitHub Release are created automatically.
+7. Confirm the new version appears on Ansible Galaxy — publishing the Release
+   is what triggers the upload.

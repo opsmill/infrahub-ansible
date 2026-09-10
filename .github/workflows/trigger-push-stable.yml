@@ -22,8 +22,14 @@ jobs:
         run: |
           commit_author=$(git log -1 --pretty=format:'%an')
           commit_message=$(git log -1 --pretty=format:'%s')
-          if [[ "$commit_author" == "opsmill-bot" && \
-                "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
+          # Skip the bot's own commits so preparing a release cannot trigger
+          # preparing another. `chore(release):` is the merge of a release
+          # pull request; the older message is kept so in-flight commits from
+          # the previous scheme are still recognised.
+          if [[ "$commit_message" == chore\(release\):* ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          elif [[ "$commit_author" == "opsmill-bot" && \
+                  "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
@@ -73,25 +79,82 @@ jobs:
       - name: Update lock file
         run: uv lock
 
-      - name: commit pyproject.toml and galaxy.yml
-        uses: github-actions-x/commit@v2.9
-        with:
-          github-token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
-          push-branch: "stable"
-          commit-message: "chore: update pyproject.toml & galaxy.yml"
-          files: pyproject.toml galaxy.yml uv.lock
-          name: opsmill-bot
-          email: github-bot@opsmill.com
-          rebase: true
+      - name: Assemble the changelog
+        env:
+          VERSION: ${{ steps.version.outputs.next-version }}
+        run: |
+          set -euo pipefail
+
+          # A release must say what changed. Fail loudly rather than tag a
+          # version whose notes are empty — the same rule the shared
+          # changelog-towncrier composite enforces, with no opt-out.
+          shopt -s nullglob
+          KEPT=()
+          for f in changelog/*.md; do
+            [ "$f" = "changelog/towncrier.md.template" ] && continue
+            KEPT+=("$f")
+          done
+          if [ ${#KEPT[@]} -eq 0 ]; then
+            MSG="No news fragments in changelog/ — refusing to cut"
+            MSG="${MSG} ${VERSION} with an empty changelog."
+            MSG="${MSG} Add a fragment (housekeeping is fine) and re-run."
+            echo "::error::${MSG}"
+            exit 1
+          fi
+
+          uv run towncrier build --version "${VERSION}" --yes
+
+      - name: Open the release pull request
+        env:
+          GH_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
+          VERSION: ${{ steps.version.outputs.next-version }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${VERSION}"
+
+          git config user.name "opsmill-bot"
+          git config user.email "github-bot@opsmill.com"
+          git switch -c "${BRANCH}"
+
+          git add pyproject.toml galaxy.yml uv.lock CHANGELOG.md changelog/
+          git commit -m "chore(release): ${VERSION}"
+
+          # Re-running on a later push to stable refreshes the same branch
+          # rather than opening a second PR for the same version. Plain
+          # --force rather than --force-with-lease: checkout does not fetch
+          # this branch's remote ref, so a lease has nothing to compare
+          # against. The branch is bot-owned and regenerated every run.
+          git push --force origin "${BRANCH}"
+
+          if gh pr view "${BRANCH}" --json number >/dev/null 2>&1; then
+            echo "Release PR for ${BRANCH} already open — updated in place."
+            exit 0
+          fi
+
+          gh pr create \
+            --base stable \
+            --head "${BRANCH}" \
+            --title "chore(release): ${VERSION}" \
+            --label "ci/skip-changelog" \
+            --body "$(cat <<EOF
+          Prepared automatically. Merging this pull request authorises the release:
+          \`release-publish.yml\` then tags \`${VERSION}\` and publishes the GitHub
+          Release using the assembled changelog as its body. Publishing the Release
+          is what triggers the Galaxy upload.
+
+          - Version bumped to \`${VERSION}\` in \`pyproject.toml\` and \`galaxy.yml\`
+          - \`CHANGELOG.md\` assembled from the news fragments, which are consumed by this commit
+
+          Review the assembled changelog before merging — it is what users will read.
+          EOF
+          )"
 
   docs:
     needs: ["prepare_release"]
     uses: ./.github/workflows/workflow-changelog-and-docs.yml
     secrets: inherit
 
-  release:
-    needs: ["prepare_release"]
-    uses: ./.github/workflows/workflow-release-drafter.yml
-    with:
-      version: ${{ needs.prepare_release.outputs.next_version }}
-    secrets: inherit
+# The release is no longer drafted here. prepare_release opens a release
+# pull request; merging it lands the version on `stable`, and
+# release-publish.yml then creates the tag and publishes the GitHub Release
+# with the assembled changelog as its body.
