@@ -75,7 +75,7 @@ For a release worth explaining, a maintainer produces a workflow-first prose pag
 - **Two PRs choosing the same fragment slug** collide as an ordinary file conflict, resolved in git.
 - **The two version files drift** if only one is written — `galaxy.yml` is canonical for Galaxy, `pyproject.toml` must follow in the same commit.
 - **Tags here are bare** (`1.8.3`, no `v` prefix), unlike the sibling repos — `title_format` must not assume a prefix.
-- **A hotfix cut directly on `stable`** bypasses the develop-side fragment accumulation. [NEEDS CLARIFICATION: does a stable hotfix require its own fragment, and on which branch does it land?]
+- **A hotfix** follows the same path as any other change — branch from `stable`, carry a fragment, merge back. With a single long-lived branch there is no second accumulation point to reconcile.
 
 ## Requirements *(mandatory)*
 
@@ -128,7 +128,7 @@ Constitution (`.specify/memory/constitution.md`): Principles I–IV govern plugi
 
 - PR labels are applied reliably; conventional-commit type prefixes are **not** trustworthy here, which is why the bump stays label-driven rather than adopting the platform's commit-driven `auto-semver`.
 - Nothing consumes `CHANGELOG.rst` — Galaxy does not require it, no antsibull tooling reads it, and the docs site does not render it.
-- The existing `develop`/`stable` branch model is retained for this feature; collapsing to a single branch is a separate follow-up.
+- This collection runs a **single long-lived branch, `stable`**. Collapsing the `develop`/`stable` model is delivered by spec `003-collapse-develop-branch` and is a prerequisite for the release path described here; the fragment-accumulation and release-PR flow assume one branch, matching infrahub-mcp and infrahub-skills.
 - SRE owns the eventual migration onto the shared reusable workflows, on their own timeline.
 - The `opsmill-cicd-workflows` `changelog-towncrier` composite currently hard-codes a `changes/` directory and will need to honour towncrier's configured `directory` before migration; this is tracked separately against that repository.
 
@@ -136,5 +136,5 @@ Constitution (`.specify/memory/constitution.md`): Principles I–IV govern plugi
 
 - Migrating onto the shared reusable workflows in `opsmill-cicd-workflows`.
 - Reconstructing changelog history for releases 1.8.0, 1.8.2 and 1.8.3.
-- Collapsing the `develop`/`stable` branch model to a single branch.
+- Collapsing the `develop`/`stable` branch model — specified separately as `003-collapse-develop-branch`, which this feature depends on.
 - Unifying conventional-commit types with towncrier fragment types — they answer different questions and both remain.
