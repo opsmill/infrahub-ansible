@@ -9,6 +9,16 @@ on:
     paths-ignore:
       - "docs/**"
 
+# Release preparation queries, closes and creates release pull requests as one
+# unsynchronised read-modify-write. Two overlapping runs let the older one
+# close the newer run's release PR and leave its own older version standing,
+# so only one run may prepare a release at a time. cancel-in-progress is false
+# deliberately: a run cancelled between closing the stale PRs and creating the
+# new one leaves the repository with no open release PR at all.
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
 jobs:
   check_commit:
     runs-on: ubuntu-latest
