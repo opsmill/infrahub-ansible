@@ -19,20 +19,39 @@ jobs:
         with:
           fetch-depth: 2 # Fetches the commit history for the last 2 commits
       - id: filter
+        env:
+          GH_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
         run: |
+          set -euo pipefail
           commit_author=$(git log -1 --pretty=format:'%an')
           commit_message=$(git log -1 --pretty=format:'%s')
+
           # Skip the bot's own commits so preparing a release cannot trigger
-          # preparing another. `chore(release):` is the merge of a release
-          # pull request; the older message is kept so in-flight commits from
-          # the previous scheme are still recognised.
-          if [[ "$commit_message" == chore\(release\):* ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
+          # preparing another. The merge of a release pull request only says
+          # `chore(release):` when that pull request was squashed or rebased —
+          # a merge commit says `Merge pull request #...` and matches nothing
+          # below. Ask the API which pull requests this commit belongs to
+          # instead, which holds for all three merge strategies.
+          RELEASE_PR=$(
+            gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
+              --jq '[.[]
+                     | select(.merged_at != null)
+                     | select(.head.ref | startswith("release/"))
+                     | .number] | first // empty'
+          )
+
+          # The subject checks stay as a cheap fallback: they cost nothing and
+          # still recognise in-flight commits from the previous scheme.
+          if [ -n "${RELEASE_PR}" ]; then
+            echo "Release PR #${RELEASE_PR} merged here — not preparing another."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$commit_message" == chore\(release\):* ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           elif [[ "$commit_author" == "opsmill-bot" && \
                   "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           else
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
   prepare_release:
