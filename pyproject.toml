@@ -305,7 +305,7 @@ include = [
     "galaxy.yml",
     "README.md",
     "LICENSE.txt",
-    "CHANGELOG.rst",
+    "CHANGELOG.md",
     "pyproject.toml",
 ]
 
@@ -320,7 +320,7 @@ only-include = [
     "galaxy.yml",
     "README.md",
     "LICENSE.txt",
-    "CHANGELOG.rst",
+    "CHANGELOG.md",
 ]
 
 [tool.towncrier]
