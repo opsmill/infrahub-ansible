@@ -33,6 +33,8 @@ jobs:
 
       - name: Decide whether this push is a release
         id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
         run: |
           set -euo pipefail
           VERSION=$(sed -n "s/^version: \\(.*\\)/\\1/p" galaxy.yml)
@@ -55,11 +57,35 @@ jobs:
           if git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
             echo "${VERSION} is already tagged — nothing to publish."
             echo "publish=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "${VERSION} has no tag yet — publishing."
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          # An untagged version is not on its own an authorisation to release:
+          # anything able to write to `stable` — a direct version edit, a
+          # hand-pushed bump — would otherwise cut a tag and a GitHub Release
+          # of its own accord. Publishing also requires this commit to be the
+          # merge of a release pull request, which is the reviewable artefact
+          # FR-008 asks for. Asked of the API rather than of the commit
+          # subject, so it holds whether that PR was squashed, rebased or
+          # merged.
+          RELEASE_PR=$(
+            gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
+              --jq '[.[]
+                     | select(.merged_at != null)
+                     | select(.head.ref | startswith("release/"))
+                     | .number] | first // empty'
+          )
+
+          if [ -z "${RELEASE_PR}" ]; then
+            MSG="${GITHUB_SHA} is not the merge of a release/* pull request"
+            echo "${MSG} — nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "${VERSION} authorised by merged release PR #${RELEASE_PR} — publishing."
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Extract the changelog section
         if: steps.decide.outputs.publish == 'true'
