@@ -46,8 +46,8 @@ Dependabot, the upstream-tracking workflows and CI triggers all operate against 
 
 **Acceptance Scenarios**:
 
-1. **Given** dependabot PRs opened against `develop` before the change, **When** the collapse is complete, **Then** every one of them is closed — their branch names embed the target (`dependabot/pip/develop/...`), so none can be retargeted by rename — and none is left pointing at a deleted branch.
-2. **Given** those PRs are closed, **When** dependabot next runs, **Then** it recreates the still-relevant updates as new PRs on `dependabot/pip/stable/...` branches.
+1. **Given** dependabot PRs opened against `develop` before the change, **When** the collapse is complete, **Then** every one of them is closed — their branch names embed the pinned target (`dependabot/pip/develop/...`), so none can be retargeted by rename — and none is left pointing at a deleted branch.
+2. **Given** those PRs are closed, **When** dependabot next runs, **Then** it recreates the still-relevant updates as new PRs based on `stable`. The head-branch names follow from how FR-008 is satisfied: removing the `target-branch` pin yields `dependabot/pip/all-...` with no branch segment, whereas repinning it to `stable` would yield `dependabot/pip/stable/...`.
 3. **Given** dependabot runs, **When** it opens a dependency PR, **Then** the PR targets `stable`.
 4. **Given** the upstream-tracking workflows run, **When** they select a target branch, **Then** `develop` is not offered.
 5. **Given** a PR is opened against `stable`, **When** CI runs, **Then** the full check set runs — linter, sanity, unit tests, plus documentation checks.
@@ -73,7 +73,7 @@ The constitution, the guidelines and guides under `dev/`, the two READMEs, AGENT
 
 - **PR #405 "Backport Stable"** (`stable` → `develop`) becomes meaningless and must be closed rather than merged.
 - **PR #229** has been open a long time; it may conflict badly when rebased onto `stable` and may be better closed than retargeted. Decide per-PR rather than bulk-retargeting.
-- **Dependabot branch names embed the target** (`dependabot/pip/develop/...`); existing ones are abandoned and recreated rather than renamed.
+- **Dependabot branch names embed `develop` because `.github/dependabot.yml` pins `target-branch: develop`** — the segment comes from that pin, not from whether `develop` is the default branch. Live evidence: `develop` *is* the default branch today, and the open dependabot PR #394 still sits on `dependabot/pip/develop/all-3c79134f2c`; the `github-actions` entry, pinned the same way, produces `dependabot/github_actions/develop/all-...`. Ecosystems the config does not pin carry no branch segment at all (`dependabot/uv/uv-...`). Existing pinned branches are therefore abandoned and recreated, not renamed.
 - **Branch protection currently protects `develop`** — its rules must be transferred to `stable`, not simply deleted, or the repo is briefly unprotected.
 - **`develop` is deleted while a contributor has it checked out locally** — they need `git remote prune` guidance; local copies are otherwise harmless.
 - **A release is in flight during the collapse** — the change must not run concurrently with a release attempt.
@@ -90,7 +90,7 @@ The constitution, the guidelines and guides under `dev/`, the two READMEs, AGENT
 - **FR-005**: `develop` MUST be deleted only after FR-001 through FR-004 are complete and after confirming it holds no commits absent from `stable`.
 - **FR-006**: CI MUST run the full check set — linter, sanity, unit tests, and documentation checks — on every pull request to `stable`.
 - **FR-007**: The `develop`-specific PR trigger workflow MUST be removed and its checks preserved on the `stable` path. `trigger-pr-develop.yml` also carries a `push` trigger on `renovate/**` branches that `trigger-pr-stable.yml` does not; that trigger MUST be rehomed rather than lost with the file.
-- **FR-008**: Dependabot MUST target `stable`. Its existing `develop`-targeted PRs cannot be retargeted in place — the branch name embeds the target (`dependabot/pip/develop/...`) — so they MUST be closed under FR-002 and left for dependabot to recreate against `stable`.
+- **FR-008**: Dependabot MUST target `stable`. `.github/dependabot.yml` pins `target-branch: develop` on both the `github-actions` and the `pip` entry; that pin MUST be removed rather than repointed, so dependabot follows the default branch and no second place has to be kept in sync. Its existing PRs cannot be retargeted in place — the pin puts the target into the head-branch name (`dependabot/pip/develop/...`) — so they MUST be closed under FR-002 and left for dependabot to recreate. Because an unpinned dependabot follows the *default* branch, the pin MUST NOT be removed before FR-001 has made `stable` the default, or the next cycle raises PRs against `develop` again.
 - **FR-009**: The upstream-tracking workflows MUST NOT offer `develop` as a target branch.
 - **FR-010**: The constitution MUST be amended to describe a single-branch model, with a version bump and sync-impact record per its own governance rule. Redefining the branch model is a breaking change to a documented workflow rule, so the bump is MAJOR.
 - **FR-011**: Every repository file that describes the branch model, or instructs a contributor or agent where to branch from or what to target, MUST describe the single-branch model. Enumerated from the tree at specification time:
@@ -112,7 +112,8 @@ The constitution, the guidelines and guides under `dev/`, the two READMEs, AGENT
 - **`develop`**: removed. Currently the default branch, strictly behind `stable`.
 - **Branch protection ruleset**: currently applied to `develop`; transferred to `stable`.
 - **Constitution**: binding governance document encoding the branch model in four places; requires a versioned amendment.
-- **Open pull requests**: six against `develop`, each retargeted or closed by explicit decision.
+- **Open pull requests**: six against `develop` at specification time, each retargeted or closed by explicit decision.
+- **`.github/dependabot.yml`**: pins `target-branch: develop`; the pin is removed so dependabot follows the default branch.
 
 ## Success Criteria *(mandatory)*
 
