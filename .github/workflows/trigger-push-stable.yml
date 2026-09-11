@@ -110,7 +110,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.next-version }}
         run: |
           set -euo pipefail
-          BRANCH="release/${VERSION}"
+          export BRANCH="release/${VERSION}"
 
           git config user.name "opsmill-bot"
           git config user.email "github-bot@opsmill.com"
@@ -126,8 +126,35 @@ jobs:
           # against. The branch is bot-owned and regenerated every run.
           git push --force origin "${BRANCH}"
 
-          if gh pr view "${BRANCH}" --json number >/dev/null 2>&1; then
-            echo "Release PR for ${BRANCH} already open — updated in place."
+          # A run that computes a different version opens a different branch,
+          # so an earlier release PR can still be open. Merging that one after
+          # this one would walk the version files back and let release-publish
+          # tag a version older than the one already released — supersede it
+          # rather than let the two race.
+          STALE=$(
+            gh pr list --state open --base stable --json number,headRefName \
+              --jq '.[]
+                    | select(.headRefName | startswith("release/"))
+                    | select(.headRefName != env.BRANCH)
+                    | .number'
+          )
+          for PR in ${STALE}; do
+            echo "Closing release PR #${PR}, superseded by ${BRANCH}."
+            gh pr close "${PR}" \
+              --comment "Superseded by the release pull request for ${VERSION}."
+          done
+
+          # Only an *open* pull request counts as one already prepared:
+          # `gh pr view <branch>` resolves closed and merged ones too, so a
+          # release PR closed without merging would otherwise be mistaken for
+          # the current one and leave the version stranded on the branch with
+          # nothing to merge.
+          OPEN_PR=$(
+            gh pr list --head "${BRANCH}" --state open --json number \
+              --jq '.[0].number // empty'
+          )
+          if [ -n "${OPEN_PR}" ]; then
+            echo "Release PR #${OPEN_PR} for ${BRANCH} already open — updated in place."
             exit 0
           fi
 
