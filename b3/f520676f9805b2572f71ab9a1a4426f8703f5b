@@ -1,0 +1,21 @@
+dev/guides/creating-a-module.md
+  s_e814976895190a::t_bfd7552b63895d 319
+specs/002-towncrier-release-process/spec.md
+  s_e814976895190a::t_e0698bcb27996d 98,140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b3f520676f9805b2572f71ab9a1a4426f8703f5b",
+  "prompts": {},
+  "sessions": {
+    "s_e814976895190a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f38e30c4-8c78-42ea-9268-f3396fdc0b01",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
