@@ -86,6 +86,7 @@ changelog/                                  # NEW
 CHANGELOG.md                                # NEW  — replaces CHANGELOG.rst
 CHANGELOG.rst                               # DELETED
 pyproject.toml                              # EDIT — [tool.towncrier] + dev dependency
+                                            #        + hatch sdist/wheel targets: .rst → .md
 
 AGENTS.md                                   # EDIT — changelog section
 dev/guides/releasing-the-collection.md      # EDIT — new release flow
