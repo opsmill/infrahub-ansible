@@ -111,6 +111,17 @@ jobs:
           KEPT=()
           for f in changelog/*.md; do
             [ "$f" = "changelog/towncrier.md.template" ] && continue
+            # An empty fragment still counts towards the total below, so the
+            # release would proceed and towncrier would render the file as a
+            # heading with nothing under it. Name the file and stop: only the
+            # author knows what it was meant to say.
+            if ! grep -q '[^[:space:]]' "$f"; then
+              MSG="News fragment ${f} has no content — it would render as an"
+              MSG="${MSG} empty entry. Describe the change in it, or delete"
+              MSG="${MSG} the file."
+              echo "::error::${MSG}"
+              exit 1
+            fi
             KEPT+=("$f")
           done
           if [ ${#KEPT[@]} -eq 0 ]; then
