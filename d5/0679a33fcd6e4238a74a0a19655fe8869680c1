@@ -1,0 +1,22 @@
+specs/003-collapse-develop-branch/spec.md
+  s_e814976895190a::t_8b26daa6800c22 94-105
+  s_e814976895190a::t_06b59e1a7cc8b8 91
+  s_e814976895190a::t_61ba70c19b306c 123
+  s_e814976895190a::t_cd30e6b67fb9dc 128-129,132-136,138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d50679a33fcd6e4238a74a0a19655fe8869680c1",
+  "prompts": {},
+  "sessions": {
+    "s_e814976895190a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f38e30c4-8c78-42ea-9268-f3396fdc0b01",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
