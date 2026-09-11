@@ -95,7 +95,7 @@ For a release worth explaining, a maintainer produces a workflow-first prose pag
 
 ### Key Entities
 
-- **Newsfragment**: `changelog/<id>.<type>.md`; one per change, one line of Markdown, authored by whoever makes the change.
+- **Newsfragment**: `changelog/<id>.<type>.md` when the change has an issue or PR number to cite, or `changelog/+<slug>.<type>.md` when it has none — `+` is towncrier's configured `orphan_prefix` and both forms are canonical, differing only in whether the rendered line carries an issue link. One per change, one line of Markdown, authored by whoever makes the change.
 - **CHANGELOG.md**: the assembled canonical record; replaces `CHANGELOG.rst`.
 - **Release PR**: `chore(release): X.Y.Z`; carries version files plus the assembled changelog section and is the approval point.
 - **GitHub Release body**: the towncrier-rendered section; replaces the release-drafter PR-title list.
@@ -137,5 +137,5 @@ Constitution (`.specify/memory/constitution.md`): Principles I–IV govern plugi
 
 - Migrating onto the shared reusable workflows in `opsmill-cicd-workflows`.
 - Reconstructing changelog history for releases 1.8.0, 1.8.2 and 1.8.3.
-- Collapsing the `develop`/`stable` branch model — specified separately as `003-collapse-develop-branch`, which this feature depends on.
+- Collapsing the `develop`/`stable` branch model — specified separately as `003-collapse-develop-branch`. That work simplifies this release path but is not a prerequisite for it; see Assumptions.
 - Unifying conventional-commit types with towncrier fragment types — they answer different questions and both remain.

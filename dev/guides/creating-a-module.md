@@ -316,4 +316,4 @@ number. Do not edit `CHANGELOG.md` — it is assembled from these fragments at r
 - [ ] Unit tests
 - [ ] Sanity tests pass
 - [ ] Documentation generated and renders correctly
-- [ ] Changelog entry added
+- [ ] Changelog fragment added under `changelog/` (not an edit to `CHANGELOG.md`)
