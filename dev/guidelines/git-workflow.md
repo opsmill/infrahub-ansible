@@ -19,15 +19,32 @@
 |---------|----------|-----------|
 | PR to `develop` | `trigger-pr-develop.yml` | Linter + Ansible tests |
 | PR to `stable` | `trigger-pr-stable.yml` | Linter + Ansible tests + changelog/docs |
-| Push to `stable` | `trigger-push-stable.yml` | Publish + release |
+| Push to `stable` | `trigger-push-stable.yml` | Version bump + changelog → opens the release PR |
 | Push to docs on `stable` | `trigger-push-docs-stable.yml` | Docs sync |
+| Merge of the release PR | `release-publish.yml` | Tag + publish the GitHub Release |
 | Release | `trigger-release.yml` | Galaxy publish |
+| Any PR | `changelog-check.yml` | Requires a news fragment |
 
 ## Changelog
 
-The changelog is in `CHANGELOG.rst` (reStructuredText format). It's updated as part of the release process.
+`CHANGELOG.md` is assembled by [towncrier](https://towncrier.readthedocs.io/) from news
+fragments in `changelog/` — one per change, written in the same PR that makes the change.
+CI fails a pull request that adds neither a fragment nor the `ci/skip-changelog` label.
 
-Release drafts are managed by the `workflow-release-drafter.yml` workflow.
+```bash
+uv run towncrier create -c "Fixed the thing" 42.fixed.md   # <issue>.<type>.md
+uv run towncrier build --draft --version 1.8.4             # preview
+```
+
+Types: `security`, `removed`, `deprecated`, `added`, `changed`, `fixed`, `housekeeping`.
+Without an issue or PR number, use a descriptive slug prefixed with `+`, e.g.
+`+inventory-batching.fixed.md`.
+
+Never run `towncrier build` or edit `CHANGELOG.md` by hand — the release workflow does it and
+opens a `chore(release):` pull request with the result.
+
+> `CHANGELOG.rst` was the previous, hand-maintained changelog. It fell out of use — four
+> releases shipped without an entry — and has been replaced by `CHANGELOG.md`.
 
 ## Version Bumping
 

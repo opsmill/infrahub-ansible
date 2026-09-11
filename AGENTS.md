@@ -53,6 +53,17 @@ Full verification before a PR: `invoke format && invoke lint && uv run mypy . &&
 
 New-module walkthrough: [dev/guides/creating-a-module.md](dev/guides/creating-a-module.md). Test execution detail: [dev/guides/running-tests.md](dev/guides/running-tests.md).
 
+## Changelog
+
+Every pull request that changes behaviour carries a news fragment in `changelog/`; CI fails the PR without one. `CHANGELOG.md` is assembled from those fragments by [towncrier](https://towncrier.readthedocs.io/) at release time, so entries never collide on a shared file.
+
+- `uv run towncrier create -c "Fixed the thing" 42.fixed.md` — one fragment per change, named `<issue>.<type>.md`. With no issue or PR number, use a descriptive slug prefixed with `+`, e.g. `+inventory-batching.fixed.md`.
+- Types: `security`, `removed`, `deprecated`, `added`, `changed`, `fixed`, `housekeeping`.
+- `uv run towncrier build --draft --version X.Y.Z` — preview what the release will say.
+- Label a PR `ci/skip-changelog` when it genuinely needs no entry.
+
+Never run `towncrier build`, edit `CHANGELOG.md`, or bump `galaxy.yml` by hand. A push to `stable` opens a `chore(release): <version>` pull request carrying the bump and the assembled changelog; merging it tags and publishes the release, which is what triggers the Galaxy upload. Full detail in [dev/guides/releasing-the-collection.md](dev/guides/releasing-the-collection.md).
+
 ## Architecture & Standards Pointers
 
 - [dev/knowledge/architecture.md](dev/knowledge/architecture.md) — Collection structure, plugin types, data flow

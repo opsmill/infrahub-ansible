@@ -294,9 +294,16 @@ invoke generate-doc
 invoke docusaurus
 ```
 
-## Step 5: Update Changelog
+## Step 5: Add a Changelog Fragment
 
-Add a changelog entry to `CHANGELOG.rst` noting the new module and its version.
+Add a news fragment describing the new module. CI fails the pull request without one.
+
+```bash
+uv run towncrier create -c "\`my_module\` — what it does." 42.added.md
+```
+
+Name it `<issue>.added.md`, or use a descriptive slug prefixed with `+` when there is no issue
+number. Do not edit `CHANGELOG.md` — it is assembled from these fragments at release time.
 
 ## Checklist
 
@@ -309,4 +316,4 @@ Add a changelog entry to `CHANGELOG.rst` noting the new module and its version.
 - [ ] Unit tests
 - [ ] Sanity tests pass
 - [ ] Documentation generated and renders correctly
-- [ ] Changelog entry added
+- [ ] Changelog fragment added under `changelog/` (not an edit to `CHANGELOG.md`)
