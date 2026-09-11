@@ -45,8 +45,8 @@ description: "Task list for the towncrier-based release process"
 
 **Independent test**: Open a PR with no fragment → the check fails; add one → it passes; label `ci/skip-changelog` with no fragment → it passes.
 
-- [x] T009 [US1] Add `.github/workflows/changelog-check.yml`, failing a pull request that adds no file under `changelog/` unless it carries `ci/skip-changelog`. Query the API via `gh pr view --json files` rather than diffing locally, so the result does not depend on checkout depth.
-- [x] T010 [US1] Make the failure message actionable — name the `towncrier create` command, the seven types, and the escape-hatch label.
+- [x] T009 [US1] Add `.github/workflows/changelog-check.yml`, failing a pull request that adds no news fragment unless it carries `ci/skip-changelog`. Count only what towncrier will actually assemble: a direct child of `changelog/` named `<id>.<type>.md`, where `<type>` is one of the seven configured types and `<id>` may carry the `+` orphan prefix or towncrier's collision counter (`123.added.1.md`). A nested path, an unknown type, or a bare `README.md` is not a fragment and must not satisfy the gate. Query the paginated REST endpoint `repos/{owner}/{repo}/pulls/{n}/files` rather than diffing locally, so the result depends neither on checkout depth nor on a pull request being under one page of files.
+- [x] T010 [US1] Make the failure message actionable — name the `towncrier create` command, the `<id>.<type>.md` shape, the seven types, the fact that nested paths and unknown types are not read, and the escape-hatch label.
 
 **Checkpoint**: US1 delivers a correct changelog on its own, even if nothing below ships.
 
