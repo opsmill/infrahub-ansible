@@ -88,11 +88,21 @@ The constitution, git-workflow guideline, release guide and AGENTS.md describe a
 - **FR-005**: `develop` MUST be deleted only after FR-001 through FR-004 are complete and after confirming it holds no commits absent from `stable`.
 - **FR-006**: CI MUST run the full check set — linter, sanity, unit tests, and documentation checks — on every pull request to `stable`.
 - **FR-007**: The `develop`-specific PR trigger workflow MUST be removed and its checks preserved on the `stable` path.
-- **FR-008**: Dependabot MUST target `stable`.
+- **FR-008**: Dependabot MUST target `stable`. Its existing `develop`-targeted PRs cannot be retargeted in place — the branch name embeds the target (`dependabot/pip/develop/...`) — so they MUST be closed under FR-002 and left for dependabot to recreate against `stable`.
 - **FR-009**: The upstream-tracking workflows MUST NOT offer `develop` as a target branch.
 - **FR-010**: The constitution MUST be amended to describe a single-branch model, with a version bump and sync-impact record per its own governance rule. Redefining the branch model is a breaking change to a documented workflow rule, so the bump is MAJOR.
-- **FR-011**: `dev/guidelines/git-workflow.md`, `dev/guides/releasing-the-collection.md`, `dev/README.md` and `AGENTS.md` MUST describe the single-branch model.
-- **FR-012**: No repository file may instruct a contributor or agent to branch from, or target, `develop`.
+- **FR-011**: Every repository file that describes the branch model, or instructs a contributor or agent where to branch from or what to target, MUST describe the single-branch model. Enumerated from the tree at specification time:
+  - `dev/guidelines/git-workflow.md` — the branch table, "PRs target `develop`", the CI-trigger table
+  - `dev/guidelines/testing.md` — "Tests run on every PR to `develop`" and the `trigger-pr-develop.yml` pointer
+  - `dev/guides/releasing-the-collection.md` — the `develop` → `stable` merge presented as the release trigger
+  - `dev/guides/running-tests.md` — the `git worktree add ../infrahub-baseline develop` branch-comparison recipe
+  - `dev/README.md` — the summaries of the git-workflow guideline and the release guide
+  - `AGENTS.md` — the git-workflow pointer, labelled "Branch model (develop/stable)"
+  - `README.md` — "Releasing the current major version happens from the `develop` branch"
+  - `.github/pull_request_template.md` — the "point your PR to the `develop` branch" banner and the "My PR targets the `develop` branch" checklist item
+- **FR-012**: Once FR-007 through FR-011 are complete, no repository file may instruct a contributor or agent to branch from, or target, `develop`. Two classes of remaining `develop` hit are out of scope and MUST NOT be read as violations:
+  - `.github/file-filters.yml` — a comment recounting a past incident ("a ruff bump landed on develop"). It records history and instructs nobody; it may be reworded for accuracy but needs no retargeting.
+  - `.agents/skills/**` — vendored skill copies that list `develop` among generic long-lived branch names (`main`, `master`, `develop`, `stable`) in branch-discipline guards. They describe no branch model of this repository and are corrected upstream in the skills monorepo, if at all.
 
 ### Key Entities
 
@@ -110,20 +120,22 @@ The constitution, git-workflow guideline, release guide and AGENTS.md describe a
 - **SC-002**: 100% of open pull requests are resolved — retargeted to `stable` or closed with a reason — with none left pointing at a deleted branch.
 - **SC-003**: The surviving branch is protected at every point during the change; there is no interval with zero protected long-lived branches.
 - **SC-004**: Zero commits are lost — every commit reachable from `develop` before the change remains reachable from `stable` after it.
-- **SC-005**: A repository-wide search for `develop` returns no hit that refers to the branch model.
+- **SC-005**: A repository-wide search for `develop` returns no hit that refers to this repository's branch model, excluding the two classes FR-012 places out of scope.
 - **SC-006**: The first dependency PR raised after the change targets `stable` without manual intervention.
 
 ## Governance Gates Crossed
 
+This specification changes no workflow, branch, pull request or repository setting — it only proposes the collapse. Everything below is the gate the **implementation** will cross and must have approved before that work lands. Nothing here is done yet.
+
 Per this repository's `AGENTS.md` **Ask First** list:
 
-- [x] **Modifying CI workflows in `.github/workflows/`** — the develop PR trigger is removed and target-branch lists change.
-- [ ] Adding new dependencies — none.
-- [ ] Changing ruff configuration — not touched.
-- [ ] Modifying `plugins/module_utils/infrahub_utils.py` — not touched.
-- [ ] Changing `INFRAHUB_ARG_SPEC` — not touched.
+- **Will cross — Modifying CI workflows in `.github/workflows/`**: the implementation removes `trigger-pr-develop.yml`, adds the documentation and changelog checks to the `stable` PR path, and drops `develop` from the target-branch choices in `update-infrahub.yml` and `update-infrahub-sdk.yml`. As of this specification none of that has happened — `trigger-pr-develop.yml` still triggers on pull requests to `develop`.
+- **Not crossed — Adding new dependencies**: none.
+- **Not crossed — Changing ruff configuration**: not touched.
+- **Not crossed — Modifying `plugins/module_utils/infrahub_utils.py`**: not touched.
+- **Not crossed — Changing `INFRAHUB_ARG_SPEC`**: not touched.
 
-Beyond that list, this feature **amends the constitution**, whose Governance section requires that amendments update the document and the corresponding `dev/knowledge/` and `dev/guidelines/` files in sync. That synchronisation is FR-010 and FR-011, and it is the highest-order gate here — higher than the CI change, because the constitution is binding on every future PR.
+Beyond that list, the implementation **amends the constitution**, whose Governance section requires that amendments update the document and the corresponding `dev/knowledge/` and `dev/guidelines/` files in sync. That synchronisation is FR-010 and FR-011, and it is the highest-order gate here — higher than the CI change, because the constitution is binding on every future PR.
 
 ## Assumptions
 
