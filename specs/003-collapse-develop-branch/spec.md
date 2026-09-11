@@ -42,23 +42,25 @@ Dependabot, the upstream-tracking workflows and CI triggers all operate against 
 
 **Why this priority**: Without it, automation keeps recreating branches and PRs against a branch that no longer exists. Necessary for the change to stick, but User Story 1 already delivers the contributor-facing value.
 
-**Independent Test**: Let dependabot run a cycle and confirm its PRs target `stable`; trigger the SDK-tracking workflow and confirm it offers only `stable`.
+**Independent Test**: Confirm no open dependabot PR still targets `develop`; let dependabot run a cycle and confirm the PRs it raises target `stable`; trigger the SDK-tracking workflow and confirm it offers only `stable`.
 
 **Acceptance Scenarios**:
 
-1. **Given** dependabot runs, **When** it opens a dependency PR, **Then** the PR targets `stable`.
-2. **Given** the upstream-tracking workflows run, **When** they select a target branch, **Then** `develop` is not offered.
-3. **Given** a PR is opened against `stable`, **When** CI runs, **Then** the full check set runs — linter, sanity, unit tests, plus documentation checks.
+1. **Given** dependabot PRs opened against `develop` before the change, **When** the collapse is complete, **Then** every one of them is closed — their branch names embed the target (`dependabot/pip/develop/...`), so none can be retargeted by rename — and none is left pointing at a deleted branch.
+2. **Given** those PRs are closed, **When** dependabot next runs, **Then** it recreates the still-relevant updates as new PRs on `dependabot/pip/stable/...` branches.
+3. **Given** dependabot runs, **When** it opens a dependency PR, **Then** the PR targets `stable`.
+4. **Given** the upstream-tracking workflows run, **When** they select a target branch, **Then** `develop` is not offered.
+5. **Given** a PR is opened against `stable`, **When** CI runs, **Then** the full check set runs — linter, sanity, unit tests, plus documentation checks.
 
 ---
 
 ### User Story 3 - Documentation describes the branch model that exists (Priority: P3)
 
-The constitution, git-workflow guideline, release guide and AGENTS.md describe a single-branch model, so contributors and coding agents are not instructed to target a branch that is gone.
+The constitution, the guidelines and guides under `dev/`, the two READMEs, AGENTS.md and the pull request template must describe a single-branch model, so that contributors and coding agents are not instructed to target a branch that is gone. Today every one of them still carries the two-branch model — the constitution and the PR template mandate it outright.
 
 **Why this priority**: Stale governance docs are actively misleading — the constitution is binding and currently mandates PRs target `develop`. Lower priority only because the mechanical change works without it; it must not be skipped.
 
-**Independent Test**: Grep the repository for `develop` and confirm every remaining hit is unrelated to the branch model.
+**Independent Test**: Grep the repository for `develop` and confirm every remaining hit is either unrelated to the branch model or one of the two classes FR-012 puts out of scope.
 
 **Acceptance Scenarios**:
 
@@ -87,7 +89,7 @@ The constitution, git-workflow guideline, release guide and AGENTS.md describe a
 - **FR-004**: Branch protection rules on `develop` MUST be transferred to `stable` before `develop` is deleted, leaving no window in which the surviving branch is unprotected.
 - **FR-005**: `develop` MUST be deleted only after FR-001 through FR-004 are complete and after confirming it holds no commits absent from `stable`.
 - **FR-006**: CI MUST run the full check set — linter, sanity, unit tests, and documentation checks — on every pull request to `stable`.
-- **FR-007**: The `develop`-specific PR trigger workflow MUST be removed and its checks preserved on the `stable` path.
+- **FR-007**: The `develop`-specific PR trigger workflow MUST be removed and its checks preserved on the `stable` path. `trigger-pr-develop.yml` also carries a `push` trigger on `renovate/**` branches that `trigger-pr-stable.yml` does not; that trigger MUST be rehomed rather than lost with the file.
 - **FR-008**: Dependabot MUST target `stable`. Its existing `develop`-targeted PRs cannot be retargeted in place — the branch name embeds the target (`dependabot/pip/develop/...`) — so they MUST be closed under FR-002 and left for dependabot to recreate against `stable`.
 - **FR-009**: The upstream-tracking workflows MUST NOT offer `develop` as a target branch.
 - **FR-010**: The constitution MUST be amended to describe a single-branch model, with a version bump and sync-impact record per its own governance rule. Redefining the branch model is a breaking change to a documented workflow rule, so the bump is MAJOR.
@@ -142,7 +144,7 @@ Beyond that list, the implementation **amends the constitution**, whose Governan
 - No release is in flight while the collapse runs.
 - `develop` holds no unique commits — verified as `3 0` against `stable` at specification time, and to be re-verified immediately before deletion.
 - Contributors can be notified to prune local tracking branches; no automated cleanup of clones is attempted.
-- The checks currently running on PRs to `stable` are a superset of those on PRs to `develop`, so consolidating onto `stable` loses no coverage.
+- The checks currently running on PRs to `stable` equal those on PRs to `develop` — `trigger-pr-stable.yml` and `trigger-pr-develop.yml` each call the same two reusable workflows, `workflow-linter.yml` and `workflow-ansible-linter-and-tests.yml`. Neither path runs the documentation and changelog checks: `workflow-changelog-and-docs.yml` is invoked only from `trigger-push-stable.yml`, after a merge. Consolidating onto `stable` therefore loses no coverage, and FR-006 is what adds the full check set to the stable pull-request path.
 - Single-branch delivery is the OpsMill default; the sibling repos already run this way, so this removes a divergence rather than inventing a model.
 
 ## Out of Scope
