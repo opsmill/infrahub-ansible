@@ -15,9 +15,12 @@ prepare a release.
 
 ## Step 2: dispatch the release preparation
 
-Run **Actions → Push on stable → Run workflow**, with `stable` selected as the
-branch. `develop` is this repository's default branch, so the branch selector
-offers it first and `prepare_release` refuses to run if it is left there.
+Run **Actions → Push on stable → Run workflow**, and select `stable` as the
+branch. The selector offers the repository's default branch first, which is
+not necessarily `stable` — while `develop` is still the default, leaving the
+selector alone would bump the wrong branch, so `prepare_release` refuses to
+run anywhere but `stable`. Collapsing `develop` into a single `stable` branch
+is specified in `specs/003-collapse-develop-branch/spec.md`.
 
 Leave **version** empty to have `version-drafter-action` compute the next
 version from the merged pull-request labels — that is the usual case. Fill it

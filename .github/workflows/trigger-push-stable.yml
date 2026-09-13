@@ -37,8 +37,6 @@ jobs:
       # and the Actions UI offers this repository's default branch first.
       # Under the old `push` trigger the branch was implied; now it has to
       # be checked, before anything is checked out or bumped.
-      # Here that default is `develop`, which is not where releases are
-      # cut — leaving the selector alone would bump the wrong branch.
       - name: Check the branch
         env:
           RELEASE_BRANCH: stable
