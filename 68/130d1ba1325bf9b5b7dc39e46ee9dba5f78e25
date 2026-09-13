@@ -1,0 +1,26 @@
+AGENTS.md
+  s_e814976895190a::t_89eb8e357a00a7 65
+.github/workflows/trigger-push-stable.yml
+  s_e814976895190a::t_b21afccad802fd 37-41
+  s_e814976895190a::t_65cb18ba79d711 6-18,31-32,34,36,42,44,47-52,70-75,78,83-128,130-131,134,142,179,191-192,236
+dev/guidelines/git-workflow.md
+  s_e814976895190a::t_a7445363102f9c 22
+dev/guides/releasing-the-collection.md
+  s_e814976895190a::t_3258abf563d4d6 4-33,36,41-44,47-50,70,106-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "68130d1ba1325bf9b5b7dc39e46ee9dba5f78e25",
+  "prompts": {},
+  "sessions": {
+    "s_e814976895190a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f38e30c4-8c78-42ea-9268-f3396fdc0b01",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
