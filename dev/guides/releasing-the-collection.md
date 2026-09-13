@@ -1,41 +1,53 @@
 # Releasing the Collection
 
 How a release of `opsmill.infrahub` is cut, built, and published to Ansible
-Galaxy. The release is **automated off the `stable` branch** — there is no
-manual version bump and no manual publish command. This guide documents what
-happens and the one manual lever you pull. For the branch model and commit
-conventions, see [../guidelines/git-workflow.md](../guidelines/git-workflow.md).
+Galaxy. There is no manual version bump and no manual publish command, but
+starting a release is deliberate: you merge to `stable` and then dispatch the
+preparation. This guide documents what happens and the levers you pull. For the
+branch model and commit conventions, see
+[../guidelines/git-workflow.md](../guidelines/git-workflow.md).
 
-## The one manual step: merge develop into stable
+## Step 1: merge develop into stable
 
-Active development lands on `develop`. A release is started by merging `develop`
-into `stable` (a PR from `develop` to `stable`). Everything after the push to
-`stable` is automated.
+Active development lands on `develop`. A release starts by merging `develop`
+into `stable` (a PR from `develop` to `stable`). Merging does not by itself
+prepare a release.
 
-## What runs automatically on push to stable
+## Step 2: dispatch the release preparation
 
-`.github/workflows/trigger-push-stable.yml` fires on every push to `stable`
-(ignoring docs-only changes) and runs three stages:
+Run **Actions → Push on stable → Run workflow**, with `stable` selected as the
+branch. `develop` is this repository's default branch, so the branch selector
+offers it first and `prepare_release` refuses to run if it is left there.
 
-1. **Skip guard** — if the last commit is a `chore(release):` commit (the merge
-   of a release pull request), the run stops, so preparing a release cannot
-   trigger preparing another.
-2. **`prepare_release`** — computes the next version with
-   `version-drafter-action` (from the merged PR labels), then applies it:
-   `uv version <next>` updates `pyproject.toml`, a `sed` rewrites the
-   `version:` line in `galaxy.yml`, and `uv lock` refreshes the lock file. It
-   then assembles `CHANGELOG.md` with `uv run towncrier build`, which consumes
-   the news fragments in `changelog/`, and opens a
+Leave **version** empty to have `version-drafter-action` compute the next
+version from the merged pull-request labels — that is the usual case. Fill it
+in to state the version yourself, the way infrahub and infrahub-sdk-python do
+for every release.
+
+`.github/workflows/trigger-push-stable.yml` then runs two stages:
+
+1. **`prepare_release`** — applies the resolved version: `uv version <next>`
+   updates `pyproject.toml`, a `sed` rewrites the `version:` line in
+   `galaxy.yml`, and `uv lock` refreshes the lock file. It then assembles
+   `CHANGELOG.md` with `uv run towncrier build`, which consumes the news
+   fragments in `changelog/`, and opens a
    **`chore(release): <version>` pull request** carrying all of it. Nothing is
    pushed to `stable` directly.
-3. **Docs** — `workflow-changelog-and-docs.yml` regenerates the plugin
+2. **Docs** — `workflow-changelog-and-docs.yml` regenerates the plugin
    reference with `uv run invoke generate-doc`, builds the site with
    `uv run invoke docusaurus`, and commits the result to `stable` as
    `chore: update docs`.
 
+This used to fire on every push to `stable` instead. That re-opened or
+force-updated the release pull request under whoever was reviewing it, so
+deciding to release is now a separate act from merging.
+
 If there are no news fragments, `prepare_release` **fails** rather than cut a
 version with an empty changelog. Add a fragment — `housekeeping` is fine — and
-re-run.
+dispatch again. It also fails when the resolved version is already the one in
+`galaxy.yml`: under the old push trigger that was a silent skip, but a dispatch
+is someone asking for a release, so having nothing to cut is reported rather
+than passed over.
 
 ## Merging the release pull request
 
@@ -55,7 +67,7 @@ fragments; it is never hand-edited.
 
 ## Publishing to Ansible Galaxy
 
-Publishing is triggered by the **published GitHub Release**, not by the push to
+Publishing is triggered by the **published GitHub Release**, not by the merge to
 `stable`. `.github/workflows/trigger-release.yml` listens for
 `release: published` and calls `workflow-publish.yml`, which:
 
@@ -91,8 +103,10 @@ does not publish anything.
    `uv run towncrier build --draft --version <next>` previews exactly what the
    release will say.
 4. Merge `develop` into `stable`.
-5. Watch `trigger-push-stable.yml`: a `chore(release): <version>` pull request
-   should appear, along with the docs commit.
+5. Dispatch `trigger-push-stable.yml` from Actions with `stable` selected as the
+   branch, leaving **version** empty unless you mean to state it. A
+   `chore(release): <version>` pull request should appear, along with the docs
+   commit.
 6. Review the assembled changelog in that pull request and merge it. The tag
    and the GitHub Release are created automatically.
 7. Confirm the new version appears on Ansible Galaxy — publishing the Release

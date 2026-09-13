@@ -3,11 +3,19 @@
 name: "Push on stable"
 
 on:
-  push:
-    branches:
-      - stable
-    paths-ignore:
-      - "docs/**"
+  # Preparing a release is a decision, not a consequence of merging. This ran
+  # on every push to `stable` before, so any merge re-opened or force-updated
+  # the release pull request under whoever was reviewing it — the same churn
+  # the draft release had, moved into a pull request. A human dispatches it
+  # when `stable` is ready to ship.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: >-
+          Version to release, e.g. 1.9.0. Leave empty to calculate it from the
+          labels on the pull requests merged since the last release.
+        required: false
+        type: string
 
 # Release preparation queries, closes and creates release pull requests as one
 # unsynchronised read-modify-write. Two overlapping runs let the older one
@@ -20,57 +28,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check_commit:
-    runs-on: ubuntu-latest
-    outputs:
-      skip: ${{ steps.filter.outputs.skip }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2 # Fetches the commit history for the last 2 commits
-      - id: filter
-        env:
-          GH_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
-        run: |
-          set -euo pipefail
-          commit_author=$(git log -1 --pretty=format:'%an')
-          commit_message=$(git log -1 --pretty=format:'%s')
-
-          # Skip the bot's own commits so preparing a release cannot trigger
-          # preparing another. The merge of a release pull request only says
-          # `chore(release):` when that pull request was squashed or rebased —
-          # a merge commit says `Merge pull request #...` and matches nothing
-          # below. Ask the API which pull requests this commit belongs to
-          # instead, which holds for all three merge strategies.
-          RELEASE_PR=$(
-            gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
-              --jq '[.[]
-                     | select(.merged_at != null)
-                     | select(.head.ref | startswith("release/"))
-                     | .number] | first // empty'
-          )
-
-          # The subject checks stay as a cheap fallback: they cost nothing and
-          # still recognise in-flight commits from the previous scheme.
-          if [ -n "${RELEASE_PR}" ]; then
-            echo "Release PR #${RELEASE_PR} merged here — not preparing another."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$commit_message" == chore\(release\):* ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$commit_author" == "opsmill-bot" && \
-                  "$commit_message" == "chore: update pyproject.toml & galaxy.yml" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
   prepare_release:
-    needs: check_commit
-    if: needs.check_commit.outputs.skip == 'false'
     runs-on: ubuntu-22.04
     outputs:
-      next_version: ${{ steps.version.outputs.next-version }}
+      next_version: ${{ steps.resolved.outputs.version }}
     steps:
+      # `workflow_dispatch` runs against whichever ref the dispatcher picks,
+      # and the Actions UI offers this repository's default branch first.
+      # Under the old `push` trigger the branch was implied; now it has to
+      # be checked, before anything is checked out or bumped.
+      # Here that default is `develop`, which is not where releases are
+      # cut — leaving the selector alone would bump the wrong branch.
+      - name: Check the branch
+        env:
+          RELEASE_BRANCH: stable
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" != "${RELEASE_BRANCH}" ]; then
+            MSG="Releases are prepared from '${RELEASE_BRANCH}', not"
+            MSG="${MSG} '${GITHUB_REF_NAME}'. Re-run this workflow with"
+            MSG="${MSG} '${RELEASE_BRANCH}' selected as the branch."
+            echo "::error::${MSG}"
+            exit 1
+          fi
+
       - name: "Set up Python"
         uses: "actions/setup-python@v7"
         with:
@@ -86,23 +67,71 @@ jobs:
           token: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
           fetch-depth: 0
 
-      - name: Get Previous tag
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@master"
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
+      # One version string, from one of two sources. Empty input means the
+      # labels on the merged pull requests decide it, which is the default and
+      # the usual case; a value means whoever dispatched the run decided it,
+      # the way infrahub and infrahub-sdk-python decide every release. Both
+      # converge on `resolved`, so everything downstream is identical either
+      # way.
       - name: Calculate next version
         id: version
+        if: inputs.version == ''
         uses: patrickjahns/version-drafter-action@v1.3.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update pyproject.toml and galaxy.yml versions
+      - name: Resolve the version
+        id: resolved
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          DRAFTED_VERSION: ${{ steps.version.outputs.next-version }}
         run: |
-          VERSION=${{ steps.version.outputs.next-version }}
+          set -euo pipefail
+
+          # Read through the environment rather than interpolated into the
+          # script body: the input is free text typed into the Actions UI.
+          VERSION="${INPUT_VERSION:-${DRAFTED_VERSION}}"
+          VERSION="${VERSION#v}"
+
+          if ! printf '%s' "${VERSION}" \
+              | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$'; then
+            MSG="'${VERSION}' is not a usable version string — refusing to"
+            MSG="${MSG} prepare a release from it."
+            echo "::error::${MSG}"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse a version that is already released
+        env:
+          VERSION: ${{ steps.resolved.outputs.version }}
+        run: |
+          set -euo pipefail
+          CURRENT=$(sed -n 's/^version:[[:space:]]*//p' galaxy.yml | head -1)
+          echo "Current: ${CURRENT}"
+          echo "Next:    ${VERSION}"
+
+          # This workflow used to prepare a release on every non-bot push to
+          # `stable`, whether or not the version moved. A dispatch is someone
+          # asking for a release, so having nothing to cut is a mistake worth
+          # reporting rather than a run that opens a pull request changing
+          # nothing.
+          if [ "${CURRENT}" = "${VERSION}" ]; then
+            MSG="${VERSION} is already the current version — there is nothing"
+            MSG="${MSG} new to release. Merge the pull requests you want in"
+            MSG="${MSG} this release first, or dispatch again with an"
+            MSG="${MSG} explicit version."
+            echo "::error::${MSG}"
+            exit 1
+          fi
+          echo "Version bump: ${CURRENT} -> ${VERSION}"
+
+      - name: Update pyproject.toml and galaxy.yml versions
+        env:
+          VERSION: ${{ steps.resolved.outputs.version }}
+        run: |
           echo "Updating to version $VERSION"
-          uv version $VERSION
+          uv version "$VERSION"
           sed -i "s/^version:.*/version: $VERSION/" galaxy.yml
 
       - name: Update lock file
@@ -110,7 +139,7 @@ jobs:
 
       - name: Assemble the changelog
         env:
-          VERSION: ${{ steps.version.outputs.next-version }}
+          VERSION: ${{ steps.resolved.outputs.version }}
         run: |
           set -euo pipefail
 
@@ -147,7 +176,7 @@ jobs:
       - name: Open the release pull request
         env:
           GH_TOKEN: ${{ secrets.GH_INFRAHUB_BOT_TOKEN }}
-          VERSION: ${{ steps.version.outputs.next-version }}
+          VERSION: ${{ steps.resolved.outputs.version }}
         run: |
           set -euo pipefail
           export BRANCH="release/${VERSION}"
@@ -159,8 +188,8 @@ jobs:
           git add pyproject.toml galaxy.yml uv.lock CHANGELOG.md changelog/
           git commit -m "chore(release): ${VERSION}"
 
-          # Re-running on a later push to stable refreshes the same branch
-          # rather than opening a second PR for the same version. Plain
+          # Dispatching again for the same version refreshes the same
+          # branch rather than opening a second PR for it. Plain
           # --force rather than --force-with-lease: checkout does not fetch
           # this branch's remote ref, so a lease has nothing to compare
           # against. The branch is bot-owned and regenerated every run.
@@ -204,7 +233,7 @@ jobs:
             --title "chore(release): ${VERSION}" \
             --label "ci/skip-changelog" \
             --body "$(cat <<EOF
-          Prepared automatically. Merging this pull request authorises the release:
+          Prepared on request. Merging this pull request authorises the release:
           \`release-publish.yml\` then tags \`${VERSION}\` and publishes the GitHub
           Release using the assembled changelog as its body. Publishing the Release
           is what triggers the Galaxy upload.

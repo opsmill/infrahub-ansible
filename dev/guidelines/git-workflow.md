@@ -19,7 +19,7 @@
 |---------|----------|-----------|
 | PR to `develop` | `trigger-pr-develop.yml` | Linter + Ansible tests |
 | PR to `stable` | `trigger-pr-stable.yml` | Linter + Ansible tests + changelog/docs |
-| Push to `stable` | `trigger-push-stable.yml` | Version bump + changelog → opens the release PR |
+| Dispatched on `stable` | `trigger-push-stable.yml` | Version bump + changelog → opens the release PR |
 | Push to docs on `stable` | `trigger-push-docs-stable.yml` | Docs sync |
 | Merge of the release PR | `release-publish.yml` | Tag + publish the GitHub Release |
 | Release | `trigger-release.yml` | Galaxy publish |
