@@ -1,0 +1,1 @@
+The `develop` branch has been collapsed into `stable`, which is now the default branch. The changelog gate also now requires a newly added news fragment; editing an existing fragment no longer satisfies it.
