@@ -3,9 +3,6 @@
 name: "Pull Request on stable"
 
 on:
-  push:
-    branches:
-      - "renovate/**"
   pull_request:
     branches:
       - stable
