@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         branch-name:
-          - develop
+          - stable
 
     runs-on: ubuntu-22.04
     concurrency:
