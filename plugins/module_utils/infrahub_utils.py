@@ -8,7 +8,7 @@ import traceback
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 from ansible.module_utils.basic import env_fallback
 from ansible_collections.opsmill.infrahub.plugins.module_utils.exception import handle_infrahub_exceptions_decorator
@@ -1855,7 +1855,7 @@ if HAS_INFRAHUBCLIENT:
             # TODO: cleanup and normalized data ?
             self.data = module.params
 
-        def _handle_errors(self, msg: Any) -> None:
+        def _handle_errors(self, msg: Any) -> NoReturn:  # type: ignore[misc]
             """
             Returns message and changed = False
 

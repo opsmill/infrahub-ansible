@@ -61,7 +61,9 @@ def lint_ruff(context: Context) -> None:
 def lint_mypy(context: Context) -> None:
     """This will run mypy, the same check as CI's python-lint job."""
     print(f" - [{NAMESPACE}] Check types with mypy")
-    exec_cmd = f"mypy {MAIN_DIRECTORY}"
+    # `uv run`, not a bare `mypy`: a mypy from PATH resolves a different environment,
+    # cannot import infrahub_sdk, and reports every SDK-driven ignore as unused.
+    exec_cmd = f"uv run mypy {MAIN_DIRECTORY}"
     with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 
