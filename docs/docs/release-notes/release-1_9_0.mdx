@@ -1,0 +1,111 @@
+---
+title: Release 1.9.0
+description: Dynamic inventory narrows its host queries, fetches referenced peers in batches, and resolves peers reached through a generic relationship, with new run-cost reporting and warnings for constructed expressions that fail under strict mode off.
+---
+
+<table>
+  <tbody>
+    <tr>
+      <th>Release Number</th>
+      <td>1.9.0</td>
+    </tr>
+    <tr>
+      <th>Release Type</th>
+      <td>Feature</td>
+    </tr>
+    <tr>
+      <th>Release Date</th>
+      <td>September 1st, 2026</td>
+    </tr>
+    <tr>
+      <th>Tag</th>
+      <td>[1.9.0](https://github.com/opsmill/infrahub-ansible/releases/tag/1.9.0)</td>
+    </tr>
+  </tbody>
+</table>
+
+## Release summary
+
+Building an Ansible inventory from a large Infrahub instance takes considerably fewer requests in this release. The inventory plugin narrows each host query to the fields your inventory file asks for, fetches the related nodes those fields reference by ID in batches, and resolves peers reached through a generic relationship — a path that previously returned empty nested attributes. Two diagnostics arrive with that work: a run reports what it cost when you raise verbosity, and a constructed expression that fails under `strict: false` names the hosts it affected rather than dropping them from a group with no output.
+
+### Build an inventory from a large Infrahub instance
+
+The inventory plugin derives each host query from the `include` list in your inventory file instead of requesting every field of every kind. Related nodes are fetched by ID in batched requests, and only when an entry in `include` refers to them.
+
+What changed:
+
+- Narrow each host query to the attributes and relationships named in `include`. Dotted paths and hierarchy pseudo-fields are opt-in, and roots whose entries conflict are dropped from the projection so the query stays correct.
+- Fetch referenced peers by ID through a single batched refill rather than loading whole peer kinds. A refill that returns fewer nodes than were requested emits a warning instead of leaving the gap unreported.
+- Read attributes of peers reached through a generic relationship. Where a generic answers a query, the concrete kinds it returns are registered, so nested attributes resolve rather than coming back empty.
+- Reuse a cache entry only for the run that wrote it. The cache key now covers the endpoint, branch, node specification, schema version, token digest, and `prefetch_relationships` setting.
+
+### Find out what an inventory run cost
+
+A run reports how much work it did against Infrahub when you raise the verbosity of the command. The report is silent at the default level, and a run served entirely from cache never produces one.
+
+What changed:
+
+- Run `ansible-inventory` with `-v` to read the number of requests made to Infrahub, the number of related nodes loaded, and the number of batches used.
+- Raise verbosity to `-vvv` for those totals broken down by kind: the fields requested for each host kind and the count excluded, and for each peer kind the number of IDs referenced, the batches spent, and the nodes loaded. A failed peer batch is named, so a kind reporting zero loaded nodes states why.
+
+### See which hosts a constructed expression failed for
+
+Under `strict: false`, a `compose`, `groups`, or `keyed_groups` expression that failed to resolve was skipped with no output at all. The run looked healthy while group membership was incomplete, and a playbook targeting those groups ran against part of the fleet. Those failures are now reported, and the run still continues.
+
+What changed:
+
+- Read one warning per distinct failure, carrying the first affected host and its error, up to five further affected hosts by name, and the total number of hosts affected. Identical failures are aggregated rather than repeated per host.
+- Declare an expected empty result with `default_value` on a `keyed_groups` entry. Keys that resolve to an empty value now warn, aggregated the same way.
+- Keep `strict: true` behavior as it was. Only resolution failures are downgraded to warnings; an entry with an invalid configuration, rather than one that fails to resolve, still fails the run in both modes.
+
+## Bug fixes
+
+- A failing `lookup` or `query_graphql` call reports the cause instead of the query. Every GraphQL failure was previously reported as a bad query, echoing the query text back, so the HTTP status, the GraphQL error list, or the timeout never reached the playbook author. Where the call raises, the original error's type and message are included and chained as its cause. Where it returns nothing, the failure is reported as an empty response, pointing at the line logged above it and at `-vvv` for the reason.
+- An inventory run in which every requested kind fails raises an error rather than returning an empty inventory. A single unknown kind is still skipped with a warning.
+- The `include` and `exclude` lists passed to the SDK are kept disjoint, and an explicit `exclude` entry takes precedence over an `include` entry naming the same field.
+- Each host resolves with the specification that fetched it, so results from several node specifications no longer overwrite one another.
+
+## Minor changes
+
+**Documentation**
+
+- The node and query-and-lookup guides document playbook configuration, and the added example is a play that runs against a query the guide defines ([#278](https://github.com/opsmill/infrahub-ansible/pull/278)).
+- Nine plugin option descriptions that had drifted from the code were corrected, and the regenerated reference pages now match the plugin documentation strings.
+
+**Dependencies**
+
+- `cryptography` moved to 50.0.0 ([#370](https://github.com/opsmill/infrahub-ansible/pull/370)) and `h2` to 4.4.1 ([#371](https://github.com/opsmill/infrahub-ansible/pull/371)).
+- `ruff` moved to 0.16.4 across several updates ([#365](https://github.com/opsmill/infrahub-ansible/pull/365), [#368](https://github.com/opsmill/infrahub-ansible/pull/368), [#369](https://github.com/opsmill/infrahub-ansible/pull/369), [#372](https://github.com/opsmill/infrahub-ansible/pull/372), [#383](https://github.com/opsmill/infrahub-ansible/pull/383)).
+- Grouped dependency updates were applied ([#364](https://github.com/opsmill/infrahub-ansible/pull/364), [#367](https://github.com/opsmill/infrahub-ansible/pull/367)).
+
+## Upgrade notes
+
+- The collection requires `ansible-core` 2.19.0 or later. `requires_ansible` was `>=2.18.0` in 1.8.3, so upgrade `ansible-core` before installing this release.
+- The inventory cache is not read back across this upgrade. The cache key covers more of a run's inputs, and the cached host-variable format carries a version that this release raises, so the first run after upgrading fetches from Infrahub and repopulates the cache.
+- The default inventory `timeout` is 60 seconds, raised from 10 to match the SDK. Inventory files that set `timeout` explicitly are unaffected.
+- Inventory files that use `strict: false` emit warnings that earlier releases did not. Each warning marks group membership that was already incomplete. Where an empty result is expected, set `default_value` on the `keyed_groups` entry.
+
+## Full changelog
+
+### Added
+
+- Report the cost of an inventory run at raised verbosity, with per-kind detail at `-vvv` ([#381](https://github.com/opsmill/infrahub-ansible/pull/381)).
+- Warn when a constructed expression fails to resolve under `strict: false`, aggregated per expression ([#387](https://github.com/opsmill/infrahub-ansible/pull/387)).
+- Document playbook configuration in the node and query-and-lookup guides ([#278](https://github.com/opsmill/infrahub-ansible/pull/278)).
+
+### Changed
+
+- Project host queries from the `include` list and fetch referenced peers by ID in batches ([#374](https://github.com/opsmill/infrahub-ansible/pull/374)).
+- Extend the inventory cache key to the endpoint, branch, node specification, schema version, token digest, and `prefetch_relationships` setting ([#374](https://github.com/opsmill/infrahub-ansible/pull/374)).
+- Raise the default inventory `timeout` from 10 to 60 seconds to match the SDK ([#374](https://github.com/opsmill/infrahub-ansible/pull/374)).
+- Declare `ansible-core >= 2.19.0` in `meta/runtime.yml` and `pyproject.toml`.
+- Update `cryptography` ([#370](https://github.com/opsmill/infrahub-ansible/pull/370)), `h2` ([#371](https://github.com/opsmill/infrahub-ansible/pull/371)), `ansible-core` ([#366](https://github.com/opsmill/infrahub-ansible/pull/366)), `ruff` ([#365](https://github.com/opsmill/infrahub-ansible/pull/365), [#368](https://github.com/opsmill/infrahub-ansible/pull/368), [#369](https://github.com/opsmill/infrahub-ansible/pull/369), [#372](https://github.com/opsmill/infrahub-ansible/pull/372), [#383](https://github.com/opsmill/infrahub-ansible/pull/383)), and grouped dependencies ([#364](https://github.com/opsmill/infrahub-ansible/pull/364), [#367](https://github.com/opsmill/infrahub-ansible/pull/367)).
+
+### Fixed
+
+- Resolve attributes of peers reached through a generic relationship, which previously came back empty ([#374](https://github.com/opsmill/infrahub-ansible/pull/374)).
+- Raise an error when every requested kind fails, rather than returning an empty inventory ([#374](https://github.com/opsmill/infrahub-ansible/pull/374)).
+- Keep the SDK `include` and `exclude` lists disjoint, and let an explicit `exclude` win for the same field ([#374](https://github.com/opsmill/infrahub-ansible/pull/374)).
+- Resolve each host with the node specification that fetched it ([#374](https://github.com/opsmill/infrahub-ansible/pull/374)).
+- Report the underlying cause when a GraphQL query fails in the `lookup` and `query_graphql` plugins ([#392](https://github.com/opsmill/infrahub-ansible/pull/392)).
+- Cover nested traversal through generic peers with integration tests ([#389](https://github.com/opsmill/infrahub-ansible/pull/389)).

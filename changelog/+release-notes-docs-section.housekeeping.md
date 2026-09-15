@@ -1,0 +1,1 @@
+The documentation site now carries a Release Notes section, starting with a page for 1.9.0. It sits alongside the equivalent sections in `infrahub-mcp`, `infrahub-skills` and `infrahub-sync`, using the same `release-<major>_<minor>_<patch>.mdx` page naming.

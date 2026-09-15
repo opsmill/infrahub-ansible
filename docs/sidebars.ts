@@ -27,6 +27,19 @@ const sidebars: SidebarsConfig = {
         // 'references/roles',
       ],
     },
+    {
+      type: 'category',
+      label: 'Release Notes',
+      collapsible: true,
+      collapsed: true,
+      link: {
+        type: 'generated-index',
+        slug: 'release-notes',
+      },
+      items: [
+        'release-notes/release-1_9_0',
+      ],
+    },
   ]
 };
 
