@@ -41,14 +41,14 @@ All tests run in Docker. Run checks as you go, not just at the end:
 **Version gap:** `invoke tests-sanity` uses the ansible-core version pinned in `uv.lock`. CI runs a matrix over ansible-core 2.19–milestone. For a faster (~90 s) pylint check that matches CI rules without Docker, run directly:
 
 ```bash
-uv run ansible-test sanity --test pylint --requirements --python 3.11
+uv run ansible-test sanity --test pylint --requirements --python 3.12
 ```
 
-This works because the repo already lives inside an `ansible_collections/opsmill/infrahub` tree. Use it as a quick gate before committing; `invoke tests-sanity` remains the full Docker gate.
+This works only from a checkout rooted at `ansible_collections/opsmill/infrahub` (maintainer setup via `conftest.py` symlink — a fresh `git clone` gives `infrahub-ansible/` and the command will fail). Use it as a quick gate before committing; `invoke tests-sanity` remains the full Docker gate.
 
 | When you change… | Run |
 |------------------|-----|
-| any plugin file (`plugins/**/*.py`) | `invoke format` → `invoke lint` → `invoke tests-sanity` |
+| any plugin file (`plugins/**/*.py`) or test file (`tests/**/*.py`) | `invoke format` → `invoke lint` → `invoke tests-sanity` |
 | module logic or `module_utils` | also `invoke tests-unit` |
 | module docstrings (DOCUMENTATION / EXAMPLES / RETURN) | `invoke generate-doc` |
 | any Python file | also `uv run mypy .` -- `invoke lint` does **not** run it, CI does |
