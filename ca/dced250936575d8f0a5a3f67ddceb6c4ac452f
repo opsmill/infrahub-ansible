@@ -1,0 +1,25 @@
+docs/docs/release-notes/release-1_9_0.mdx
+  s_ea121b11c9a316::t_8329b16c4da75e 1-43,45-58,60-111
+  s_ea121b11c9a316::t_9dde030aa14c59 59
+  s_ea121b11c9a316::t_4416903423b0c3 44
+changelog/+release-notes-docs-section.housekeeping.md
+  s_ea121b11c9a316::t_27ed02228a3f41 1
+docs/sidebars.ts
+  s_ea121b11c9a316::t_f845b14a0a078d 30-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cadced250936575d8f0a5a3f67ddceb6c4ac452f",
+  "prompts": {},
+  "sessions": {
+    "s_ea121b11c9a316": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2cfba637-86b9-4244-b9f5-7845a4dd3ad6",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
