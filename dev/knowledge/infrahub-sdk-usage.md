@@ -329,5 +329,6 @@ self.wrapper.client  # the raw InfrahubClientSync
 self.wrapper.client.store  # the SDK's NodeStore
 ```
 
-`self.wrapper.client` is two layers deep by design. Verify with
+`self.wrapper.client` is two layers deep by design. A review bot flagged it as collapsible during the
+inventory performance work; applying the suggested "fix" broke tests. Verify with
 `processor.wrapper.client.store is wrapper.client.store` before changing anything in this area.
