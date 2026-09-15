@@ -11,6 +11,7 @@ def lint_all(context: Context) -> None:
     """This will run all linter."""
     lint_autoflake(context)
     lint_ruff(context)
+    lint_mypy(context)
     lint_yaml(context)
     lint_markdown(context)
 
@@ -52,6 +53,17 @@ def lint_ruff(context: Context) -> None:
     print(f" - [{NAMESPACE}] Check code with ruff")
     exec_cmd = f"ruff format --check --diff {MAIN_DIRECTORY} &&"
     exec_cmd += f"ruff check --diff {MAIN_DIRECTORY}"
+    with context.cd(ESCAPED_REPO_PATH):
+        context.run(exec_cmd)
+
+
+@task
+def lint_mypy(context: Context) -> None:
+    """This will run mypy, the same check as CI's python-lint job."""
+    print(f" - [{NAMESPACE}] Check types with mypy")
+    # `uv run`, not a bare `mypy`: a mypy from PATH resolves a different environment,
+    # cannot import infrahub_sdk, and reports every SDK-driven ignore as unused.
+    exec_cmd = f"uv run mypy {MAIN_DIRECTORY}"
     with context.cd(ESCAPED_REPO_PATH):
         context.run(exec_cmd)
 

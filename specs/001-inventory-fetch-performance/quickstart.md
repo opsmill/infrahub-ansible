@@ -5,14 +5,13 @@ How to reproduce the claims in the spec, and what to run before touching this co
 ## Verify correctness
 
 ```bash
-invoke format && invoke lint          # autoflake + ruff (check + format) + yamllint + rumdl
-uv run mypy .                         # NOT part of `invoke lint` -- run it explicitly
+invoke format && invoke lint          # autoflake + ruff (check + format) + mypy + yamllint + rumdl
 invoke tests-sanity                   # ansible-test sanity, Docker
 invoke tests-unit                     # 106 unit tests
 ```
 
-`invoke lint` does not run mypy, and a failing `ruff check` masks the steps after it. Both have bitten
-this feature; run mypy separately.
+`invoke lint` runs mypy as of #378; it used to not, and running it separately was a step this feature
+needed. A failing `ruff check` still masks the steps after it, so read the whole output.
 
 ## Verify the round-trip budgets
 
