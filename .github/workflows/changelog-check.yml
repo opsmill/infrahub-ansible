@@ -9,7 +9,7 @@ name: Changelog
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
-    branches: [develop, stable]
+    branches: [stable]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -62,7 +62,7 @@ jobs:
           # one. Note the REST field is `.filename`, not `.path`.
           ADDED=$(gh api --paginate \
             "repos/${GITHUB_REPOSITORY}/pulls/${PR}/files?per_page=100" \
-            --jq '.[] | select(.additions > 0) | .filename' \
+            --jq '.[] | select(.status == "added") | .filename' \
             | { grep -E "${FRAGMENT}" || true; } \
             | { grep -v '^changelog/towncrier\.md\.template$' || true; })
 
