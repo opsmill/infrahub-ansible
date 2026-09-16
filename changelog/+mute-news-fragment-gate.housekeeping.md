@@ -1,0 +1,1 @@
+The changelog gate no longer runs on pull requests. The `News fragment present` check is left in place but its `pull_request` trigger is commented out, so it only runs on manual dispatch while the towncrier rollout is reconsidered.
