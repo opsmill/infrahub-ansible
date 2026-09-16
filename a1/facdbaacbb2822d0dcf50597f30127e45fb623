@@ -1,0 +1,21 @@
+.github/workflows/changelog-check.yml
+  s_ce2da15a9c6d7f::t_ceb789879d4039 9-12,14-17
+changelog/+mute-news-fragment-gate.housekeeping.md
+  s_ce2da15a9c6d7f::t_0e4fe88c3e2513 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a1facdbaacbb2822d0dcf50597f30127e45fb623",
+  "prompts": {},
+  "sessions": {
+    "s_ce2da15a9c6d7f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8a917913-4cc0-4204-a78f-ee7eae8bd507",
+        "model": "unknown"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
