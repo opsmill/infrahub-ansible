@@ -48,9 +48,12 @@ jobs:
 
       # infrahub-testcontainers lives in this repo's `integration` dependency group
       # (kept separate from `dev` due to a cachetools transitive-pin conflict).
+      # --no-sync: only the lock is needed here, and syncing would enable the
+      # default `dev` group alongside `integration`, which uv refuses because the
+      # two are declared as conflicting.
       - name: Update testcontainers to workflow version ${{ env.INFRAHUB_VERSION }}
         run: |
-          uv add --group integration infrahub-testcontainers==${INFRAHUB_VERSION}
+          uv add --no-sync --group integration infrahub-testcontainers==${INFRAHUB_VERSION}
 
       - name: Prepare the branch for the update
         id: prepare-branch
