@@ -640,7 +640,7 @@ if HAS_INFRAHUBCLIENT:
             client: InfrahubclientWrapper,
             display: Display | None = None,
         ):
-            self.client = client
+            self.wrapper = client
             self.display = display
 
         def _handle_display(
@@ -755,7 +755,7 @@ if HAS_INFRAHUBCLIENT:
             refill: RefillLedger | None = None,
         ) -> list[Any]:
             """Resolve a many-cardinality relationship (RelationshipManagerSync)."""
-            store = self.client.client.store
+            store = self.wrapper.client.store
             peers: list[Any] = []
 
             # Fetch only when the relationship has not been loaded yet. Guarding on
@@ -811,7 +811,7 @@ if HAS_INFRAHUBCLIENT:
                 # a round-trip per host node to learn an id we hold.
                 return node_attr.id
 
-            store = self.client.client.store
+            store = self.wrapper.client.store
             related_node = store.get(key=node_attr.id, raise_when_missing=False)
             if not related_node:
                 node_attr.fetch()
@@ -1030,7 +1030,7 @@ if HAS_INFRAHUBCLIENT:
             # Snapshot rather than read the running total: the counter belongs to the
             # client, which outlives a single call. Reporting the absolute value would
             # attribute an earlier run's requests to this one.
-            requests_before = request_count(self.client)
+            requests_before = request_count(self.wrapper)
 
             fetched = self._fetch_host_nodes(nodes=nodes, prefetch_relationships=prefetch_relationships)
             if not fetched.nodes:
@@ -1047,12 +1047,12 @@ if HAS_INFRAHUBCLIENT:
                 return None
 
             warmer = PeerWarmer(
-                fetch=self.client.fetch_nodes,
-                store=self.client.client.store,
+                fetch=self.wrapper.fetch_nodes,
+                store=self.wrapper.client.store,
                 # One id short of a full page. The SDK's non-parallel pager only stops
                 # once `count - (offset + pagination_size)` goes negative, so a chunk of
                 # exactly `pagination_size` costs a second, empty round-trip.
-                page_size=max(1, self.client.client.pagination_size - 1),
+                page_size=max(1, self.wrapper.client.pagination_size - 1),
                 on_error=lambda kind, exc: self._handle_display(
                     exception=exc,
                     message=f"Failed to fetch peers for kind '{kind}'",
@@ -1172,7 +1172,7 @@ if HAS_INFRAHUBCLIENT:
                 warmer (PeerWarmer | None): carries the per-kind tallies. ``None`` when
                     the query matched no hosts, so nothing was warmed.
             """
-            requests_now = request_count(self.client)
+            requests_now = request_count(self.wrapper)
             unavailable = requests_before is None or requests_now is None
             cost = "unavailable" if unavailable else f"{requests_now - requests_before} request(s)"
             # "node(s)", not "related node(s)": the refill pass shares this warmer, so
@@ -1252,7 +1252,7 @@ if HAS_INFRAHUBCLIENT:
                 # Relying on the decorator alone is not enough: it is attached in
                 # __init__, so any caller that builds the wrapper another way gets the
                 # raw SchemaNotFoundError instead.
-                node_schema = self.client.fetch_single_schema(kind=node_kind, raise_when_missing=False)
+                node_schema = self.wrapper.fetch_single_schema(kind=node_kind, raise_when_missing=False)
                 if node_schema is None:
                     # An unknown kind -- a typo, or a kind that does not exist on this
                     # branch. Skip it the way a failed fetch is skipped: reading
@@ -1283,7 +1283,7 @@ if HAS_INFRAHUBCLIENT:
                     resolvable_attrs=self.get_attributes_for_schema(schema=fetched.schemas[node_kind], exclude=exclude),
                 )
                 try:
-                    nodes_from_kind = self.client.fetch_nodes(
+                    nodes_from_kind = self.wrapper.fetch_nodes(
                         kind=node_kind,
                         include=projection.include,
                         exclude=projection.exclude,
@@ -1528,7 +1528,7 @@ if HAS_INFRAHUBCLIENT:
                     replaces the node in the store rather than mutating the instance in
                     hand, so the second pass has to look it up again.
             """
-            store = self.client.client.store
+            store = self.wrapper.client.store
             resolved: dict[str, Any] = {}
 
             for host_node, attrs, ledger in self._resolution_passes(fetched=fetched, refill=refill):
@@ -1618,7 +1618,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 InfrahubNodeSync: the node created in Infrahub
             """
-            schema = self.client.fetch_single_schema(kind=kind, raise_when_missing=False)
+            schema = self.wrapper.fetch_single_schema(kind=kind, raise_when_missing=False)
             if not schema:
                 raise Exception(f"Non-existing kind '{kind}'")
 
@@ -1644,7 +1644,7 @@ if HAS_INFRAHUBCLIENT:
                 raise Exception(f"Validation failed: {', '.join(validation_errors)}")
 
             try:
-                node = self.client.create_node(kind=kind, data=data)
+                node = self.wrapper.create_node(kind=kind, data=data)
             except Exception as exc:
                 raise Exception(f"Failed to create node with {data} for kind '{kind}' due to {exc}")
 
@@ -1658,7 +1658,7 @@ if HAS_INFRAHUBCLIENT:
                 node (InfrahubNodeSync): the node to save in Infrahub
             """
             try:
-                self.client.save_node(node=node)
+                self.wrapper.save_node(node=node)
             except Exception as exc:
                 raise Exception(f"Failed to save node {node} {exc}")
 
@@ -1672,7 +1672,7 @@ if HAS_INFRAHUBCLIENT:
 
             """
             try:
-                self.client.delete_node(node=node)
+                self.wrapper.delete_node(node=node)
 
             except Exception as exc:
                 self._handle_display(
@@ -1699,7 +1699,9 @@ if HAS_INFRAHUBCLIENT:
                 BranchData | str: Details of the specified branch.
             """
             try:
-                branch_data = self.client.create_branch(name=name, description=description, sync_with_git=sync_with_git)
+                branch_data = self.wrapper.create_branch(
+                    name=name, description=description, sync_with_git=sync_with_git
+                )
             except Exception as exc:
                 raise Exception(f"Failed to create InfrahubBranch with '{name}' due to {exc}")
             if not branch_data:
@@ -1718,7 +1720,7 @@ if HAS_INFRAHUBCLIENT:
                 BranchData  |str: Details of the specified branch.
             """
             try:
-                success = self.client.delete_branch(name=name)
+                success = self.wrapper.delete_branch(name=name)
             except Exception as exc:
                 raise Exception(f"Failed to delete InfrahubBranch with '{name}' due to {exc}")
             if not success:
@@ -1748,7 +1750,7 @@ if HAS_INFRAHUBCLIENT:
                 return None
 
             if isinstance(query, dict):
-                query_str = self.client._render_query(query=query, variables=variables)
+                query_str = self.wrapper._render_query(query=query, variables=variables)
             elif isinstance(query, str):
                 query_str = query
             else:
@@ -1756,7 +1758,7 @@ if HAS_INFRAHUBCLIENT:
 
             results = {}
             try:
-                response = self.client.execute_graphql(query=query_str, variables=variables)
+                response = self.wrapper.execute_graphql(query=query_str, variables=variables)
             except Exception as exc:
                 # Defensive: the client wrapper's exception decorator only re-raises for
                 # a caller that built the wrapper without a Display. Both shipped plugins
@@ -1841,7 +1843,7 @@ if HAS_INFRAHUBCLIENT:
 
             try:
                 if client is None:
-                    self.client = InfrahubclientWrapper(
+                    self.wrapper = InfrahubclientWrapper(
                         api_endpoint=api_endpoint,
                         token=token,
                         branch=branch,
@@ -1849,7 +1851,7 @@ if HAS_INFRAHUBCLIENT:
                         validate_certs=validate_certs,
                     )
                 else:
-                    self.client = client
+                    self.wrapper = client
             except Exception as exc:
                 self._handle_errors(msg=str(exc))
 
@@ -1922,7 +1924,7 @@ if HAS_INFRAHUBCLIENT:
                 BranchData | None: The BranchData or None if not found.
             """
             try:
-                node = self.client.fetch_branch(name=name)
+                node = self.wrapper.fetch_branch(name=name)
             # TODO: Until https://github.com/opsmill/infrahub-sdk-python/issues/269
             except Exception as exc:
                 if exc.__class__ == BranchNotFoundError:
@@ -1956,7 +1958,7 @@ if HAS_INFRAHUBCLIENT:
 
             include = [key for key in data if key not in ("id", "hfid")] or None
             try:
-                node = self.client.fetch_single_node(
+                node = self.wrapper.fetch_single_node(
                     kind=kind, id=node_id, hfid=node_hfid, include=include, raise_when_missing=False
                 )
             except Exception as exc:
@@ -1974,7 +1976,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
             """
-            processor = InfrahubNodesProcessor(client=self.client)
+            processor = InfrahubNodesProcessor(client=self.wrapper)
             branch_name = data.get("name")
             branch_description = data.get("description") or ""
             sync_with_git = data.get("sync_with_git")
@@ -1999,7 +2001,7 @@ if HAS_INFRAHUBCLIENT:
                 dict: Ansible diff.
             """
             try:
-                processor = InfrahubNodesProcessor(client=self.client)
+                processor = InfrahubNodesProcessor(client=self.wrapper)
                 processor.delete_branch(name=name)
             except Exception as exc:
                 self._handle_errors(msg=str(exc))
@@ -2018,7 +2020,7 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 tuple(object, diff): tuple of the InfrahubNodeSync created in Infrahub and the Ansible diff.
             """
-            processor = InfrahubNodesProcessor(client=self.client)
+            processor = InfrahubNodesProcessor(client=self.wrapper)
             try:
                 node = processor.create_node(kind=kind, data=data)
                 if not self.check_mode:
@@ -2053,12 +2055,12 @@ if HAS_INFRAHUBCLIENT:
 
             def get_or_fetch_node(node_id: str) -> InfrahubNodeSync | None:
                 """Get node from store or fetch it (without prefetch to avoid recursion)."""
-                related_node = self.client.client.store.get(key=node_id, raise_when_missing=False)
+                related_node = self.wrapper.client.store.get(key=node_id, raise_when_missing=False)
                 if related_node:
                     return related_node
                 # Node not in store, fetch it directly
                 try:
-                    related_node = self.client.client.get(
+                    related_node = self.wrapper.client.get(
                         kind=rel_schema.peer,
                         id=node_id,
                         populate_store=True,
@@ -2243,7 +2245,7 @@ if HAS_INFRAHUBCLIENT:
             """
             if not self.check_mode:
                 try:
-                    processor = InfrahubNodesProcessor(client=self.client)
+                    processor = InfrahubNodesProcessor(client=self.wrapper)
                     processor.delete_node(self.infrahub_node)
                 except Exception as exc:
                     self._handle_errors(msg=str(exc))
