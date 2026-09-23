@@ -71,7 +71,7 @@ RUN ansible-test sanity $ANSIBLE_SANITY_ARGS \
     --requirements \
     --skip-test pep8 \
     --python ${PYTHON_VERSION} \
-    plugins/
+    plugins/ tests/
 ```
 
 ## Writing Unit Tests

@@ -91,7 +91,7 @@ mock = "^5.2.0"
 
 | Trigger | Command |
 |---------|---------|
-| Modified any file in `plugins/` | `invoke tests-sanity` |
+| Modified any file in `plugins/` or `tests/` | `invoke tests-sanity` |
 | Modified module logic or `module_utils/` | `invoke tests-unit` |
 | Modified interaction with Infrahub API | `invoke tests-integration` |
 | Before opening a PR | `invoke tests-all` |
