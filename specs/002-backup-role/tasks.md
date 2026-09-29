@@ -10,8 +10,8 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Create role skeleton directories `roles/backup/{defaults,vars,meta,handlers,tasks,templates}` and `tests/roles/backup/`
-- [ ] T002 [P] Create `roles/backup/meta/main.yml` with `galaxy_info` copied from `roles/install/meta/main.yml`, `description: Back up Infrahub`, `galaxy_tags: [infrahub, backup]`
+- [X] T001 Create role skeleton directories `roles/backup/{defaults,vars,meta,handlers,tasks,templates}` and `tests/roles/backup/`
+- [X] T002 [P] Create `roles/backup/meta/main.yml` with `galaxy_info` copied from `roles/install/meta/main.yml`, `description: Back up Infrahub`, `galaxy_tags: [infrahub, backup]`
 
 ## Phase 2: Foundational (blocks all stories)
 
