@@ -1,0 +1,180 @@
+---
+argument_specs:
+  main:
+    short_description: Back up Infrahub
+    description:
+      - The main entry point installs the infrahub-backup tool and schedules backups of an Infrahub instance.
+      - This role requires an Infrahub instance deployed with Docker Compose and a host managed by systemd.
+      - Supported platforms are Linux on x86_64 and aarch64.
+
+    options:
+      backup_infrahub_version:
+        description:
+          - Release tag of infrahub-backup to install.
+        type: str
+        default: v2.3.0
+      backup_infrahub_tool_url:
+        description:
+          - URL of the infrahub-backup binary.
+          - Defaults to the C(infrahub-backup-linux-<arch>) asset of the O(backup_infrahub_version) GitHub release.
+        type: str
+      backup_infrahub_tool_checksum:
+        description:
+          - Checksum of the binary, as C(<algo>:<hex or URL>).
+          - Defaults to C(sha256:https://github.com/opsmill/infrahub-backup/releases/download/<version>/SHA256SUMS).
+        type: str
+      backup_infrahub_install_tool:
+        description:
+          - Whether to download and install the infrahub-backup binary.
+          - Set to C(false) when the binary is provisioned another way.
+        type: bool
+        default: true
+      backup_infrahub_bin_path:
+        description:
+          - Path of the infrahub-backup binary.
+        type: str
+        default: /usr/local/bin/infrahub-backup
+      backup_infrahub_backup_directory:
+        description:
+          - Directory where backups are written (C(--backup-dir)).
+        type: str
+        default: /var/backups/infrahub
+      backup_infrahub_backup_directory_mode:
+        description:
+          - File mode of the backup directory.
+        type: str
+        default: "0700"
+      backup_infrahub_config_directory:
+        description:
+          - Directory holding the environment file.
+        type: str
+        default: /etc/infrahub-backup
+      backup_infrahub_docker_project:
+        description:
+          - Docker Compose project name of the Infrahub instance (C(--project)).
+          - An empty string omits the flag and lets the tool auto-detect.
+        type: str
+        default: infrahub
+      backup_infrahub_force:
+        description:
+          - Pass C(--force) to C(create).
+        type: bool
+        default: false
+      backup_infrahub_neo4j_metadata:
+        description:
+          - Neo4j metadata to include in the backup (C(--neo4jmetadata)).
+        type: str
+        default: all
+        choices: [all, none, users, roles]
+      backup_infrahub_exclude_taskmanager:
+        description:
+          - Exclude the task manager database from the backup (C(--exclude-taskmanager)).
+        type: bool
+        default: false
+      backup_infrahub_log_format:
+        description:
+          - Log format of the tool (C(--log-format)).
+        type: str
+        default: text
+        choices: [text, json]
+      backup_infrahub_retention_days:
+        description:
+          - Delete backups older than this many days (C(--retention-days)). Must be >= 1.
+          - Unset keeps all backups.
+        type: int
+      backup_infrahub_retention_count:
+        description:
+          - Keep at most this many backups (C(--retention-count)). Must be >= 1.
+          - Unset keeps all backups.
+        type: int
+      backup_infrahub_s3_upload:
+        description:
+          - Upload backups to S3 (C(--s3-upload)). Requires O(backup_infrahub_s3_bucket).
+        type: bool
+        default: false
+      backup_infrahub_s3_bucket:
+        description:
+          - S3 bucket name (C(--s3-bucket)).
+        type: str
+      backup_infrahub_s3_prefix:
+        description:
+          - S3 key prefix (C(--s3-prefix)).
+        type: str
+      backup_infrahub_s3_endpoint:
+        description:
+          - S3 endpoint URL for S3-compatible storage (C(--s3-endpoint)).
+        type: str
+      backup_infrahub_s3_region:
+        description:
+          - S3 region (C(--s3-region)). The tool defaults to C(us-east-1).
+        type: str
+      backup_infrahub_s3_keep_local:
+        description:
+          - Keep the local copy after uploading to S3 (C(--s3-keep-local)).
+        type: bool
+        default: false
+      backup_infrahub_s3_access_key_id:
+        description:
+          - S3 access key ID, written to the environment file as C(AWS_ACCESS_KEY_ID).
+          - Must be set together with O(backup_infrahub_s3_secret_access_key).
+        type: str
+        no_log: true
+      backup_infrahub_s3_secret_access_key:
+        description:
+          - S3 secret access key, written to the environment file as C(AWS_SECRET_ACCESS_KEY).
+          - Must be set together with O(backup_infrahub_s3_access_key_id).
+        type: str
+        no_log: true
+      backup_infrahub_setup_systemd:
+        description:
+          - Whether to install the systemd service and timer.
+          - When C(false), an existing timer is stopped and disabled.
+        type: bool
+        default: true
+      backup_infrahub_systemd_directory:
+        description:
+          - Where to install the systemd unit files.
+        type: str
+        default: /etc/systemd/system
+      backup_infrahub_systemd_manage_state:
+        description:
+          - Whether to reload systemd and manage the timer state.
+          - Set to C(false) to only render the unit files.
+        type: bool
+        default: true
+      backup_infrahub_schedule:
+        description:
+          - systemd C(OnCalendar) expression for the timer.
+        type: str
+        default: "*-*-* 02:00:00"
+      backup_infrahub_randomized_delay:
+        description:
+          - systemd time span for the timer C(RandomizedDelaySec).
+        type: str
+        default: "0"
+      backup_infrahub_service_user:
+        description:
+          - User running the backup service. Needs access to Docker.
+        type: str
+        default: root
+      backup_infrahub_on_failure:
+        description:
+          - systemd unit to trigger on failure (C(OnFailure)), for example C(notify-failure@%n.service).
+        type: str
+      backup_infrahub_environment:
+        description:
+          - Extra environment variables for the tool, for example C(INFRAHUB_DB_PASSWORD).
+          - Written to the environment file.
+        type: dict
+        default: {}
+        no_log: true
+      backup_infrahub_run_now:
+        description:
+          - Run a backup immediately during the role execution.
+        type: bool
+        default: false
+      backup_infrahub_become:
+        description:
+          - Whether host-changing tasks use privilege escalation.
+        type: bool
+        default: true

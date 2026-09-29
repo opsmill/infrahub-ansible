@@ -1,0 +1,20 @@
+---
+- name: Validate role inputs
+  ansible.builtin.import_tasks: validate.yml
+
+# T011: install the infrahub-backup binary (when backup_infrahub_install_tool).
+
+# T012: backup and config directories.
+
+# T013/T014: environment file (secrets, no_log, diff: false).
+
+- name: Setup systemd
+  ansible.builtin.import_tasks: setup_systemd.yml
+  when: backup_infrahub_setup_systemd | bool
+
+# T022: disable path (when not backup_infrahub_setup_systemd).
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+# T023: run a backup now (when backup_infrahub_run_now).

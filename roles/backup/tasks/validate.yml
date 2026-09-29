@@ -1,0 +1,46 @@
+---
+- name: Gather architecture fact
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+  when: ansible_facts.architecture is not defined
+
+- name: Validate backup_infrahub_retention_days
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_retention_days | int >= 1
+    fail_msg: "backup_infrahub_retention_days must be >= 1 (got {{ backup_infrahub_retention_days }})"
+    quiet: true
+  when: backup_infrahub_retention_days is defined
+
+- name: Validate backup_infrahub_retention_count
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_retention_count | int >= 1
+    fail_msg: "backup_infrahub_retention_count must be >= 1 (got {{ backup_infrahub_retention_count }})"
+    quiet: true
+  when: backup_infrahub_retention_count is defined
+
+- name: Validate S3 bucket is set when uploading
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_s3_bucket | default('') | length > 0
+    fail_msg: backup_infrahub_s3_bucket is required when backup_infrahub_s3_upload is true
+    quiet: true
+  when: backup_infrahub_s3_upload | bool
+
+# Only tests `is defined`, never prints the values, so no_log is not needed and
+# would hide fail_msg (the contract requires "must be set together" to be visible).
+- name: Validate S3 credentials are set together
+  ansible.builtin.assert:
+    that:
+      - (backup_infrahub_s3_access_key_id is defined) == (backup_infrahub_s3_secret_access_key is defined)
+    fail_msg: backup_infrahub_s3_access_key_id and backup_infrahub_s3_secret_access_key must be set together
+    quiet: true
+
+- name: Validate host architecture
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.architecture in backup_infrahub_arch_map
+    fail_msg: "Unsupported architecture: {{ ansible_facts.architecture }}"
+    quiet: true
