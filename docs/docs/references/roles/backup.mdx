@@ -16,7 +16,7 @@ This role automates Infrahub backups by:
 * Installing a `systemd` service and timer that run `infrahub-backup create` on a schedule
 * Optionally running a backup immediately, for example before an upgrade
 
-The role runs `infrahub-backup` with its `create` command. Every variable that is unset or `false` omits its flag, so the tool's own defaults apply.
+The role runs `infrahub-backup` with its `create` command. `--backup-dir`, `--project`, `--log-format` and `--neo4jmetadata` are always passed, with the role defaults unless you override them (an empty `backup_infrahub_docker_project` omits `--project`). Every other variable that is unset or `false` omits its flag, so the tool's own defaults apply.
 
 # Requirements
 
@@ -35,8 +35,8 @@ The pinned tool version (`backup_infrahub_version`) sets which Infrahub versions
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `backup_infrahub_version` | `str` | `v2.3.0` | Release tag of `infrahub-backup` to install. Used to build the download URL. |
-| `backup_infrahub_tool_url` | `str` | `https://github.com/opsmill/infrahub-backup/releases/download/{{ backup_infrahub_version }}/infrahub-backup-linux-{{ arch }}` | URL of the binary. `arch` is `amd64` or `arm64`. |
-| `backup_infrahub_tool_checksum` | `str` | `sha256:https://github.com/opsmill/infrahub-backup/releases/download/{{ backup_infrahub_version }}/SHA256SUMS` | Checksum of the binary, as `<algo>:<hex or URL>`. |
+| `backup_infrahub_tool_url` | `str` | `https://github.com/opsmill/infrahub-backup/releases/download/{{ backup_infrahub_version }}/infrahub-backup-linux-{{ arch }}` | URL of the binary. `arch` is `amd64` or `arm64`. When you set it, also set `backup_infrahub_tool_checksum`. |
+| `backup_infrahub_tool_checksum` | `str` | `sha256:https://github.com/opsmill/infrahub-backup/releases/download/{{ backup_infrahub_version }}/SHA256SUMS` | Checksum of the binary, as `<algo>:<hex or URL>`. Required when `backup_infrahub_tool_url` is set. |
 | `backup_infrahub_install_tool` | `bool` | `true` | Whether to download and install the binary. Set to `false` when the binary is provisioned another way. |
 | `backup_infrahub_bin_path` | `str` | `/usr/local/bin/infrahub-backup` | Path of the binary. Used as install destination and in the service `ExecStart`. |
 | `backup_infrahub_backup_directory` | `str` | `/var/backups/infrahub` | Directory where backups are written (`--backup-dir`). |
@@ -55,17 +55,17 @@ The pinned tool version (`backup_infrahub_version`) sets which Infrahub versions
 | `backup_infrahub_s3_endpoint` | `str` | unset | Endpoint URL for S3-compatible storage (`--s3-endpoint`). |
 | `backup_infrahub_s3_region` | `str` | unset (tool default `us-east-1`) | S3 region (`--s3-region`). |
 | `backup_infrahub_s3_keep_local` | `bool` | `false` | Keep the local archive after uploading to S3 (`--s3-keep-local`). |
-| `backup_infrahub_s3_access_key_id` | `str` | unset | S3 access key ID, written to the environment file as `AWS_ACCESS_KEY_ID`. Set together with the secret access key. Never logged. |
-| `backup_infrahub_s3_secret_access_key` | `str` | unset | S3 secret access key, written to the environment file as `AWS_SECRET_ACCESS_KEY`. Set together with the access key ID. Never logged. |
-| `backup_infrahub_setup_systemd` | `bool` | `true` | Whether to install the `systemd` service and timer. When `false`, a timer left by a previous run is stopped and disabled. |
+| `backup_infrahub_s3_access_key_id` | `str` | unset | S3 access key ID, written to the environment file as `AWS_ACCESS_KEY_ID`. Set together with the secret access key. Never logged. Must not contain newlines, backslashes, quotes, `$`, or leading or trailing whitespace. |
+| `backup_infrahub_s3_secret_access_key` | `str` | unset | S3 secret access key, written to the environment file as `AWS_SECRET_ACCESS_KEY`. Set together with the access key ID. Never logged. Same character restrictions as the access key ID. |
+| `backup_infrahub_setup_systemd` | `bool` | `true` | Whether to install the `systemd` service and timer. When `false`, the role installs no units and, if `backup_infrahub_systemd_manage_state` is `true` and a timer file exists, stops and disables that timer. Existing unit files are left in place. |
 | `backup_infrahub_systemd_directory` | `str` | `/etc/systemd/system` | Where to install the `systemd` unit files. |
 | `backup_infrahub_systemd_manage_state` | `bool` | `true` | Whether to reload `systemd` and manage the timer state. Set to `false` to only render the unit files. |
 | `backup_infrahub_schedule` | `str` | `*-*-* 02:00:00` | `systemd` `OnCalendar` expression for the timer. |
 | `backup_infrahub_randomized_delay` | `str` | `"0"` | `systemd` time span for the timer `RandomizedDelaySec`. |
 | `backup_infrahub_service_user` | `str` | `root` | User running the backup service (`User=`). Needs access to Docker. |
 | `backup_infrahub_on_failure` | `str` | unset | `systemd` unit to start when a scheduled backup fails (`OnFailure=`), for example `notify-failure@%n.service`. |
-| `backup_infrahub_environment` | `dict` | `{}` | Extra environment variables for the tool, for example `INFRAHUB_DB_PASSWORD`. Written to the environment file. Never logged. |
-| `backup_infrahub_run_now` | `bool` | `false` | Run a backup immediately during the role execution. |
+| `backup_infrahub_environment` | `dict` | `{}` | Extra environment variables for the tool, for example `INFRAHUB_DB_PASSWORD`. Written to the environment file. Never logged. Names must match `^[A-Za-z_][A-Za-z0-9_]*$`. Values must not contain newlines, backslashes, quotes, `$`, or leading or trailing whitespace. |
+| `backup_infrahub_run_now` | `bool` | `false` | Run a backup immediately during the role execution, as `backup_infrahub_service_user`. |
 | `backup_infrahub_become` | `bool` | `true` | Whether host-changing tasks use privilege escalation. |
 
 The role writes these files on the target host:
@@ -126,7 +126,7 @@ Upload every backup to an S3-compatible bucket. Keep the credentials in Ansible 
 </TabItem>
 <TabItem value="pre-upgrade" label="Pre-upgrade backup">
 
-Take a single backup right now, for example before upgrading Infrahub, without installing or changing the timer:
+Take a single backup right now, for example before upgrading Infrahub. Only `backup_infrahub_run_now` is set, so the scheduled timer is installed or kept as is:
 
 ```yaml title="backup_infrahub_now.yml"
 - name: Back up Infrahub before an upgrade
@@ -137,12 +137,11 @@ Take a single backup right now, for example before upgrading Infrahub, without i
     - role: opsmill.infrahub.backup
       vars:
         backup_infrahub_run_now: true
-        backup_infrahub_setup_systemd: false
 ```
 
-`backup_infrahub_setup_systemd: false` also stops and disables a timer installed by a previous run. To keep an existing schedule and still take a backup now, set only `backup_infrahub_run_now: true`.
+The on-demand backup runs as `backup_infrahub_service_user`, like the scheduled one. The role passes the credentials on standard input to a `/bin/sh` wrapper that exports them and then starts the tool; the tool itself never reads standard input. Credentials never appear on a command line, so they don't show up in `ps`, and they never appear in Ansible output. When the tool fails, the role fails with the tool's error message.
 
-The on-demand backup passes the credentials to the tool on standard input, never on the command line, so they don't show up in `ps` or in verbose Ansible output. When the tool fails, the role fails with the tool's error message.
+To remove the schedule, set `backup_infrahub_setup_systemd: false`. The role then installs no units and, when `backup_infrahub_systemd_manage_state` is `true` and a timer file exists, stops and disables the timer. The unit files are left in place.
 
 </TabItem>
 </Tabs>
@@ -175,9 +174,10 @@ A failed scheduled backup only shows up in the journal. To get alerted, set `bac
 
 * **Community Edition stops Infrahub during the backup.** Schedule backups in a maintenance window with `backup_infrahub_schedule`. The default is every day at 02:00.
 * **`--s3-upload` removes the local archive** after a successful upload. Set `backup_infrahub_s3_keep_local: true` to keep a local copy.
-* **Retention on S3 needs delete permission.** With `backup_infrahub_s3_upload` and a retention setting, the credentials need `s3:DeleteObject` on the bucket to prune old archives.
+* **Retention on S3 needs delete permission.** With `backup_infrahub_s3_upload` and a retention setting, the credentials need `s3:ListBucket` and `s3:DeleteObject` on the bucket to prune old archives.
 * **Redaction isn't exposed.** The tool's `--redact` option alters the live database, so the role never passes it.
-* **Credentials never reach the logs.** The S3 credentials and `backup_infrahub_environment` are written only to the `0600` environment file, which the service reads through `EnvironmentFile=`.
+* **Credentials never reach the logs.** The S3 credentials and `backup_infrahub_environment` are written to the `0600` environment file, which the scheduled service reads through `EnvironmentFile=`. On-demand runs receive them on standard input instead. They never appear on a command line or in Ansible output.
+* **Retention keeps the newest archive.** `backup_infrahub_retention_days` and `backup_infrahub_retention_count` never delete the most recent backup.
 
 # Restore
 
@@ -185,7 +185,7 @@ The role doesn't restore backups. Restoring is a manual operation with the `infr
 
 # Air-gapped installs
 
-Without access to GitHub, host the binary and its checksum on an internal server and override both variables:
+Without access to GitHub, host the binary and its checksum on an internal server and override both `backup_infrahub_tool_url` and `backup_infrahub_tool_checksum`. The role fails when only the URL is set:
 
 ```yaml
 backup_infrahub_tool_url: https://artifacts.example.com/infrahub-backup/v2.3.0/infrahub-backup-linux-amd64
