@@ -1,0 +1,124 @@
+---
+# Failure contract (contracts/role-interface.md): every invalid input must fail
+# the role with the documented message before any change on the host (SC-005).
+# Run: ANSIBLE_ROLES_PATH=roles uv run ansible-playbook -i localhost, -c local tests/roles/backup/test_validation.yml
+- name: Backup role input validation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    test_prefix: /tmp/infrahub-backup-test-validation
+    backup_infrahub_backup_directory: "{{ test_prefix }}/backups"
+    backup_infrahub_config_directory: "{{ test_prefix }}/etc"
+    backup_infrahub_systemd_directory: "{{ test_prefix }}/systemd"
+    backup_infrahub_bin_path: "{{ test_prefix }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    role_should_have_failed: "Role unexpectedly succeeded"
+
+  tasks:
+    - name: Ensure the test prefix is absent before running
+      ansible.builtin.file:
+        path: "{{ test_prefix }}"
+        state: absent
+
+    - name: Case retention_days < 1
+      block:
+        - name: Apply role with retention_days 0
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_retention_days: 0
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert retention_days message
+          ansible.builtin.assert:
+            that:
+              - "'must be >= 1' in ansible_failed_result.msg"
+              - "'retention_days' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case retention_count < 1
+      block:
+        - name: Apply role with retention_count -1
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_retention_count: -1
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert retention_count message
+          ansible.builtin.assert:
+            that:
+              - "'must be >= 1' in ansible_failed_result.msg"
+              - "'retention_count' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case unknown neo4j_metadata choice (argument spec)
+      block:
+        - name: Apply role with neo4j_metadata bogus
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_neo4j_metadata: bogus
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert argument-spec message
+          ansible.builtin.assert:
+            that:
+              - "'neo4j_metadata' in ansible_failed_result.msg"
+              - "role_should_have_failed not in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case s3_upload without bucket
+      block:
+        - name: Apply role with s3_upload and no bucket
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_s3_upload: true
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert s3_bucket message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_s3_bucket is required' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case only one S3 credential set
+      block:
+        - name: Apply role with only the access key id
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_s3_access_key_id: AKIATEST
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert credentials message
+          ansible.builtin.assert:
+            that:
+              - "'must be set together' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Stat the test prefix
+      ansible.builtin.stat:
+        path: "{{ test_prefix }}"
+      register: test_prefix_stat
+
+    - name: Assert no host change (SC-005)
+      ansible.builtin.assert:
+        that:
+          - not test_prefix_stat.stat.exists
+        fail_msg: "{{ test_prefix }} was created: validation did not run before changes"

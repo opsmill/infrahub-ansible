@@ -1,0 +1,102 @@
+---
+# Render test: apply the role against a temp root without installing the tool or
+# touching systemd state, then assert on rendered units, env file and modes.
+# Credentials and backup_infrahub_environment are supplied only by run.sh (-e),
+# never set here, so extra-vars precedence cannot conflict with play vars.
+# Run via tests/roles/backup/run.sh (passes -e test_root=<tmpdir>).
+- name: Backup role render (default layout)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/default"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: true
+    backup_infrahub_retention_count: 14
+    backup_infrahub_s3_prefix: "infra%hub"
+    backup_infrahub_on_failure: notify@%n.service
+    service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+    timer_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer"
+    env_path: "{{ backup_infrahub_config_directory }}/infrahub-backup.env"
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read service unit
+      ansible.builtin.slurp:
+        src: "{{ service_path }}"
+      register: service_raw
+
+    - name: Read timer unit
+      ansible.builtin.slurp:
+        src: "{{ timer_path }}"
+      register: timer_raw
+
+    # The env file holds secrets: stat it only, never slurp it (would print at -vvv).
+    - name: Stat env file
+      ansible.builtin.stat:
+        path: "{{ env_path }}"
+        get_checksum: false
+      register: env_stat
+
+    - name: Stat backup directory
+      ansible.builtin.stat:
+        path: "{{ backup_infrahub_backup_directory }}"
+        get_checksum: false
+      register: backup_dir_stat
+
+    - name: Assert service unit content
+      vars:
+        service: "{{ service_raw.content | b64decode }}"
+        exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
+      ansible.builtin.assert:
+        that:
+          - exec_start | length > 0
+          - "'--retention-count 14' in exec_start"
+          - "'--project infrahub' in exec_start"
+          - "'infra%%hub' in exec_start"
+          - "' create' in exec_start"
+          - "'OnFailure=notify@%n.service' in service"
+        fail_msg: "Unexpected service unit:\n{{ service }}"
+        quiet: true
+
+    - name: Assert timer unit content
+      vars:
+        timer: "{{ timer_raw.content | b64decode }}"
+      ansible.builtin.assert:
+        that:
+          - "'OnCalendar=*-*-* 02:00:00' in timer"
+          - "'Persistent=true' in timer"
+        fail_msg: "Unexpected timer unit:\n{{ timer }}"
+        quiet: true
+
+    - name: Assert file modes
+      ansible.builtin.assert:
+        that:
+          - env_stat.stat.exists
+          - env_stat.stat.mode == '0600'
+          - backup_dir_stat.stat.exists
+          - backup_dir_stat.stat.isdir
+          - backup_dir_stat.stat.mode == '0700'
+        fail_msg: >-
+          env mode={{ env_stat.stat.mode | default('missing') }}
+          backup dir mode={{ backup_dir_stat.stat.mode | default('missing') }}
+        quiet: true
