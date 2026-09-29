@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Backup role tests: validation, render x2 (idempotency) and secrecy (SC-004).
+# Backup role tests: validation, render x2 (idempotency), run-now (fake tool) and
+# secrecy (SC-004) of every -vvv log.
 # The secrecy check lives here because a play cannot observe its own stdout (critique E3).
 set -euo pipefail
 
@@ -29,9 +30,19 @@ for run in 1 2; do
     2>&1 | tee "$TMP/run$run.log"
 done
 
-for run in 1 2; do
-  if grep -q "$SENTINEL" "$TMP/run$run.log"; then
-    echo "FAIL: secret leaked in render run $run output (-vvv --diff)" >&2
+# Separate playbook: run-now always reports changed, so it cannot share the
+# idempotency check. Same secrets as the render runs, so no_log is active.
+echo "==> test_run_now.yml"
+playbook "$HERE/test_run_now.yml" -vvv --diff \
+  -e "test_root=$TMP" \
+  -e backup_infrahub_s3_access_key_id=AKIATEST \
+  -e "backup_infrahub_s3_secret_access_key=$SENTINEL" \
+  -e "{\"backup_infrahub_environment\": {\"INFRAHUB_DB_PASSWORD\": \"$SENTINEL\"}}" \
+  2>&1 | tee "$TMP/runnow.log"
+
+for log in run1 run2 runnow; do
+  if grep -q "$SENTINEL" "$TMP/$log.log"; then
+    echo "FAIL: secret leaked in $log output (-vvv --diff)" >&2
     exit 1
   fi
 done

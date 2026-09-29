@@ -61,10 +61,10 @@
 **Goal**: `run_now` runs one backup; `setup_systemd: false` installs no units and disables an existing timer.
 **Independent test**: render test with `setup_systemd: false` → no unit files; e2e for run_now.
 
-- [ ] T022 [US3] In `roles/backup/tasks/main.yml` add the disable path (when `not backup_infrahub_setup_systemd`): `ansible.builtin.stat` `{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer`; if it exists and `systemd_manage_state`, `ansible.builtin.systemd_service` `name: infrahub-backup.timer`, `state: stopped`, `enabled: false`
-- [ ] T023 [US3] In `roles/backup/tasks/main.yml` after `meta: flush_handlers` add run-now: `ansible.builtin.command` `argv: "{{ [backup_infrahub_bin_path] + backup_infrahub_create_args }}"`, `environment:` built from credentials (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` when set) combined with `backup_infrahub_environment`, `no_log: "{{ backup_infrahub_has_secrets | bool }}"`, `changed_when: true`, `when: backup_infrahub_run_now | bool`
-- [ ] T024 [US3] Extend `tests/roles/backup/test_render.yml` with a play (`test_root` subdir `nosystemd/`) using `setup_systemd: false` asserting neither unit file exists and the env file still exists
-- [ ] T025 [US3] Run `tests/roles/backup/run.sh` and `uv run ansible-lint roles/backup`
+- [X] T022 [US3] In `roles/backup/tasks/main.yml` add the disable path (when `not backup_infrahub_setup_systemd`): `ansible.builtin.stat` `{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer`; if it exists and `systemd_manage_state`, `ansible.builtin.systemd_service` `name: infrahub-backup.timer`, `state: stopped`, `enabled: false`
+- [X] T023 [US3] In `roles/backup/tasks/main.yml` after `meta: flush_handlers` add run-now: `ansible.builtin.command` `argv: "{{ [backup_infrahub_bin_path] + backup_infrahub_create_args }}"`, `environment:` built from credentials (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` when set) combined with `backup_infrahub_environment` (implemented as `stdin` KEY=value lines exported by a `/bin/sh` wrapper, not `environment:`, which leaks at -vvv; see research.md), `no_log: "{{ backup_infrahub_has_secrets | bool }}"`, `changed_when: true`, `when: backup_infrahub_run_now | bool`
+- [X] T024 [US3] Extend `tests/roles/backup/test_render.yml` with a play (`test_root` subdir `nosystemd/`) using `setup_systemd: false` asserting neither unit file exists and the env file still exists
+- [X] T025 [US3] Run `tests/roles/backup/run.sh` and `uv run ansible-lint roles/backup`
 
 ## Phase 6: Polish & Cross-Cutting
 

@@ -4,10 +4,10 @@
 
 ```bash
 uv run ansible-lint roles/backup
-tests/roles/backup/run.sh   # validation + render (x2, idempotency) + -vvv --diff secret grep
+tests/roles/backup/run.sh   # validation + render (x2, idempotency) + run-now (fake tool) + -vvv --diff secret grep
 ```
 
-Expected: lint clean; both playbooks end with `failed=0`. `run.sh` exits 0 only if validation cases fail as expected, the second render pass reports `changed=0`, and the sentinel secret never appears in `-vvv --diff` output.
+Expected: lint clean; every playbook ends with `failed=0`. `run.sh` exits 0 only if validation cases fail as expected, the second render pass reports `changed=0`, the run-now playbook passes (fake tool receives `create` args and credentials; a failing tool fails the role with its stderr), and the sentinel secret never appears in `-vvv --diff` output.
 
 ## End-to-end (Linux systemd host with Infrahub on Docker Compose)
 

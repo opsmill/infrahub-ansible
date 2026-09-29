@@ -171,3 +171,54 @@
           - "'AWS_' not in service"
         fail_msg: "Unexpected service unit:\n{{ service }}"
         quiet: true
+
+# US3-AS3 / FR-011: with systemd setup disabled no unit is rendered, the env file is.
+- name: Backup role render (systemd disabled)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/nosystemd"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: false
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Stat rendered files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+        get_checksum: false
+      loop:
+        - "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+        - "{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer"
+        - "{{ backup_infrahub_config_directory }}/infrahub-backup.env"
+      register: nosystemd_stats
+
+    - name: Assert no unit files and an env file
+      ansible.builtin.assert:
+        that:
+          - not nosystemd_stats.results[0].stat.exists
+          - not nosystemd_stats.results[1].stat.exists
+          - nosystemd_stats.results[2].stat.exists
+          - nosystemd_stats.results[2].stat.mode == '0600'
+        fail_msg: "Unexpected files under {{ render_root }}"
+        quiet: true
