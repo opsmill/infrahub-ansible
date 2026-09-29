@@ -53,8 +53,8 @@
 **Goal**: S3 flags + credentials, secrets hidden.
 **Independent test**: render assertions for S3 flags; secret grep in `run.sh`.
 
-- [ ] T020 [US2] Extend `tests/roles/backup/test_render.yml` with a second play (`-e test_root` subdir `s3/`) setting `s3_upload: true`, `s3_bucket: infrahub-backups`, `s3_endpoint: http://minio.local:9000`, `s3_region: eu-central-1`, `s3_keep_local: true`; assert ExecStart contains `--s3-bucket infrahub-backups`, `--s3-endpoint http://minio.local:9000`, `--s3-region eu-central-1`, `--s3-upload`, `--s3-keep-local`, and that the service file does not contain `AWS_` (credentials only in env file); assert default play's ExecStart contains no `--s3-` token
-- [ ] T021 [US2] Verify `backup_infrahub_create_args` in `roles/backup/vars/main.yml` emits the S3 global flags before `create` and `--s3-upload`/`--s3-keep-local` after it; rerun `tests/roles/backup/run.sh`
+- [X] T020 [US2] Extend `tests/roles/backup/test_render.yml` with a second play (`-e test_root` subdir `s3/`) setting `s3_upload: true`, `s3_bucket: infrahub-backups`, `s3_endpoint: http://minio.local:9000`, `s3_region: eu-central-1`, `s3_keep_local: true`; assert ExecStart contains `--s3-bucket infrahub-backups`, `--s3-endpoint http://minio.local:9000`, `--s3-region eu-central-1`, `--s3-upload`, `--s3-keep-local`, and that the service file does not contain `AWS_` (credentials only in env file); assert default play's ExecStart contains no `--s3-` token
+- [X] T021 [US2] Verify `backup_infrahub_create_args` in `roles/backup/vars/main.yml` emits the S3 global flags before `create` and `--s3-upload`/`--s3-keep-local` after it; rerun `tests/roles/backup/run.sh`
 
 ## Phase 5: User Story 3 — On-demand backup and systemd opt-out (P3)
 

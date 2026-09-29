@@ -75,6 +75,12 @@
           - "'infra%%hub' in exec_start"
           - "' create' in exec_start"
           - "'OnFailure=notify@%n.service' in service"
+          # S3 off by default: only the %-escape check above uses --s3-prefix.
+          - "'--s3-upload' not in exec_start"
+          - "'--s3-keep-local' not in exec_start"
+          - "'--s3-bucket' not in exec_start"
+          - "'--s3-endpoint' not in exec_start"
+          - "'--s3-region' not in exec_start"
         fail_msg: "Unexpected service unit:\n{{ service }}"
         quiet: true
 
@@ -99,4 +105,69 @@
         fail_msg: >-
           env mode={{ env_stat.stat.mode | default('missing') }}
           backup dir mode={{ backup_dir_stat.stat.mode | default('missing') }}
+        quiet: true
+
+- name: Backup role render (S3 upload)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/s3"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: true
+    backup_infrahub_s3_upload: true
+    backup_infrahub_s3_bucket: infrahub-backups
+    backup_infrahub_s3_endpoint: http://minio.local:9000
+    backup_infrahub_s3_region: eu-central-1
+    backup_infrahub_s3_keep_local: true
+    service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read service unit
+      ansible.builtin.slurp:
+        src: "{{ service_path }}"
+      register: service_raw
+
+    # Global S3 flags must precede the `create` subcommand; upload flags follow it.
+    - name: Assert S3 flags and ordering in service unit
+      vars:
+        service: "{{ service_raw.content | b64decode }}"
+        exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
+        tokens: "{{ exec_start.split(' ') }}"
+      ansible.builtin.assert:
+        that:
+          - exec_start | length > 0
+          - "'--s3-bucket infrahub-backups' in exec_start"
+          - "'--s3-endpoint http://minio.local:9000' in exec_start"
+          - "'--s3-region eu-central-1' in exec_start"
+          - "'--s3-upload' in tokens"
+          - "'--s3-keep-local' in tokens"
+          - "'create' in tokens"
+          - tokens.index('--s3-bucket') < tokens.index('create')
+          - tokens.index('--s3-endpoint') < tokens.index('create')
+          - tokens.index('--s3-region') < tokens.index('create')
+          - tokens.index('create') < tokens.index('--s3-upload')
+          - tokens.index('create') < tokens.index('--s3-keep-local')
+          - "'AWS_' not in service"
+        fail_msg: "Unexpected service unit:\n{{ service }}"
         quiet: true
