@@ -2,11 +2,46 @@
 - name: Validate role inputs
   ansible.builtin.import_tasks: validate.yml
 
-# T011: install the infrahub-backup binary (when backup_infrahub_install_tool).
+- name: Install the infrahub-backup binary
+  ansible.builtin.get_url:
+    url: "{{ backup_infrahub_tool_url | default(backup_infrahub_default_tool_url) }}"
+    checksum: "{{ backup_infrahub_tool_checksum | default(backup_infrahub_default_tool_checksum) }}"
+    dest: "{{ backup_infrahub_bin_path }}"
+    mode: "0755"
+    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+  when: backup_infrahub_install_tool | bool
 
-# T012: backup and config directories.
+- name: Create the backup directory
+  ansible.builtin.file:
+    path: "{{ backup_infrahub_backup_directory }}"
+    state: directory
+    mode: "{{ backup_infrahub_backup_directory_mode }}"
+    owner: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
 
-# T013/T014: environment file (secrets, no_log, diff: false).
+- name: Create the config directory
+  ansible.builtin.file:
+    path: "{{ backup_infrahub_config_directory }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+
+# Holds S3 credentials and backup_infrahub_environment: never log or diff it.
+# No notify: the oneshot service reads it on every run.
+- name: Configure the infrahub-backup environment file
+  ansible.builtin.template:
+    src: infrahub-backup.env.j2
+    dest: "{{ backup_infrahub_env_file }}"
+    mode: "0600"
+    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+  no_log: true
+  diff: false
 
 - name: Setup systemd
   ansible.builtin.import_tasks: setup_systemd.yml

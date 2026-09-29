@@ -1,3 +1,47 @@
 ---
-# Placeholder: filled by T017 (service + timer units, daemon-reload, timer state).
-[]
+# A no-op on real hosts (/etc/systemd/system exists); needed for a custom directory.
+- name: Ensure the systemd unit directory exists
+  ansible.builtin.file:
+    path: "{{ backup_infrahub_systemd_directory }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+
+- name: Configure Infrahub backup systemd service
+  ansible.builtin.template:
+    src: infrahub-backup.service.j2
+    dest: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    mode: "0644"
+  become: "{{ backup_infrahub_become }}"
+  register: backup_infrahub_service_unit
+  notify:
+    - Reload systemd for Infrahub backup
+    - Restart Infrahub backup timer
+
+- name: Configure Infrahub backup systemd timer
+  ansible.builtin.template:
+    src: infrahub-backup.timer.j2
+    dest: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer"
+    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    mode: "0644"
+  become: "{{ backup_infrahub_become }}"
+  register: backup_infrahub_timer_unit
+  notify:
+    - Reload systemd for Infrahub backup
+    - Restart Infrahub backup timer
+
+# Enforced every run so a manually stopped/disabled timer is corrected. Reload first
+# when a unit changed, since handlers only run at flush_handlers.
+- name: Enable and start the Infrahub backup timer
+  ansible.builtin.systemd_service:
+    name: infrahub-backup.timer
+    enabled: true
+    state: started
+    daemon_reload: "{{ backup_infrahub_service_unit is changed or backup_infrahub_timer_unit is changed }}"
+  become: "{{ backup_infrahub_become }}"
+  when: backup_infrahub_systemd_manage_state | bool
