@@ -100,6 +100,8 @@
       {{ key }}={{ value }}
       {% endfor %}
   become: "{{ backup_infrahub_become }}"
+  # Same identity as the scheduled unit (User=), so both runs have the same access.
+  become_user: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
   no_log: "{{ backup_infrahub_has_secrets | bool }}"
   register: backup_infrahub_run_now_result
   changed_when: true

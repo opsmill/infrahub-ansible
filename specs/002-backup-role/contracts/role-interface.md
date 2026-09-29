@@ -29,7 +29,7 @@ This is the public interface. `roles/backup/meta/argument_specs.yml`, `roles/bac
 | `backup_infrahub_s3_keep_local` | bool | `false` | — | `--s3-keep-local` |
 | `backup_infrahub_s3_access_key_id` | str | unset | `no_log`; both-or-neither with secret | env `AWS_ACCESS_KEY_ID` |
 | `backup_infrahub_s3_secret_access_key` | str | unset | `no_log`; both-or-neither with id | env `AWS_SECRET_ACCESS_KEY` |
-| `backup_infrahub_setup_systemd` | bool | `true` | — | units + timer |
+| `backup_infrahub_setup_systemd` | bool | `true` | `false` installs no units; stops+disables an existing timer only when `systemd_manage_state` is true and the timer file exists; unit files left in place | units + timer |
 | `backup_infrahub_systemd_directory` | str | `/etc/systemd/system` | — | unit path |
 | `backup_infrahub_systemd_manage_state` | bool | `true` | `false` = render units only | daemon-reload / timer state |
 | `backup_infrahub_schedule` | str | `*-*-* 02:00:00` | systemd `OnCalendar` expression | timer `OnCalendar=` |
@@ -40,7 +40,7 @@ This is the public interface. `roles/backup/meta/argument_specs.yml`, `roles/bac
 | `backup_infrahub_run_now` | bool | `false` | — | immediate `create` |
 | `backup_infrahub_become` | bool | `true` | — | task `become` |
 
-Flags whose variable is unset or `false` are omitted from the command line (tool defaults apply).
+`--backup-dir`, `--project` (unless `docker_project` is `''`), `--log-format` and `--neo4jmetadata` are always passed with the role defaults. Optional flags whose variable is unset or `false` are omitted from the command line (tool defaults apply). `run_now` runs as `service_user` (via `become_user` when `become` is true), matching the scheduled unit.
 
 ## Files written on the host
 
@@ -61,7 +61,10 @@ Flags whose variable is unset or `false` are omitted from the command line (tool
 | `retention_days` or `retention_count` < 1 | `must be >= 1` |
 | `s3_upload` true and `s3_bucket` empty | `backup_infrahub_s3_bucket is required` |
 | Only one of the two S3 credentials set | `must be set together` |
-| Arch not x86_64/aarch64/arm64 | `Unsupported architecture` |
+| `backup_infrahub_environment` key not matching `^[A-Za-z_][A-Za-z0-9_]*$` | `invalid environment variable name` (offending keys only, never values) |
+| An S3 credential or `backup_infrahub_environment` value contains a newline, CR, `\`, `"`, `'`, `$`, or leading/trailing whitespace | `contains characters that systemd EnvironmentFile cannot represent safely` (variable/key name only, never the value) |
+| `install_tool` true, `tool_url` set, `tool_checksum` unset | `backup_infrahub_tool_checksum is required when backup_infrahub_tool_url is set` |
+| `install_tool` true and arch not x86_64/aarch64/arm64 | `Unsupported architecture` |
 
 ## Out of contract
 

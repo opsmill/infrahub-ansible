@@ -17,6 +17,8 @@
     backup_infrahub_install_tool: false
     backup_infrahub_systemd_manage_state: false
     role_should_have_failed: "Role unexpectedly succeeded"
+    # run.sh runs this playbook at -vvv and fails if the sentinel shows up in the log.
+    test_sentinel: SENTINEL-SECRET-e3b0c442
 
   tasks:
     - name: Ensure the test prefix is absent before running
@@ -110,6 +112,103 @@
           ansible.builtin.assert:
             that:
               - "'must be set together' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case invalid environment variable name
+      block:
+        - name: Apply role with environment key 1BAD
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_environment:
+              1BAD: "{{ test_sentinel }}"
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert invalid-name message names the key, not the value
+          ansible.builtin.assert:
+            that:
+              - "'invalid environment variable name' in ansible_failed_result.msg"
+              - "'1BAD' in ansible_failed_result.msg"
+              - test_sentinel not in ansible_failed_result.msg
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case environment value with a double quote
+      block:
+        - name: Apply role with a quoted environment value
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_environment:
+              INFRAHUB_DB_PASSWORD: 'pa"ss'
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert unsafe-value message names the key, not the value
+          ansible.builtin.assert:
+            that:
+              - "'contains characters that systemd EnvironmentFile cannot represent safely' in ansible_failed_result.msg"
+              - "'INFRAHUB_DB_PASSWORD' in ansible_failed_result.msg"
+              - "'pa\"ss' not in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case S3 secret with a dollar sign
+      block:
+        - name: Apply role with a $ in the S3 secret
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_s3_access_key_id: AKIATEST
+            backup_infrahub_s3_secret_access_key: "{{ test_sentinel }}$x"
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert unsafe-value message names the variable, not the value
+          ansible.builtin.assert:
+            that:
+              - "'contains characters that systemd EnvironmentFile cannot represent safely' in ansible_failed_result.msg"
+              - "'backup_infrahub_s3_secret_access_key' in ansible_failed_result.msg"
+              - "'backup_infrahub_s3_access_key_id' not in ansible_failed_result.msg"
+              - test_sentinel not in ansible_failed_result.msg
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case tool_url without tool_checksum
+      block:
+        - name: Apply role with a custom tool URL and no checksum
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_install_tool: true
+            backup_infrahub_tool_url: https://artifacts.example.com/infrahub-backup-linux-amd64
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert tool_checksum message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_tool_checksum is required when backup_infrahub_tool_url is set' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case unsupported architecture
+      block:
+        - name: Apply role with an empty architecture map
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_install_tool: true
+            backup_infrahub_arch_map: {}
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert architecture message
+          ansible.builtin.assert:
+            that:
+              - "'Unsupported architecture' in ansible_failed_result.msg"
             fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
 
     - name: Stat the test prefix

@@ -12,13 +12,14 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 export ANSIBLE_ROLES_PATH="$REPO/roles"
+export ANSIBLE_NOCOLOR=1
 
 playbook() {
   uv run --project "$REPO" ansible-playbook -i localhost, -c local "$@"
 }
 
 echo "==> test_validation.yml"
-playbook "$HERE/test_validation.yml" 2>&1 | tee "$TMP/validation.log"
+playbook "$HERE/test_validation.yml" -vvv 2>&1 | tee "$TMP/validation.log"
 
 for run in 1 2; do
   echo "==> test_render.yml (run $run)"
@@ -40,9 +41,9 @@ playbook "$HERE/test_run_now.yml" -vvv --diff \
   -e "{\"backup_infrahub_environment\": {\"INFRAHUB_DB_PASSWORD\": \"$SENTINEL\"}}" \
   2>&1 | tee "$TMP/runnow.log"
 
-for log in run1 run2 runnow; do
+for log in validation run1 run2 runnow; do
   if grep -q "$SENTINEL" "$TMP/$log.log"; then
-    echo "FAIL: secret leaked in $log output (-vvv --diff)" >&2
+    echo "FAIL: secret leaked in $log output (-vvv)" >&2
     exit 1
   fi
 done

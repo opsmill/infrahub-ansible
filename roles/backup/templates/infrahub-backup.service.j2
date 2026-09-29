@@ -10,4 +10,4 @@ OnFailure={{ backup_infrahub_on_failure }}
 Type=oneshot
 User={{ backup_infrahub_service_user }}
 EnvironmentFile=-{{ backup_infrahub_env_file }}
-ExecStart={{ backup_infrahub_bin_path }} {{ backup_infrahub_create_args | map('quote') | map('replace', '%', '%%') | join(' ') }}
+ExecStart={{ ([backup_infrahub_bin_path] + backup_infrahub_create_args) | map('quote') | map('replace', '%', '%%') | map('replace', '$', '$$') | join(' ') }}

@@ -11,6 +11,11 @@ backup_infrahub_default_tool_checksum: "sha256:{{ backup_infrahub_release_url }}
 
 backup_infrahub_env_file: "{{ backup_infrahub_config_directory }}/infrahub-backup.env"
 
+# Env-file safety (validate.yml). \Z, not $: `$` also matches before a trailing newline.
+backup_infrahub_env_key_pattern: '^[A-Za-z_][A-Za-z0-9_]*\Z'
+# Newline, CR, backslash, double quote, single quote, $, or leading/trailing whitespace.
+backup_infrahub_env_unsafe_pattern: '[\n\r\\"''$]|^\s|\s\Z'
+
 # True when the env file carries values that must never be logged or diffed.
 backup_infrahub_has_secrets: >-
   {{ backup_infrahub_s3_access_key_id is defined or (backup_infrahub_environment | length > 0) }}

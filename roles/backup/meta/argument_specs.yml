@@ -17,11 +17,13 @@ argument_specs:
         description:
           - URL of the infrahub-backup binary.
           - Defaults to the C(infrahub-backup-linux-<arch>) asset of the O(backup_infrahub_version) GitHub release.
+          - When set, O(backup_infrahub_tool_checksum) must also be set.
         type: str
       backup_infrahub_tool_checksum:
         description:
           - Checksum of the binary, as C(<algo>:<hex or URL>).
           - Defaults to C(sha256:https://github.com/opsmill/infrahub-backup/releases/download/<version>/SHA256SUMS).
+          - Required when O(backup_infrahub_tool_url) is set.
         type: str
       backup_infrahub_install_tool:
         description:
@@ -128,7 +130,9 @@ argument_specs:
       backup_infrahub_setup_systemd:
         description:
           - Whether to install the systemd service and timer.
-          - When C(false), an existing timer is stopped and disabled.
+          - When C(false), no units are installed. If O(backup_infrahub_systemd_manage_state) is C(true)
+            and a timer file exists, that timer is stopped and disabled.
+          - Existing unit files are left in place.
         type: bool
         default: true
       backup_infrahub_systemd_directory:
@@ -165,6 +169,8 @@ argument_specs:
         description:
           - Extra environment variables for the tool, for example C(INFRAHUB_DB_PASSWORD).
           - Written to the environment file.
+          - Names must match C(^[A-Za-z_][A-Za-z0-9_]*$).
+          - Values must not contain newlines, backslashes, quotes, C($), or leading or trailing whitespace.
         type: dict
         default: {}
         no_log: true

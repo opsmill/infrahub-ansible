@@ -107,6 +107,22 @@
           backup dir mode={{ backup_dir_stat.stat.mode | default('missing') }}
         quiet: true
 
+    # install_tool is false here, so the role skipped fact gathering: gather now.
+    - name: Gather architecture fact for the default download URL
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+
+    - name: Assert default tool URL and checksum shape
+      ansible.builtin.assert:
+        that:
+          - backup_infrahub_default_tool_url is search('/infrahub-backup-linux-(amd64|arm64)$')
+          - backup_infrahub_default_tool_url is match('https://github.com/opsmill/infrahub-backup/releases/download/')
+          - backup_infrahub_default_tool_checksum is match('sha256:https://github.com/opsmill/infrahub-backup/releases/download/')
+          - backup_infrahub_default_tool_checksum is search('/SHA256SUMS$')
+        fail_msg: "url={{ backup_infrahub_default_tool_url }} checksum={{ backup_infrahub_default_tool_checksum }}"
+        quiet: true
+
 - name: Backup role render (S3 upload)
   hosts: localhost
   connection: local
@@ -221,4 +237,74 @@
           - nosystemd_stats.results[2].stat.exists
           - nosystemd_stats.results[2].stat.mode == '0600'
         fail_msg: "Unexpected files under {{ render_root }}"
+        quiet: true
+
+# Every optional create flag, --project omitted, and $ / % escaping: exact token list.
+- name: Backup role render (all create flags)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/flags"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: true
+    backup_infrahub_docker_project: ""
+    backup_infrahub_retention_days: 7
+    backup_infrahub_force: true
+    backup_infrahub_exclude_taskmanager: true
+    backup_infrahub_log_format: json
+    backup_infrahub_neo4j_metadata: none
+    backup_infrahub_s3_prefix: "pre$fix%x"
+    service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read service unit
+      ansible.builtin.slurp:
+        src: "{{ service_path }}"
+      register: service_raw
+
+    - name: Assert exact ExecStart tokens
+      vars:
+        service: "{{ service_raw.content | b64decode }}"
+        exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
+        tokens: "{{ exec_start | regex_replace('^ExecStart=', '') | split(' ') }}"
+        expected:
+          - "{{ backup_infrahub_bin_path | quote }}"
+          - --backup-dir
+          - "{{ backup_infrahub_backup_directory | quote }}"
+          - --log-format
+          - json
+          - --s3-prefix
+          - "'pre$$fix%%x'"
+          - create
+          - --neo4jmetadata
+          - none
+          - --force
+          - --exclude-taskmanager
+          - --retention-days
+          - "7"
+      ansible.builtin.assert:
+        that:
+          - tokens == expected
+        fail_msg: "tokens={{ tokens }} expected={{ expected }}"
         quiet: true
