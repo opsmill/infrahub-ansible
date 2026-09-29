@@ -84,14 +84,15 @@ An operator about to upgrade Infrahub wants a backup taken right now, as a step 
 - **FR-006**: The role MUST let the operator configure: backup directory, Docker Compose project name, whether to force a backup while tasks are running, which Neo4j metadata to include, whether to exclude the task-manager database, and log format.
 - **FR-007**: The role MUST support an optional retention policy by age (days) and/or by count, applied after each successful backup; values below 1 MUST be rejected at role-validation time.
 - **FR-008**: The role MUST support uploading each backup to S3-compatible remote storage with configurable bucket, prefix, endpoint, region and "keep local copy" option.
-- **FR-009**: Remote storage credentials MUST be accepted as role variables, MUST NOT appear in Ansible output, and MUST be stored on the host only in a file readable by its owner (mode 0600 or stricter). When credentials are not set, the role MUST rely on the tool's standard credential chain (for example an instance role).
-- **FR-010**: The role MUST, by default, install a systemd service and timer that run the backup on a configurable schedule (default: daily), catching up missed runs after downtime.
+- **FR-009**: Remote storage credentials, and any extra tool environment variables the operator supplies (for example database credentials when auto-detection fails), MUST be accepted as role variables, MUST NOT appear in Ansible output, and MUST be stored on the host only in a file readable by its owner (mode 0600 or stricter). When credentials are not set, the role MUST rely on the tool's standard credential chain (for example an instance role).
+- **FR-010**: The role MUST, by default, install a systemd service and timer that run the backup on a configurable schedule (default: daily at 02:00 host time), catching up missed runs after downtime.
 - **FR-011**: The operator MUST be able to disable systemd setup; disabling it after a previous enablement MUST stop and disable the timer.
 - **FR-012**: The role MUST offer an opt-in option to run one backup immediately during the play, failing the play if the backup fails.
 - **FR-013**: Changes to schedule or backup configuration MUST take effect on re-apply without manual steps (systemd reloaded, timer restarted when needed).
 - **FR-014**: The role MUST validate its inputs through an argument specification so invalid types or choices fail before any change is made.
 - **FR-015**: The role MUST NOT expose the backup tool's destructive redact option or restore operations.
-- **FR-016**: The role MUST be documented on the collection's documentation site alongside the `install` role, including an example playbook combining `install` and `backup`, and a changelog fragment.
+- **FR-016**: The role MUST be documented on the collection's documentation site alongside the `install` role, including an example playbook combining `install` and `backup`, how to check that scheduled backups succeed, a pointer to the tool's restore procedure, the S3 behaviours operators must know (local copy removed after upload unless kept; pruning remote archives needs delete permission), and a changelog entry.
+- **FR-017**: The operator MUST be able to name a systemd unit to be triggered when a scheduled backup fails, so failures can be alerted on rather than discovered at restore time.
 
 ### Key Entities
 
@@ -120,5 +121,6 @@ An operator about to upgrade Infrahub wants a backup taken right now, as a step 
 - "Remotely" is interpreted as S3-compatible object storage, which the tool supports natively. Other transports (SCP, rsync, NFS) are out of scope; an NFS mount can be used simply by pointing the backup directory at it.
 - Restore is out of scope for this role — it is an interactive, destructive operation better run by hand or in a separate future role.
 - Backups run as root by default (the tool needs Docker access); operators may override the service user.
-- Default Docker Compose project name matches the `install` role default (`infrahub`).
+- Default Docker Compose project name matches the `install` role default (`infrahub`); setting it empty lets the tool auto-detect.
+- Compatibility between the backup tool and a given Infrahub version is owned by the tool; the role pins a tool version and lets operators override it.
 - Role variables use a `backup_infrahub_` prefix, mirroring the `install_infrahub_` convention.

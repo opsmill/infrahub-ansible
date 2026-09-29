@@ -14,7 +14,7 @@ This is the public interface. `roles/backup/meta/argument_specs.yml`, `roles/bac
 | `backup_infrahub_backup_directory` | str | `/var/backups/infrahub` | — | `--backup-dir` |
 | `backup_infrahub_backup_directory_mode` | str | `"0700"` | — | `file.mode` |
 | `backup_infrahub_config_directory` | str | `/etc/infrahub-backup` | — | env file location |
-| `backup_infrahub_docker_project` | str | `infrahub` | — | `--project` |
+| `backup_infrahub_docker_project` | str | `infrahub` | `''` omits the flag (tool auto-detects) | `--project` |
 | `backup_infrahub_force` | bool | `false` | — | `--force` |
 | `backup_infrahub_neo4j_metadata` | str | `all` | `all`, `none`, `users`, `roles` | `--neo4jmetadata` |
 | `backup_infrahub_exclude_taskmanager` | bool | `false` | — | `--exclude-taskmanager` |
@@ -32,9 +32,11 @@ This is the public interface. `roles/backup/meta/argument_specs.yml`, `roles/bac
 | `backup_infrahub_setup_systemd` | bool | `true` | — | units + timer |
 | `backup_infrahub_systemd_directory` | str | `/etc/systemd/system` | — | unit path |
 | `backup_infrahub_systemd_manage_state` | bool | `true` | `false` = render units only | daemon-reload / timer state |
-| `backup_infrahub_schedule` | str | `daily` | systemd `OnCalendar` expression | timer `OnCalendar=` |
+| `backup_infrahub_schedule` | str | `*-*-* 02:00:00` | systemd `OnCalendar` expression | timer `OnCalendar=` |
 | `backup_infrahub_randomized_delay` | str | `"0"` | systemd time span | timer `RandomizedDelaySec=` |
 | `backup_infrahub_service_user` | str | `root` | needs Docker access | service `User=` |
+| `backup_infrahub_on_failure` | str | unset | systemd unit name (e.g. `notify-failure@%n.service`) | service `OnFailure=` |
+| `backup_infrahub_environment` | dict | `{}` | `no_log`; extra env vars for the tool (e.g. `INFRAHUB_DB_PASSWORD`) | env file |
 | `backup_infrahub_run_now` | bool | `false` | — | immediate `create` |
 | `backup_infrahub_become` | bool | `true` | — | task `become` |
 
@@ -47,7 +49,7 @@ Flags whose variable is unset or `false` are omitted from the command line (tool
 | `{{ bin_path }}` | 0755 | root | `install_tool` |
 | `{{ backup_directory }}` | `{{ backup_directory_mode }}` | `service_user` | always |
 | `{{ config_directory }}/` | 0700 | root | always |
-| `{{ config_directory }}/infrahub-backup.env` | 0600 | root | always (empty body without credentials) |
+| `{{ config_directory }}/infrahub-backup.env` | 0600 | root | always (holds credentials and `backup_infrahub_environment`; comment-only when both empty) |
 | `{{ systemd_directory }}/infrahub-backup.service` | 0644 | root | `setup_systemd` |
 | `{{ systemd_directory }}/infrahub-backup.timer` | 0644 | root | `setup_systemd` |
 

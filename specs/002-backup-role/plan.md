@@ -6,7 +6,7 @@
 
 ## Summary
 
-Add `roles/backup` (`opsmill.infrahub.backup`), modelled on `roles/install`. It installs a pinned, checksum-verified `infrahub-backup` binary, renders a secrets-only env file (0600) and a systemd service + timer whose `ExecStart` carries all non-secret options as CLI flags, and optionally runs one backup immediately. Local directory and S3-compatible remote storage are both supported through the tool's native flags; retention uses the tool's `--retention-*`. Validation runs before any host change. Tested with ansible-lint plus two localhost playbooks (validation, render + idempotency + secrecy); end-to-end on a real host is a manual quickstart step.
+Add `roles/backup` (`opsmill.infrahub.backup`), modelled on `roles/install`. It installs a pinned, checksum-verified `infrahub-backup` binary, renders a secrets-only env file (0600) and a systemd service + timer whose `ExecStart` carries all non-secret options as CLI flags, and optionally runs one backup immediately. Local directory and S3-compatible remote storage are both supported through the tool's native flags; retention uses the tool's `--retention-*`. Validation runs before any host change. Tested with ansible-lint plus two localhost playbooks (validation; render + idempotency) driven by `run.sh`, which also greps `-vvv --diff` output for a sentinel secret; end-to-end on a real host is a manual quickstart step.
 
 ## Technical Context
 
@@ -76,6 +76,7 @@ roles/backup/
     └── infrahub-backup.timer.j2
 
 tests/roles/backup/
+├── run.sh                 # runs both; -vvv --diff capture + sentinel-secret grep (critique E3)
 ├── test_validation.yml
 └── test_render.yml
 
@@ -88,11 +89,19 @@ CHANGELOG.rst                           # "New Roles" entry
 
 ## Key Design Points
 
-1. **Task order** (`tasks/main.yml`): `validate.yml` → gather arch (use `ansible_facts.architecture`; the role requires facts, documented) → `get_url` binary (when `install_tool`) → `file` backup dir + config dir → `template` env file (`no_log`, `diff: false`) → `setup_systemd.yml` (when `setup_systemd`) or disable timer (when not, and unit exists) → `meta: flush_handlers` → `command` run-now (when `run_now`).
+1. **Task order** (`tasks/main.yml`): `validate.yml` → gather `min` facts only when `ansible_facts.architecture` is undefined (critique E6) → `get_url` binary (when `install_tool`) → `file` backup dir + config dir → `template` env file (`no_log`, `diff: false`) → `setup_systemd.yml` (when `setup_systemd`) or disable timer (when not, and unit exists) → `meta: flush_handlers` → `command` run-now (when `run_now`).
 2. **Handlers**: `Reload systemd` (`daemon_reload`) then `Restart Infrahub backup timer` (`state: restarted`, `enabled: true`), both gated on `systemd_manage_state`. Env-file changes notify nothing (the oneshot reads it each run).
 3. **Timer state task** (not only handler) ensures `enabled: true, state: started` every run so a manually stopped timer is corrected — idempotent.
 4. **ExecStart**: `{{ bin_path }} {{ backup_infrahub_create_args | map('quote') | join(' ') }}`. Same list used by run-now `command: argv:`.
-5. **Secrets**: `no_log: "{{ backup_infrahub_s3_access_key_id is defined }}"` on run-now; always `no_log: true` on env-file template.
+5. **Secrets**: `no_log: true` on run-now whenever credentials or `backup_infrahub_environment` are set; always `no_log: true` + `diff: false` on env-file template. The env file carries S3 credentials and `backup_infrahub_environment` (critique E2).
+6. **systemd escaping**: every ExecStart token is shell-quoted and `%` doubled to `%%` (critique E4).
+7. **Failure hook**: `OnFailure={{ backup_infrahub_on_failure }}` rendered in `[Unit]` only when set (critique E1). Docs show `systemctl list-timers infrahub-backup.timer` and `journalctl -u infrahub-backup.service`.
+8. **Schedule default**: `*-*-* 02:00:00` (critique P2); empty `docker_project` omits `--project` (P3).
+
+## Follow-ups (out of scope, need approval: `.github/workflows`)
+
+- Wire `tests/roles/backup/run.sh` into CI (critique E5).
+- Add `infrahub-backup` to dependency-bump automation (critique E7).
 
 ## Risks
 

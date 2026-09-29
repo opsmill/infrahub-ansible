@@ -4,11 +4,10 @@
 
 ```bash
 uv run ansible-lint roles/backup
-ANSIBLE_ROLES_PATH=roles uv run ansible-playbook -i localhost, -c local tests/roles/backup/test_validation.yml
-ANSIBLE_ROLES_PATH=roles uv run ansible-playbook -i localhost, -c local tests/roles/backup/test_render.yml
+tests/roles/backup/run.sh   # validation + render (x2, idempotency) + -vvv --diff secret grep
 ```
 
-Expected: lint clean; both playbooks end with `failed=0`. `test_render.yml` asserts the second pass reports `changed=0` and that no secret string appears in captured output.
+Expected: lint clean; both playbooks end with `failed=0`. `run.sh` exits 0 only if validation cases fail as expected, the second render pass reports `changed=0`, and the sentinel secret never appears in `-vvv --diff` output.
 
 ## End-to-end (Linux systemd host with Infrahub on Docker Compose)
 
