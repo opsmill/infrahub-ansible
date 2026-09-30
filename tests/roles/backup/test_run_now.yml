@@ -1,6 +1,7 @@
 ---
-# Run-now test (US3, FR-012): a fake infrahub-backup records its argv and which
-# credential variables it received (presence only, never values). Kept out of
+# Run-now test (US3, FR-012): a fake infrahub-backup records its argv and the
+# sha256 of each credential it received (never the value); run.sh compares them
+# to the expected hashes (decision 11). Kept out of
 # test_render.yml because run-now always reports changed, which would break the
 # render idempotency check. Credentials come from run.sh (-e), so no_log is active
 # and run.sh greps this playbook's -vvv output for the sentinel.
@@ -38,15 +39,26 @@
         state: directory
         mode: "0755"
 
-    - name: Install a fake infrahub-backup that records argv and env presence
+    # Records KEY=<sha256 of value>, never the value; run.sh compares the hashes.
+    - name: Install a fake infrahub-backup that records argv and env value hashes
       ansible.builtin.copy:
         dest: "{{ backup_infrahub_bin_path }}"
         mode: "0755"
         content: |
           #!/bin/sh
+          sha256() {
+            if command -v sha256sum >/dev/null 2>&1; then
+              sha256sum | cut -d' ' -f1
+            else
+              shasum -a 256 | cut -d' ' -f1
+            fi
+          }
           printf '%s\n' "$@" > '{{ render_root }}/argv.txt'
           for v in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY INFRAHUB_DB_PASSWORD; do
-            if printenv "$v" >/dev/null; then echo "$v=set"; fi
+            if printenv "$v" >/dev/null; then
+              eval "val=\${$v}"
+              printf '%s=%s\n' "$v" "$(printf '%s' "$val" | sha256)"
+            fi
           done > '{{ render_root }}/env.txt'
           exit 0
 
@@ -59,7 +71,7 @@
         src: "{{ render_root }}/argv.txt"
       register: argv_raw
 
-    - name: Read recorded env presence
+    - name: Read recorded env hashes
       ansible.builtin.slurp:
         src: "{{ render_root }}/env.txt"
       register: env_raw
@@ -74,9 +86,8 @@
           - "'create' in argv"
           - "'--backup-dir' in argv"
           - argv[argv.index('--backup-dir') + 1] == backup_infrahub_backup_directory
-          - "'AWS_ACCESS_KEY_ID=set' in env_seen"
-          - "'AWS_SECRET_ACCESS_KEY=set' in env_seen"
-          - "'INFRAHUB_DB_PASSWORD=set' in env_seen"
+          - env_seen | map('regex_replace', '=.*$', '') | sort
+            == ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'INFRAHUB_DB_PASSWORD']
         fail_msg: "argv={{ argv }} env={{ env_seen }}"
         quiet: true
 

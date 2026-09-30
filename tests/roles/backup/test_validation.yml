@@ -170,42 +170,43 @@
               - test_sentinel not in ansible_failed_result.msg
             fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
 
-    - name: Case environment value with a double quote
+    # Decision 11: only newline/CR is rejected; every other character round-trips.
+    - name: Case environment value with a newline
       block:
-        - name: Apply role with a quoted environment value
+        - name: Apply role with a multi-line environment value
           ansible.builtin.include_role:
             name: backup
           vars:
             backup_infrahub_environment:
-              INFRAHUB_DB_PASSWORD: 'pa"ss'
+              INFRAHUB_DB_PASSWORD: "{{ test_sentinel }}\nsecond-line"
         - name: Role must not succeed
           ansible.builtin.fail:
             msg: "{{ role_should_have_failed }}"
       rescue:
-        - name: Assert unsafe-value message names the key, not the value
+        - name: Assert newline message names the key, not the value
           ansible.builtin.assert:
             that:
-              - "'contains characters that systemd EnvironmentFile cannot represent safely' in ansible_failed_result.msg"
-              - "'INFRAHUB_DB_PASSWORD' in ansible_failed_result.msg"
-              - "'pa\"ss' not in ansible_failed_result.msg"
+              - "'contains a newline' in ansible_failed_result.msg"
+              - "'backup_infrahub_environment.INFRAHUB_DB_PASSWORD' in ansible_failed_result.msg"
+              - test_sentinel not in ansible_failed_result.msg
             fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
 
-    - name: Case S3 secret with a dollar sign
+    - name: Case S3 secret with a carriage return
       block:
-        - name: Apply role with a $ in the S3 secret
+        - name: Apply role with a CR in the S3 secret
           ansible.builtin.include_role:
             name: backup
           vars:
             backup_infrahub_s3_access_key_id: AKIATEST
-            backup_infrahub_s3_secret_access_key: "{{ test_sentinel }}$x"
+            backup_infrahub_s3_secret_access_key: "{{ test_sentinel }}\r"
         - name: Role must not succeed
           ansible.builtin.fail:
             msg: "{{ role_should_have_failed }}"
       rescue:
-        - name: Assert unsafe-value message names the variable, not the value
+        - name: Assert newline message names the variable, not the value
           ansible.builtin.assert:
             that:
-              - "'contains characters that systemd EnvironmentFile cannot represent safely' in ansible_failed_result.msg"
+              - "'contains a newline' in ansible_failed_result.msg"
               - "'backup_infrahub_s3_secret_access_key' in ansible_failed_result.msg"
               - "'backup_infrahub_s3_access_key_id' not in ansible_failed_result.msg"
               - test_sentinel not in ansible_failed_result.msg
