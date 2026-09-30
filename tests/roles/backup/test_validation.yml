@@ -198,7 +198,7 @@
             name: backup
           vars:
             backup_infrahub_s3_access_key_id: AKIATEST
-            backup_infrahub_s3_secret_access_key: "{{ test_sentinel }}\r"
+            backup_infrahub_s3_secret_access_key: "{{ test_sentinel }}\rx"
         - name: Role must not succeed
           ansible.builtin.fail:
             msg: "{{ role_should_have_failed }}"

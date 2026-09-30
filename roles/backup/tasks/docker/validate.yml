@@ -23,9 +23,10 @@
       (must match ^[A-Za-z_][A-Za-z0-9_]*$): {{ backup_infrahub_invalid_env_keys | join(', ') }}
     quiet: true
 
-# systemd EnvironmentFile unquotes/unescapes these while the run-now wrapper
-# (`export "$line"`) takes them literally: the scheduled run would get another value.
-- name: Validate environment values are representable in the env file
+# The env file quotes and escapes every other character (research R11); a newline
+# or CR cannot be represented (a backslash-newline is a line continuation in both
+# systemd and sh).
+- name: Validate environment values have no newline
   vars:
     backup_infrahub_unsafe_env_names: >-
       {{
@@ -46,9 +47,8 @@
     that:
       - backup_infrahub_unsafe_env_names | length == 0
     fail_msg: >-
-      {{ backup_infrahub_unsafe_env_names | join(', ') }} contains characters that systemd
-      EnvironmentFile cannot represent safely (newline, backslash, quotes, $, or
-      leading/trailing whitespace)
+      {{ backup_infrahub_unsafe_env_names | join(', ') }} contains a newline or carriage
+      return, which the env file cannot represent
     quiet: true
 
 - name: Validate tool checksum is set with a custom tool URL

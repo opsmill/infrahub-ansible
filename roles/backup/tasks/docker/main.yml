@@ -22,23 +22,25 @@
     owner: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
   become: "{{ backup_infrahub_become }}"
 
+# Owned by service_user: the run-now wrapper sources the env file as that user
+# (systemd reads EnvironmentFile= as PID 1 regardless).
 - name: Create the config directory
   ansible.builtin.file:
     path: "{{ backup_infrahub_config_directory }}"
     state: directory
     mode: "0700"
-    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    owner: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
     group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
   become: "{{ backup_infrahub_become }}"
 
 # Holds S3 credentials and backup_infrahub_environment: never log or diff it.
-# No notify: the oneshot service reads it on every run.
+# No notify: the oneshot service and the run-now wrapper read it on every run.
 - name: Configure the infrahub-backup environment file
   ansible.builtin.template:
     src: infrahub-backup.env.j2
     dest: "{{ backup_infrahub_env_file }}"
     mode: "0600"
-    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    owner: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
     group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
   become: "{{ backup_infrahub_become }}"
   no_log: true
@@ -71,35 +73,21 @@
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
 
-# On-demand backup (FR-012). Credentials are fed as KEY=value lines on stdin and
-# exported by a sh wrapper: `environment:` would put them on the remote command line
-# (visible in `ps` and printed at -vvv even with no_log). `export "$line"` assigns
-# the value literally (no re-expansion). no_log hides stdin in the result, which
-# would also hide the tool's error: the result is registered and a separate task
-# fails with the tool's output instead (US3-AS2).
+# On-demand backup (FR-012). The sh wrapper sources the same env file as the
+# scheduled unit (`set -a; . file`), so both runs get the exact same values
+# (research R11) and no secret is on the command line (`environment:` would put
+# it in `ps` and the -vvv output even with no_log). A missing or unreadable file
+# makes `.` fail, which surfaces through the fail task below. no_log would also
+# hide the tool's error: the result is registered and a separate task fails with
+# the tool's output instead (US3-AS2).
 - name: Run an Infrahub backup now
-  vars:
-    backup_infrahub_run_now_environment: >-
-      {{
-        ({'AWS_ACCESS_KEY_ID': backup_infrahub_s3_access_key_id}
-         if backup_infrahub_s3_access_key_id is defined else {})
-        | combine({'AWS_SECRET_ACCESS_KEY': backup_infrahub_s3_secret_access_key}
-                  if backup_infrahub_s3_secret_access_key is defined else {})
-        | combine(backup_infrahub_environment)
-      }}
   ansible.builtin.command:
     argv: >-
       {{
-        ['/bin/sh', '-c',
-         'while IFS= read -r line || [ -n "$line" ]; do'
-         ' [ -z "$line" ] || export "$line" || exit 97; done; exec "$@"',
-         'infrahub-backup', backup_infrahub_bin_path]
+        ['/bin/sh', '-c', 'set -a; . "$1"; set +a; shift; exec "$@"',
+         'infrahub-backup', backup_infrahub_env_file, backup_infrahub_bin_path]
         + backup_infrahub_create_args
       }}
-    stdin: |-
-      {% for key, value in backup_infrahub_run_now_environment | dictsort %}
-      {{ key }}={{ value }}
-      {% endfor %}
   become: "{{ backup_infrahub_become }}"
   # Same identity as the scheduled unit (User=), so both runs have the same access.
   become_user: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
