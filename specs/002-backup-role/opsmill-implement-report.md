@@ -1,4 +1,90 @@
-# Implementation Report: Backup Role (002-backup-role) — INCOMPLETE
+# Implementation Report: Backup Role (002-backup-role)
+
+## Iteration 2 (2026-09-30) — INCOMPLETE
+
+- **Source**: [grill-decisions.md](grill-decisions.md) (17 user decisions from the grilling session)
+- **Spec dir**: `specs/002-backup-role`
+- **Branch**: `backup-role`. It was `issue-163` at the start and was renamed outside this session; the commits are unchanged.
+- **Base commit**: `b74a190` · **Head commit**: `af4168b` (before this report)
+- **Wall clock**: ~40 min (13:30Z → 14:10Z)
+- **Status**: INCOMPLETE. All 12 Iteration 2 tasks (T031–T042) are done, and all local tests pass. T030 (the manual end-to-end test on a real host) is still open.
+
+### 1. Chunk ledger
+
+| # | Chunk | Tasks | ✅/⚠️/❌ | Commits | Flagged |
+|---|---|---|---|---|---|
+| 1 | Phase 7: interface, defaults, encryption, platform split | T031–T034 | 4/0/0 | `7e7bb64`, `0c19398` | `retention_count: 7` is set only in `defaults/main.yml`, because an argument-spec `default:` makes `null` fail as "cannot convert to int". Added a check that `encrypt_key` is an absolute path. `7e7bb64` fails on its own (it uses the platform variable defined in the next commit), so squash if every commit must pass |
+| 2 | Phase 8: exact value round-trip | T035–T039 | 5/0/0 | `b1a4606`, `011d10b` | Env file uses `KEY="…"` with `\ " $ \`` escaped, and run-now sources it via `sh`. **The systemd side is verified**: systemd 252 in a privileged Debian 12 container returned the same hashes as sh (dash and macOS sh). The CR test value is `…\rx`, because Jinja drops a trailing CR |
+| 3 | Phase 9: docs and CI | T040–T042 | 3/0/0 | `28e194c`, `b487c2b`, `d9f756d` | New `backup-role-tests` CI job, added to `all_green`. Docs table matches the argument spec for all 35 options. `build_ignore` in `galaxy.yml` misses `.venv`, `specs/` and others; this predates this branch |
+| R | Review fixes | — | — | `344e567`, `8250eb5`, `af4168b` | See §4 |
+
+### 2. Tasks not completed
+
+- **T030**: end-to-end test on a real host. The pieces:
+  - **Systemd behaviour** (timer, handlers, disabling the timer): not tested. It could now be checked locally, because a systemd container works on this machine.
+  - **A real backup against Infrahub** under Docker Compose: needs a real host.
+
+### 3. Local-pass evidence
+
+| Test id | Type | Run command | Passed at | Environment | Verbatim pass line |
+|---|---|---|---|---|---|
+| `test_validation.yml` (15 failure cases) | integration | `bash tests/roles/backup/run.sh` | 2026-09-30T14:04:34Z | macOS arm64, ansible-core 2.19.11rc1, uv | `localhost : ok=78 changed=0 unreachable=0 failed=0 skipped=36 rescued=14 ignored=0` |
+| `test_validation.yml` incl. Linux-only service-user check | integration | `ansible-playbook … test_validation.yml` | 2026-09-30T14:0xZ | `python:3.12-slim` container, unprivileged user | `localhost : ok=88 changed=0 unreachable=0 failed=0 skipped=38 rescued=15 ignored=0` |
+| `test_render.yml` run 1 | integration | `bash tests/roles/backup/run.sh` | 2026-09-30T14:04:34Z | macOS | `localhost : ok=87 changed=27 unreachable=0 failed=0 skipped=78 rescued=0 ignored=0` |
+| `test_render.yml` run 2 (idempotency) | integration | same | 2026-09-30T14:04:34Z | macOS | `localhost : ok=87 changed=0 unreachable=0 failed=0 skipped=70 rescued=0 ignored=0` |
+| `test_render_no_secrets.yml` (null credentials) | integration | same | 2026-09-30T14:04:34Z | macOS | `localhost : ok=14 changed=3 unreachable=0 failed=0 skipped=16 rescued=0 ignored=0` |
+| `test_run_now.yml` (hash round-trip + failure) | integration | same | 2026-09-30T14:04:34Z | macOS | `localhost : ok=37 changed=12 unreachable=0 failed=0 skipped=29 rescued=1 ignored=0` |
+| `envfile_roundtrip.sh` + `run.sh` aggregate | integration | same | 2026-09-30T14:04:34Z | macOS | `PASS: backup role tests` |
+| `envfile_roundtrip.sh` under dash | integration | run in `debian:12` | 2026-09-30T13:41:24Z | Debian 12, `/bin/sh -> dash` | `ok:` for all 3 keys |
+| systemd EnvironmentFile round-trip | integration | `systemd-run --wait --pipe --quiet -p EnvironmentFile=/tmp/test.env sh -c 'printf %s "$KEY" \| sha256sum'` | 2026-09-30T13:42:37Z | privileged Debian 12 + systemd 252 container (built locally) | `MATCH AWS_ACCESS_KEY_ID` / `MATCH AWS_SECRET_ACCESS_KEY` / `MATCH INFRAHUB_DB_PASSWORD` |
+| quickstart e2e | e2e | `quickstart.md` | deferred — local E2E not supported | Linux host + Infrahub on Docker Compose | — |
+
+Other checks:
+- **Passed:**
+  - ansible-lint (production profile)
+  - yamllint
+  - mypy
+  - `invoke tests-sanity`, with `.ansible/` moved aside for the run
+  - `invoke galaxy-build`
+  - actionlint on the CI job
+  - rumdl on all files this branch added
+- **Still failing, predates this branch:** rumdl on `plugins/AGENTS.md`. CI's `markdown-lint` job runs `rumdl check .`, so it fails until that file is fixed.
+
+### 4. Review findings
+
+| Sev | File | Summary | Status |
+|---|---|---|---|
+| High | `vars/main.yml` | `retention_days: null` rendered `--retention-days None`, so every scheduled run would fail with no warning | ✅ fixed and tested |
+| Medium | `tasks/docker/validate.yml` | A missing `service_user` failed only after the binary was installed | ✅ fixed: `getent` check; the test runs on Linux only |
+| Medium | docs | Run-now as an unprivileged `service_user` needs pipelining or ACLs | ✅ documented |
+| Medium | tests | Nothing checked `service_user` / `User=`, the absence of `OnFailure`, or that the secret stays out of the argument list | ✅ tests added |
+| Medium | tests/CI | The systemd side of the round-trip is checked by hand only, not in CI | deferred |
+| Low | `tasks/validate.yml` | `config_directory` must be absolute | ✅ fixed |
+| Low | vars/template | A `null` credential rendered `"None"` | ✅ fixed and tested |
+| Low | docs | `AWS_*` keys in `backup_infrahub_environment` override the S3 variables | ✅ documented |
+| Low | docs/specs | Key path mismatch, the facts claim, edition and retention wording, stale R4/R12 | ✅ fixed |
+| Low | `run.sh` | Locale-dependent `sort` | ✅ `LC_ALL=C` |
+| Low | tests | Run-now as a non-root `become_user` has no integration test | deferred |
+| — | — | `rumdl` failures in this branch's spec files and `CLAUDE.md` | ✅ fixed (`344e567`) |
+
+### 5. Autonomous decisions
+
+- **Implementation order:** followed the Phase 7–9 layout in `tasks.md`, one chunk each.
+- **Where the 7 lives:** only in `defaults/main.yml`, so that `null` still turns retention off. The docs table special-cases it.
+- **Test isolation:** the service-user check only runs on Linux. Null credentials are tested in a separate playbook, because `-e` extra vars would override them.
+- **Deferred:** a systemd round-trip job in CI, and an integration test for an unprivileged `become_user`.
+- **Deferred e2e:** the quickstart end-to-end was not run locally. Please confirm that's acceptable.
+
+### 6. Suggested next steps
+
+1. Run T030: systemd timer and handler behaviour in a systemd container (possible locally now), plus a real backup against Infrahub on a Linux VM.
+2. Fix `plugins/AGENTS.md` rumdl issues (predate this branch), or CI's `markdown-lint` job will fail.
+3. Ask the infrahub-backup maintainers whether `--encrypt`/`--encrypt-key` are ready for customers; they're absent from the published docs.
+4. Squash `7e7bb64` + `0c19398` if every commit must pass on its own; then open a PR against `develop`.
+
+---
+
+# Iteration 1 report (2026-09-29) — INCOMPLETE
 
 - **Feature**: `opsmill.infrahub.backup` role (issue #163)
 - **Spec dir**: `specs/002-backup-role`
