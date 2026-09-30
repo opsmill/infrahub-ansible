@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Iteration 2 (updated 2026-09-30 from [grill-decisions.md](grill-decisions.md))
 
 **Input**: GitHub issue [opsmill/infrahub-ansible#163](https://github.com/opsmill/infrahub-ansible/issues/163) — "feature: Add role to backup an infrahub instance". *"Similar to the install role, I would like to have a role to ease the backup. Use case: backup an Infrahub Instance locally/remotely; ease to configure systemd service."*
 
@@ -30,7 +30,7 @@ An operator who installed Infrahub on a Docker Compose host (typically with the 
 
 ### User Story 2 - Send backups to remote object storage (Priority: P2)
 
-An operator who needs off-host copies configures S3-compatible remote storage (AWS S3 or a self-hosted equivalent such as MinIO) through role variables, including bucket, path prefix, endpoint, region and credentials. Every scheduled backup is then uploaded to that remote location, optionally keeping a local copy as well.
+An operator who needs off-host copies configures S3-compatible remote storage (AWS S3 or a self-hosted equivalent such as MinIO) through role variables, including bucket, path prefix, endpoint, region and credentials. Every scheduled backup is then uploaded to that remote location, optionally keeping a local copy as well. Archives can optionally be encrypted, either with OpsMill's built-in key (for sharing with OpsMill support) or with the operator's own public key.
 
 **Why this priority**: The issue explicitly asks for "locally/remotely". A local-only backup does not survive loss of the host, so remote storage is the second most valuable capability, but it depends on the operator having object storage available.
 
@@ -42,6 +42,8 @@ An operator who needs off-host copies configures S3-compatible remote storage (A
 2. **Given** "keep local copy" is enabled, **When** a backup with remote upload runs, **Then** the archive exists both locally and remotely; when disabled, only remotely.
 3. **Given** remote storage credentials are provided, **When** the role runs with verbose output, **Then** the credential values never appear in the Ansible output, and the file that stores them on the host is readable only by its owner.
 4. **Given** remote upload is enabled but no bucket is set, **When** the role runs, **Then** it fails early with a clear message before changing the host.
+5. **Given** an encryption public key path is configured, **When** a backup runs, **Then** the archive is encrypted with that key; **Given** built-in encryption is enabled instead, **Then** the archive is encrypted with the tool's built-in OpsMill key.
+6. **Given** a credential or extra environment value containing quotes, `\`, `$` or surrounding spaces, **When** the scheduled run and the on-demand run execute, **Then** both receive exactly the configured value.
 
 ---
 
@@ -64,13 +66,15 @@ An operator about to upgrade Infrahub wants a backup taken right now, as a step 
 ### Edge Cases
 
 - The host architecture has no published backup tool build (neither x86_64 nor aarch64): the role fails with an explicit "unsupported architecture" message.
-- Multiple Infrahub Compose projects run on the same host: the operator sets the project name; without it the tool auto-detects, which may be ambiguous — the role passes the project name used by the `install` role by default.
+- Multiple Infrahub Compose projects run on the same host: by default the role passes no project and the tool auto-detects, which can be ambiguous; the operator must then set the project name (documented).
 - Infrahub tasks are running when the scheduled backup starts: by default the backup refuses (the tool's safe behaviour); the operator may opt in to forcing.
-- Community Edition stops the application container during the backup: documented so operators schedule the timer in a maintenance window.
+- Community Edition is backed up offline (Infrahub services stopped for the dump) while Enterprise is backed up online: documented so Community operators schedule the timer in a maintenance window.
 - A retention value of `0` or a negative number: rejected by the role before anything is written, rather than deferred to a failing nightly run.
 - The host was powered off at the scheduled time: the missed backup runs at next boot.
 - Operator disables scheduling after previously enabling it: the timer is stopped and disabled, so backups stop.
-- The redact option of the backup tool is destructive to the live database and is deliberately not exposed by the role.
+- The redact option of the backup tool scrambles the live database and is deliberately not exposed; the docs explain the manual flow on a throwaway instance.
+- A credential or environment value containing a newline cannot be represented in an environment file: rejected before any change, naming the variable only.
+- A platform other than `docker` is requested: rejected by the argument specification.
 
 ## Requirements *(mandatory)*
 
@@ -81,18 +85,20 @@ An operator about to upgrade Infrahub wants a backup taken right now, as a step 
 - **FR-003**: The role MUST verify the downloaded tool against its published checksum before installing it.
 - **FR-004**: Re-applying the role with the same variables MUST report no changes (idempotency), including the tool installation, configuration and systemd units.
 - **FR-005**: The role MUST create the local backup directory with restrictive permissions if it does not exist.
-- **FR-006**: The role MUST let the operator configure: backup directory, Docker Compose project name, whether to force a backup while tasks are running, which Neo4j metadata to include, whether to exclude the task-manager database, and log format.
-- **FR-007**: The role MUST support an optional retention policy by age (days) and/or by count, applied after each successful backup; values below 1 MUST be rejected at role-validation time.
+- **FR-006**: The role MUST let the operator configure: backup directory, Docker Compose project name, whether to force a backup while tasks are running, which Neo4j metadata to include, whether to exclude the task-manager database, and log format. Except for the backup directory, each option MUST default to the tool's own default by omitting the corresponding flag when unset.
+- **FR-007**: The role MUST apply a retention policy after each successful backup: by count (default 7 archives, disable with `null`) and optionally by age (days, unset by default); values below 1 MUST be rejected at role-validation time.
 - **FR-008**: The role MUST support uploading each backup to S3-compatible remote storage with configurable bucket, prefix, endpoint, region and "keep local copy" option.
-- **FR-009**: Remote storage credentials, and any extra tool environment variables the operator supplies (for example database credentials when auto-detection fails), MUST be accepted as role variables, MUST NOT appear in Ansible output, and MUST be stored on the host only in a file readable by its owner (mode 0600 or stricter). When credentials are not set, the role MUST rely on the tool's standard credential chain (for example an instance role).
+- **FR-009**: Remote storage credentials, and any extra tool environment variables the operator supplies (for example database credentials when auto-detection fails), MUST be accepted as role variables, MUST NOT appear in Ansible output, and MUST be stored on the host only in a file readable by its owner (mode 0600 or stricter), and MUST reach both the scheduled and the on-demand backup byte-for-byte unchanged, including quotes, backslashes, `$` and surrounding whitespace (only newlines are rejected). When credentials are not set, the role MUST rely on the tool's standard credential chain (for example an instance role).
 - **FR-010**: The role MUST, by default, install a systemd service and timer that run the backup on a configurable schedule (default: daily at 02:00 host time), catching up missed runs after downtime.
 - **FR-011**: The operator MUST be able to disable systemd setup; disabling it after a previous enablement MUST stop and disable the timer.
 - **FR-012**: The role MUST offer an opt-in option to run one backup immediately during the play, failing the play if the backup fails.
 - **FR-013**: Changes to schedule or backup configuration MUST take effect on re-apply without manual steps (systemd reloaded, timer restarted when needed).
 - **FR-014**: The role MUST validate its inputs through an argument specification so invalid types or choices fail before any change is made.
-- **FR-015**: The role MUST NOT expose the backup tool's destructive redact option or restore operations.
+- **FR-015**: The role MUST NOT expose the backup tool's redact option, `--sleep`, the Plakar backend, or restore operations; redact and restore MUST be explained in the docs.
 - **FR-016**: The role MUST be documented on the collection's documentation site alongside the `install` role, including an example playbook combining `install` and `backup`, how to check that scheduled backups succeed, a pointer to the tool's restore procedure, the S3 behaviours operators must know (local copy removed after upload unless kept; pruning remote archives needs delete permission), and a changelog entry.
-- **FR-017**: The operator MUST be able to name a systemd unit to be triggered when a scheduled backup fails, so failures can be alerted on rather than discovered at restore time.
+- **FR-017**: The role MUST support archive encryption: with the tool's built-in OpsMill key, or with an operator-supplied public key file on the host. The docs MUST state that built-in-key archives can only be decrypted by OpsMill.
+- **FR-018**: The role MUST take a deployment platform option, defaulting to Docker Compose and currently accepting only it, so another platform can be added later without breaking existing playbooks.
+- **FR-019**: The role's test suite MUST run in the collection's CI on every pull request.
 
 ### Key Entities
 
@@ -110,17 +116,20 @@ An operator about to upgrade Infrahub wants a backup taken right now, as a step 
 - **SC-002**: A second application of the role with unchanged variables reports 0 changed tasks.
 - **SC-003**: Enabling remote storage requires setting at most 3 variables (bucket plus credentials) when defaults for region/endpoint suit AWS.
 - **SC-004**: No secret value supplied to the role appears in Ansible output at any verbosity level.
-- **SC-005**: Invalid input (unknown metadata choice, retention below 1, remote upload without bucket) fails the play before any host change, 100% of the time.
+- **SC-005**: Invalid input (unknown metadata choice, retention below 1, remote upload without bucket, unknown platform) fails the play before any host change, 100% of the time.
+- **SC-007**: A secret containing quotes, `\`, `$` and surrounding spaces is received unchanged by both the scheduled and the on-demand backup.
 - **SC-006**: Every role variable is described in the published documentation, with its default.
 
 ## Assumptions
 
-- Target deployment is Docker Compose on a Linux systemd host, matching the `install` role. Kubernetes is out of scope: the Infrahub Helm chart already offers an in-cluster backup subchart.
+- Target deployment is Docker Compose on a Linux systemd host, matching the `install` role. Kubernetes is deferred to a later iteration (the role is structured per platform to allow it); the Infrahub Helm chart already offers an in-cluster backup subchart.
 - The role delegates backup mechanics (database dumps, archive format, S3 upload, retention pruning) to the official `infrahub-backup` tool rather than reimplementing them.
 - The tool is downloaded from its official GitHub release, which publishes Linux amd64/arm64 builds and a checksum file; hosts need outbound access to it (air-gapped installs can override the download URL).
 - "Remotely" is interpreted as S3-compatible object storage, which the tool supports natively. Other transports (SCP, rsync, NFS) are out of scope; an NFS mount can be used simply by pointing the backup directory at it.
 - Restore is out of scope for this role — it is an interactive, destructive operation better run by hand or in a separate future role.
 - Backups run as root by default (the tool needs Docker access); operators may override the service user.
-- Default Docker Compose project name matches the `install` role default (`infrahub`); setting it empty lets the tool auto-detect.
+- Docker Compose project, log format and Neo4j metadata default to the tool's behaviour (flag omitted).
 - Compatibility between the backup tool and a given Infrahub version is owned by the tool; the role pins a tool version and lets operators override it.
 - Role variables use a `backup_infrahub_` prefix, mirroring the `install_infrahub_` convention.
+- No failure-notification hook: operators check `systemctl list-timers` / `journalctl` (iteration-1 `on_failure` removed).
+- The encryption public key file is placed on the host by the operator.

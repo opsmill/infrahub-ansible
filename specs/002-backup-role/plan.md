@@ -109,6 +109,18 @@ CHANGELOG.rst                           # "New Roles" entry
 - Tool flags may change across tool majors; version is pinned and the contract lists flags verified against v2.3.0 docs.
 - Community Edition stops the app during backup → documented; default schedule `daily` (00:00) — operators should set a maintenance window.
 
+## Iteration 2 (2026-09-30)
+
+Source: [grill-decisions.md](grill-decisions.md); research R11–R15; contract updated.
+
+1. **Platform split** (R12): `backup_infrahub_platform` + `tasks/docker/`; shared validation and flag builder stay at the role root.
+2. **Tool defaults** (R13): project / log format / metadata unset → omitted; `retention_count: 7`, `null` disables.
+3. **Encryption** (R14): `encrypt`, `encrypt_key` → `--encrypt` / `--encrypt-key`.
+4. **Env quoting** (R11): env file `KEY="escaped"`; run-now sources the env file via `sh`; delete stdin wrapper and the character blacklist (keep newline rejection); env file owned by `service_user`.
+5. **Remove** `backup_infrahub_on_failure` (template, argument spec, defaults, docs, tests).
+6. **Docs**: Community (offline) vs Enterprise (online) backups; retention default + semantics; encryption modes and the OpsMill-only-decrypt warning; NFS via backup directory; redact explanation + manual flow; non-root user requirements; remove failure-hook section.
+7. **CI** (R15): job running `run.sh`.
+
 ## Complexity Tracking
 
 | Deviation | Why Needed | Simpler Alternative Rejected Because |
