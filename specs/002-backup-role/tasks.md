@@ -122,3 +122,35 @@ MVP = Phases 1–3 (scheduled local backups, validated, idempotent, secret-safe)
 ### Iteration 2 dependencies
 
 Phase 7 → Phase 8 → Phase 9. T035 before T036–T038 (TDD). T039 after T036. T040–T042 after Phase 8.
+
+---
+
+# Phase 10: End-to-end verification (replaces manual T030)
+
+**Test machine**: a privileged Debian 12 container running systemd as PID 1, with Docker Engine + Compose v2 inside (Docker-in-Docker). Built from `tests/e2e/backup/Dockerfile`, with the repo mounted read-only at `/src`. Ansible runs **inside** it with `-c local` (the same as a Linux VM target), so no new collection dependencies are needed. Infrahub **Community Edition** is installed by the collection's `install` role. Community backups are offline, so they exercise the stop/start path. MinIO runs as a container inside the same inner Docker, for S3.
+**Why a container**: no VM tooling on the dev machine (Docker Desktop only). A later CI job could reuse it (out of scope, since it needs approval).
+**Rule**: every scenario records its command, ISO 8601 timestamp and verbatim output in `opsmill-implement-report.md`. Tear down the environment at the end, keeping nothing but the evidence.
+
+- [ ] T043 Create the harness in `tests/e2e/backup/`:
+  - `Dockerfile`: debian:12 + systemd + dbus + docker-ce + docker-compose-plugin + python3 + python3-venv + curl + ca-certificates, with `/sbin/init` as entrypoint and `STOPSIGNAL SIGRTMIN+3`.
+  - `up.sh`: build the image, then run it detached with `--privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw --tmpfs /run --tmpfs /run/lock -v infrahub-e2e-docker:/var/lib/docker -v <repo>:/src:ro --name infrahub-backup-e2e`, and publish nothing. Wait for `systemctl is-system-running` (`running` or `degraded`) and `docker info` inside. Create a venv at `/opt/ansible` with `ansible-core` pinned to the repo's lock version.
+  - `down.sh`: remove the container and the `infrahub-e2e-docker` volume.
+  - `run.sh <playbook>`: `docker exec` runs ansible-playbook inside, with `ANSIBLE_ROLES_PATH=/src/roles`.
+  - All scripts use `set -euo pipefail` and pass shellcheck.
+- [ ] T044 Create `tests/e2e/backup/install.yml`: apply `opsmill.infrahub.install` (as roles path `install`) with defaults on localhost, and wait until `http://localhost:8000/api/schema/summary` (or `/api/config`) returns 200, with a timeout of up to 15 min.
+- [ ] T045 Create `tests/e2e/backup/scenarios.yml` plus the helper vars. Each scenario is a tagged play or block:
+  - **S1 install and run now**: `backup` role with defaults + `run_now: true`. Assert:
+    - exactly 1 `infrahub_backup_*.tar.gz` in `/var/backups/infrahub`;
+    - `systemctl is-enabled infrahub-backup.timer` is `enabled` and `is-active` is `active`;
+    - `systemctl show infrahub-backup.timer -p TimersCalendar` contains `02:00:00`;
+    - Infrahub API is healthy again after the backup (Community offline mode restarts it).
+  - **S2 idempotency**: re-apply with `run_now: false` → the play recap shows `changed=0`.
+  - **S3 scheduled path**: `systemctl start infrahub-backup.service` exits 0 → a second archive exists.
+  - **S4 retention**: set `retention_count: 2`, trigger the service twice more → exactly 2 archives remain.
+  - **S5 schedule change**: `schedule: "*-*-* 03:30:00"` → `TimersCalendar` shows `03:30:00` and the play reports changed.
+  - **S6 S3 with adversarial secret**: start MinIO in the inner Docker with root password `Sec$ret"q\\z 'x` (secret includes `$`, `"`, `\`, `'` and a space), create a bucket, then apply with `s3_upload: true`, `s3_bucket`, `s3_endpoint: http://127.0.0.1:9000` (or the MinIO container IP), `s3_region: us-east-1`, and credentials. Trigger the **systemd** service → the object exists in the bucket (list via `mc` or `aws` CLI in a container). This proves systemd delivered the exact secret. Also run `run_now: true` once → a second object (on-demand path).
+  - **S7 encryption**: `infrahub-backup keygen -o /etc/infrahub-backup/backup.key` → `encrypt_key: /etc/infrahub-backup/backup.key.pub`. Run now → the newest archive ends with `.enc`.
+  - **S8 run-now failure surfaces**: stop the Infrahub database container, then `run_now: true` → the play fails and the message contains the tool's error text. Restart the database afterwards.
+  - **S9 disable**: `setup_systemd: false` → the timer is `inactive` and `disabled`, and unit files still exist.
+- [ ] T046 Execute: run `up.sh`, `run.sh install.yml`, then each scenario in order. Record the evidence per scenario, then run `down.sh`. If a scenario fails because of a role bug, fix the role (with a unit/render test if possible), re-run that scenario plus S2, and record both runs. If it fails because of the harness or the environment, fix the harness. If Infrahub cannot be brought up (image pull or resources), record it as blocked, with the exact error.
+- [ ] T047 Update `quickstart.md` with the harness usage, update `opsmill-implement-report.md` with a Phase 10 section (scenario table: id | command | timestamp | verbatim result | pass/fail), and tick T030 if S1–S9 all pass.
