@@ -68,31 +68,31 @@ Sources: `infrahub-backup` docs (`docs/docs/backup/{create,install,retention}.md
 
 ---
 
-# Iteration 2 research (2026-09-30, from grill-decisions.md)
+## Iteration 2 research (2026-09-30, from grill-decisions.md)
 
-## R11 — One quoting scheme shared by systemd and the run-now wrapper (decision 11)
+### R11 — One quoting scheme shared by systemd and the run-now wrapper (decision 11)
 
 - **Decision**: Render every env-file entry as `KEY="<value>"` with exactly four characters backslash-escaped: `\`, `"`, `$`, `` ` ``. Run-now stops feeding secrets on stdin; it runs `/bin/sh -c 'set -a; . "$1"; set +a; shift; exec "$@"' sh <env_file> <bin> <args…>`, i.e. it **sources the same file**.
 - **Rationale**: systemd's `EnvironmentFile=` parser (`load_env_file`, no variable expansion) and POSIX `sh` double-quoted strings recognise the same backslash escapes (`\\`, `\"`, `\$`, `` \` ``) and keep whitespace inside quotes. One file, one rendering, identical value in both paths. Removes the stdin wrapper and the character blacklist. Newlines/CR stay rejected (no credential contains them; a `\`+newline is a line continuation in both parsers).
 - **Must verify empirically** (task): sh side locally with adversarial values (`a"b`, `a\b`, `$HOME`, `` `id` ``, `'`, leading/trailing spaces, `\\$`); systemd side in a systemd-enabled Linux container if Docker is available (`systemd-run --wait --pipe -p EnvironmentFile=… printenv KEY`), else record as e2e item.
-- **Verified (T035/T039, 2026-09-30)**: values ` SENTINEL-SECRET-e3b0c442 a"b\c$HOME`x'y ` (leading/trailing space), `  $(id) \\$ "q" 'z' SENTINEL-SECRET-e3b0c442` and `AKIATEST`, rendered by the role, give identical sha256 in all four readers: macOS `/bin/sh` (bash 3.2 sh mode) and Debian 12 dash via `set -a; . file` (`tests/roles/backup/envfile_roundtrip.sh`); the run-now wrapper (fake tool hashes, `run.sh`); systemd 252 (Debian 12, privileged container) via `systemd-run --wait --pipe -p EnvironmentFile=/tmp/test.env sh -c 'printf %s "$KEY" | sha256sum'` and via a `Type=oneshot` unit with `EnvironmentFile=`. No character needed narrowing; only newline/CR stays rejected. Note: `systemd-run` needs D-Bus in the container; `jrei/systemd-debian:12` has no arm64 image, so a local `debian:12` + `systemd systemd-sysv dbus` image was used.
+- **Verified (T035/T039, 2026-09-30)**: values `SENTINEL-SECRET-e3b0c442 a"b\c$HOME`x'y ` (leading/trailing space), `  $(id) \\$ "q" 'z' SENTINEL-SECRET-e3b0c442` and `AKIATEST`, rendered by the role, give identical sha256 in all four readers: macOS `/bin/sh` (bash 3.2 sh mode) and Debian 12 dash via `set -a; . file` (`tests/roles/backup/envfile_roundtrip.sh`); the run-now wrapper (fake tool hashes, `run.sh`); systemd 252 (Debian 12, privileged container) via `systemd-run --wait --pipe -p EnvironmentFile=/tmp/test.env sh -c 'printf %s "$KEY" | sha256sum'` and via a `Type=oneshot` unit with `EnvironmentFile=`. No character needed narrowing; only newline/CR stays rejected. Note: `systemd-run` needs D-Bus in the container; `jrei/systemd-debian:12` has no arm64 image, so a local `debian:12` + `systemd systemd-sysv dbus` image was used.
 - **Consequence**: the env file must be readable by the run-now user → config dir and env file owned by `service_user` (mode stays 0700/0600; systemd reads `EnvironmentFile=` as PID 1 regardless).
 - **Alternatives**: keep stdin + blacklist (rejected by user); single-quote rendering (cannot represent `'`).
 
-## R12 — Platform dispatch (decision 2)
+### R12 — Platform dispatch (decision 2)
 
 - **Decision**: `tasks/main.yml` = shared `validate.yml` → `ansible.builtin.include_tasks: "{{ backup_infrahub_platform }}/main.yml"`. Docker files move to `tasks/docker/{main.yml,validate.yml,setup_systemd.yml}`. Shared: flag builder `backup_infrahub_create_args`, retention/S3/encryption/force/metadata validation. Docker-only: arch/tool install, directories, env file, systemd, run-now, env-value checks. Templates stay under `templates/` (they are Docker-only; a later platform adds its own).
 - `include_tasks` (dynamic) so a future platform file is only parsed when selected; handlers stay in `handlers/main.yml`, gated by `when` on platform.
 
-## R13 — Tool-default alignment (decision 7)
+### R13 — Tool-default alignment (decision 7)
 
 - `docker_project`, `log_format`, `neo4j_metadata`: no default in `defaults/main.yml` (commented), no default in argument spec; flag emitted only when defined and non-empty. `retention_count: 7` in defaults; `null` → omitted (argument spec `type: int` accepts `None` for a non-required option — verify; if the validator coerces or rejects `None`, document `backup_infrahub_retention_count: ~` behaviour found).
 
-## R14 — Encryption (decision 9)
+### R14 — Encryption (decision 9)
 
 - Flags verified at tool tag `v2.3.0` (`src/cmd/infrahub-backup/main.go`): `--encrypt` (built-in OpsMill key unless `--encrypt-key`), `--encrypt-key <public key path>` (implies `--encrypt`). Both are `create` flags → after `create` in the token list. Emit `--encrypt-key PATH` when `encrypt_key` set, else `--encrypt` when `encrypt` true. Validate: `encrypt_key`, when set, is an absolute path (no host stat — the operator may place it later in the same play; document).
 - Encrypted archives are named `….tar.gz.enc`; tool retention and `restore --latest` already handle them (tool docs).
 
-## R15 — CI job (decision 17)
+### R15 — CI job (decision 17)
 
 - Add a job to `.github/workflows/workflow-ansible-linter-and-tests.yml` (reusable workflow called on PRs to `develop`/`stable`): checkout, `astral-sh/setup-uv` (match the version/pinning style already used in the repo's workflows), `uv sync`, `bash tests/roles/backup/run.sh`. Add it to the workflow's aggregate/required job list if one exists (the file has an aggregate job referencing `ansible-lint` and `unit-tests`).

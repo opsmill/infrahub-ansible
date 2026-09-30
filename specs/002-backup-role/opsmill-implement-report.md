@@ -35,6 +35,7 @@
 | quickstart e2e | e2e | see `quickstart.md` | deferred — local E2E not supported | Linux systemd + Docker Compose Infrahub | — |
 
 Other checks:
+
 - **Passed:**
   - `uv run ansible-lint roles/backup` (0 failures, production profile)
   - yamllint on `roles/backup` and `tests/roles/backup`
