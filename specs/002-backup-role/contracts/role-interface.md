@@ -44,6 +44,8 @@ This is the public interface. `roles/backup/meta/argument_specs.yml`, `roles/bac
 | `backup_infrahub_run_now` | bool | `false` | — | immediate `create` |
 | `backup_infrahub_become` | bool | `true` | — | task `become` |
 
+`retention_count`'s `7` lives in `defaults/main.yml` only; its argument-spec entry has no `default:` because the validator rejects `null` for an int option with a default (verified on ansible-core 2.19), and `null` must disable retention.
+
 Only `--backup-dir` and `--retention-count` (unless `null`) are passed by default. Every other flag is passed only when its variable is set / `true`, so the tool's own defaults apply. `--encrypt` is omitted when `encrypt_key` is set (the key implies it). `run_now` runs as `service_user` (via `become_user` when `become` is true), matching the scheduled unit.
 
 ## Files written on the host
@@ -68,6 +70,7 @@ Only `--backup-dir` and `--retention-count` (unless `null`) are passed by defaul
 | `backup_infrahub_environment` key not matching `^[A-Za-z_][A-Za-z0-9_]*$` | `invalid environment variable name` (offending keys only, never values) |
 | An S3 credential or `backup_infrahub_environment` value contains a newline or CR | `contains a newline` (variable/key name only, never the value) |
 | `platform` not in choices | Ansible argument-spec error |
+| `encrypt_key` set and not an absolute path | `backup_infrahub_encrypt_key must be an absolute path` |
 | `install_tool` true, `tool_url` set, `tool_checksum` unset | `backup_infrahub_tool_checksum is required when backup_infrahub_tool_url is set` |
 | `install_tool` true and arch not x86_64/aarch64/arm64 | `Unsupported architecture` |
 

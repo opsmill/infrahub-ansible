@@ -2,9 +2,6 @@
 Description=Infrahub backup
 After=docker.service
 Requires=docker.service
-{% if backup_infrahub_on_failure is defined %}
-OnFailure={{ backup_infrahub_on_failure }}
-{% endif %}
 
 [Service]
 Type=oneshot

@@ -8,6 +8,13 @@ argument_specs:
       - Supported platforms are Linux on x86_64 and aarch64.
 
     options:
+      backup_infrahub_platform:
+        description:
+          - Platform the Infrahub instance runs on. Selects C(tasks/<platform>/main.yml).
+          - Only C(docker) (Docker Compose) is supported for now.
+        type: str
+        default: docker
+        choices: [docker]
       backup_infrahub_version:
         description:
           - Release tag of infrahub-backup to install.
@@ -54,9 +61,9 @@ argument_specs:
       backup_infrahub_docker_project:
         description:
           - Docker Compose project name of the Infrahub instance (C(--project)).
-          - An empty string omits the flag and lets the tool auto-detect.
+          - Unset or empty omits the flag and lets the tool auto-detect.
+          - Set it when several Infrahub projects run on one host.
         type: str
-        default: infrahub
       backup_infrahub_force:
         description:
           - Pass C(--force) to C(create).
@@ -65,8 +72,8 @@ argument_specs:
       backup_infrahub_neo4j_metadata:
         description:
           - Neo4j metadata to include in the backup (C(--neo4jmetadata)).
+          - Unset omits the flag; the tool default is C(all).
         type: str
-        default: all
         choices: [all, none, users, roles]
       backup_infrahub_exclude_taskmanager:
         description:
@@ -76,18 +83,20 @@ argument_specs:
       backup_infrahub_log_format:
         description:
           - Log format of the tool (C(--log-format)).
+          - Unset omits the flag; the tool default is C(text).
         type: str
-        default: text
         choices: [text, json]
       backup_infrahub_retention_days:
         description:
           - Delete backups older than this many days (C(--retention-days)). Must be >= 1.
           - Unset keeps all backups.
         type: int
+      # No `default:` on purpose: the argument-spec validator rejects null for an int
+      # option that has a default, and null must disable retention. 7 is set in defaults/main.yml.
       backup_infrahub_retention_count:
         description:
           - Keep at most this many backups (C(--retention-count)). Must be >= 1.
-          - Unset keeps all backups.
+          - Defaults to C(7). C(null) disables it and omits the flag.
         type: int
       backup_infrahub_s3_upload:
         description:
@@ -127,6 +136,17 @@ argument_specs:
           - Must be set together with O(backup_infrahub_s3_access_key_id).
         type: str
         no_log: true
+      backup_infrahub_encrypt:
+        description:
+          - Encrypt backups with the built-in OpsMill public key (C(--encrypt)). Only OpsMill can decrypt them.
+          - Ignored when O(backup_infrahub_encrypt_key) is set.
+        type: bool
+        default: false
+      backup_infrahub_encrypt_key:
+        description:
+          - Absolute path on the host to a public key used to encrypt backups (C(--encrypt-key)). Implies encryption.
+          - The role does not place the key file.
+        type: str
       backup_infrahub_setup_systemd:
         description:
           - Whether to install the systemd service and timer.
@@ -161,10 +181,6 @@ argument_specs:
           - User running the backup service. Needs access to Docker.
         type: str
         default: root
-      backup_infrahub_on_failure:
-        description:
-          - systemd unit to trigger on failure (C(OnFailure)), for example C(notify-failure@%n.service).
-        type: str
       backup_infrahub_environment:
         description:
           - Extra environment variables for the tool, for example C(INFRAHUB_DB_PASSWORD).

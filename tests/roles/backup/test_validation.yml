@@ -80,6 +80,42 @@
               - "role_should_have_failed not in ansible_failed_result.msg"
             fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
 
+    - name: Case unsupported platform (argument spec)
+      block:
+        - name: Apply role with platform kubernetes
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_platform: kubernetes
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert argument-spec message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_platform' in ansible_failed_result.msg"
+              - "'value of backup_infrahub_platform must be one of: docker' in ansible_failed_result.msg"
+              - "role_should_have_failed not in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case relative encrypt_key
+      block:
+        - name: Apply role with a relative encrypt_key
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_encrypt_key: backup.pub
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert encrypt_key message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_encrypt_key must be an absolute path' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
     - name: Case s3_upload without bucket
       block:
         - name: Apply role with s3_upload and no bucket
