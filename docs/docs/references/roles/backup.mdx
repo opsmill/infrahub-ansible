@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 The **Infrahub Backup Role** in the **OpsMill Infrahub Ansible Collection** installs the [infrahub-backup](https://github.com/opsmill/infrahub-backup) command-line tool and schedules backups of an Infrahub instance with a `systemd` timer. Backups are stored locally, uploaded to S3 or S3-compatible storage such as MinIO, or both, and can be encrypted.
 
-# Overview
+## Overview
 
 This role automates Infrahub backups by:
 
@@ -18,7 +18,7 @@ This role automates Infrahub backups by:
 
 The role is a thin wrapper around `infrahub-backup create`. By default it passes only `--backup-dir` and `--retention-count 7`. Every other flag is passed only when its variable is set or `true`, so the tool's own defaults apply.
 
-# Requirements
+## Requirements
 
 This role requires:
 
@@ -30,7 +30,7 @@ This role requires:
 
 The pinned tool version (`backup_infrahub_version`) sets which Infrahub versions are supported. Check the [infrahub-backup release notes](https://github.com/opsmill/infrahub-backup/releases) and override `backup_infrahub_version` when needed.
 
-# Role variables
+## Role variables
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -83,7 +83,7 @@ The role writes these files on the target host:
 
 Owners are set only when `backup_infrahub_become` is `true`.
 
-# Backup examples
+## Backup examples
 
 <Tabs>
 <TabItem value="quick-start" label="Quick start" default>
@@ -185,7 +185,7 @@ Run the playbook with:
 ansible-playbook backup_infrahub.yml -i inventory.yml
 ```
 
-# Checking scheduled backups
+## Checking scheduled backups
 
 List the timer and its next run:
 
@@ -201,14 +201,14 @@ journalctl -u infrahub-backup.service
 
 Start a backup outside the schedule with `systemctl start infrahub-backup.service`.
 
-# Community Edition and Enterprise backups
+## Community Edition and Enterprise backups
 
 * **Community Edition is backed up offline.** The tool stops the Infrahub services while it dumps the databases, then restarts them. Schedule backups in a maintenance window with `backup_infrahub_schedule`. The default is every day at 02:00, host time.
 * **Enterprise is backed up online**, with no downtime.
 
 A restore must target the same edition that produced the backup: an Enterprise backup can't be restored to Community Edition.
 
-# Retention
+## Retention
 
 The role keeps the 7 most recent backups by default (`backup_infrahub_retention_count: 7`). Set `backup_infrahub_retention_count: null` to disable it; with `backup_infrahub_retention_days` also unset, the tool never deletes a backup.
 
@@ -219,7 +219,7 @@ The role keeps the 7 most recent backups by default (`backup_infrahub_retention_
 
 See the [infrahub-backup retention guide](https://docs.infrahub.app/backup/backup/retention) for the full semantics.
 
-# Encryption
+## Encryption
 
 The tool can encrypt each archive (`….tar.gz.enc`). Choose one mode:
 
@@ -234,12 +234,12 @@ Archives encrypted with the built-in key can only be decrypted by OpsMill. You c
 
 When `backup_infrahub_encrypt_key` is set, `backup_infrahub_encrypt` is ignored.
 
-# Remote storage
+## Remote storage
 
 * **S3 and S3-compatible storage** are supported natively by the tool. `--s3-upload` removes the local archive after a successful upload; set `backup_infrahub_s3_keep_local: true` to keep a local copy.
 * **NFS or other network filesystems**: mount the share on the host yourself and point `backup_infrahub_backup_directory` at the mount point. Retention then applies to the share.
 
-# Running as a non-root user
+## Running as a non-root user
 
 By default the backup runs as `root`. To use another account, set `backup_infrahub_service_user`. The role doesn't create the user. That user must:
 
@@ -250,17 +250,17 @@ The service user owns the config directory, so it can replace the environment fi
 
 On-demand backups (`backup_infrahub_run_now: true`) run as `backup_infrahub_service_user` through `become_user`. When Ansible connects as a different unprivileged user, becoming another unprivileged user needs [Ansible pipelining or ACL support](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_privilege_escalation.html#risks-of-becoming-an-unprivileged-user) (`setfacl`) on the host, as for any Ansible task that becomes an unprivileged user.
 
-# Multiple Infrahub projects on one host
+## Multiple Infrahub projects on one host
 
 The tool auto-detects the Docker Compose project of the Infrahub instance. When several Infrahub projects run on the same host, set `backup_infrahub_docker_project` to the one to back up.
 
-# Credentials
+## Credentials
 
 The S3 credentials and `backup_infrahub_environment` are written to the `0600` environment file as `KEY="value"`, with `\`, `"`, `$` and `` ` `` escaped. The scheduled service reads it through `EnvironmentFile=`, and on-demand runs source it with `/bin/sh`. Both read back exactly the value you set, so any character works except a newline or carriage return, which the role rejects. The values never appear on a command line or in Ansible output.
 
 A credential set to `null` is treated as unset and isn't written. When `backup_infrahub_environment` has an `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` key, its value is written instead of `backup_infrahub_s3_access_key_id` or `backup_infrahub_s3_secret_access_key`.
 
-# Not supported
+## Not supported
 
 The role deliberately doesn't expose these tool features:
 
@@ -274,7 +274,7 @@ The role deliberately doesn't expose these tool features:
 * **Restore.** Restoring is a manual operation with the `infrahub-backup` tool. Follow the [infrahub-backup restore guide](https://docs.infrahub.app/backup/backup/restore).
 * **Kubernetes.** Only Docker Compose deployments are supported. Kubernetes support is planned.
 
-# Air-gapped installs
+## Air-gapped installs
 
 Without access to GitHub, host the binary and its checksum on an internal server and override both `backup_infrahub_tool_url` and `backup_infrahub_tool_checksum`. The role fails when only the URL is set:
 
