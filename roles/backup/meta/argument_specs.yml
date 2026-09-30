@@ -45,7 +45,7 @@ argument_specs:
         default: /usr/local/bin/infrahub-backup
       backup_infrahub_backup_directory:
         description:
-          - Directory where backups are written (C(--backup-dir)).
+          - Directory where backups are written (C(--backup-dir)). Can be an NFS mount.
         type: str
         default: /var/backups/infrahub
       backup_infrahub_backup_directory_mode:
@@ -88,14 +88,15 @@ argument_specs:
         choices: [text, json]
       backup_infrahub_retention_days:
         description:
-          - Delete backups older than this many days (C(--retention-days)). Must be >= 1.
-          - Unset keeps all backups.
+          - Keep backups newer than this many days (C(--retention-days)). Must be >= 1.
+          - Unset omits the flag. Combined with O(backup_infrahub_retention_count) as a union.
+          - The newest backup is always kept.
         type: int
       # No `default:` on purpose: the argument-spec validator rejects null for an int
       # option that has a default, and null must disable retention. 7 is set in defaults/main.yml.
       backup_infrahub_retention_count:
         description:
-          - Keep at most this many backups (C(--retention-count)). Must be >= 1.
+          - Keep this many most recent backups (C(--retention-count)). Must be >= 1.
           - Defaults to C(7). C(null) disables it and omits the flag.
         type: int
       backup_infrahub_s3_upload:
@@ -128,12 +129,14 @@ argument_specs:
         description:
           - S3 access key ID, written to the environment file as C(AWS_ACCESS_KEY_ID).
           - Must be set together with O(backup_infrahub_s3_secret_access_key).
+          - Must not contain a newline or carriage return.
         type: str
         no_log: true
       backup_infrahub_s3_secret_access_key:
         description:
           - S3 secret access key, written to the environment file as C(AWS_SECRET_ACCESS_KEY).
           - Must be set together with O(backup_infrahub_s3_access_key_id).
+          - Must not contain a newline or carriage return.
         type: str
         no_log: true
       backup_infrahub_encrypt:
@@ -168,7 +171,7 @@ argument_specs:
         default: true
       backup_infrahub_schedule:
         description:
-          - systemd C(OnCalendar) expression for the timer.
+          - systemd C(OnCalendar) expression for the timer, in host time.
         type: str
         default: "*-*-* 02:00:00"
       backup_infrahub_randomized_delay:
@@ -178,7 +181,9 @@ argument_specs:
         default: "0"
       backup_infrahub_service_user:
         description:
-          - User running the backup service. Needs access to Docker.
+          - User running the scheduled service and on-demand backups. The role does not create it.
+          - A non-root user needs Docker access (for example the C(docker) group); the role makes it
+            own the backup and config directories when O(backup_infrahub_become) is C(true).
         type: str
         default: root
       backup_infrahub_environment:
@@ -186,13 +191,13 @@ argument_specs:
           - Extra environment variables for the tool, for example C(INFRAHUB_DB_PASSWORD).
           - Written to the environment file.
           - Names must match C(^[A-Za-z_][A-Za-z0-9_]*$).
-          - Values must not contain newlines, backslashes, quotes, C($), or leading or trailing whitespace.
+          - Values must not contain a newline or carriage return; any other character is kept exactly.
         type: dict
         default: {}
         no_log: true
       backup_infrahub_run_now:
         description:
-          - Run a backup immediately during the role execution.
+          - Run a backup immediately during the role execution, as O(backup_infrahub_service_user).
         type: bool
         default: false
       backup_infrahub_become:

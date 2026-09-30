@@ -31,9 +31,9 @@ This is the public interface. `roles/backup/meta/argument_specs.yml`, `roles/bac
 | `backup_infrahub_s3_region` | str | unset (tool default `us-east-1`) | — | `--s3-region` |
 | `backup_infrahub_s3_keep_local` | bool | `false` | — | `--s3-keep-local` |
 | `backup_infrahub_s3_access_key_id` | str | unset | `no_log`; both-or-neither with secret | env `AWS_ACCESS_KEY_ID` |
+| `backup_infrahub_s3_secret_access_key` | str | unset | `no_log`; both-or-neither with id | env `AWS_SECRET_ACCESS_KEY` |
 | `backup_infrahub_encrypt` | bool | `false` | built-in OpsMill key (only OpsMill can decrypt) | `--encrypt` |
 | `backup_infrahub_encrypt_key` | str | unset | path on the host to a public key; implies encryption | `--encrypt-key` |
-| `backup_infrahub_s3_secret_access_key` | str | unset | `no_log`; both-or-neither with id | env `AWS_SECRET_ACCESS_KEY` |
 | `backup_infrahub_setup_systemd` | bool | `true` | `false` installs no units; stops+disables an existing timer only when `systemd_manage_state` is true and the timer file exists; unit files left in place | units + timer |
 | `backup_infrahub_systemd_directory` | str | `/etc/systemd/system` | — | unit path |
 | `backup_infrahub_systemd_manage_state` | bool | `true` | `false` = render units only | daemon-reload / timer state |
