@@ -125,7 +125,7 @@ Phase 7 → Phase 8 → Phase 9. T035 before T036–T038 (TDD). T039 after T036.
 
 ---
 
-# Phase 10: End-to-end verification (replaces manual T030)
+## Phase 10: End-to-end verification (replaces manual T030)
 
 **Test machine**: a privileged Debian 12 container running systemd as PID 1, with Docker Engine + Compose v2 inside (Docker-in-Docker). Built from `tests/e2e/backup/Dockerfile`, with the repo mounted read-only at `/src`. Ansible runs **inside** it with `-c local` (the same as a Linux VM target), so no new collection dependencies are needed. Infrahub **Community Edition** is installed by the collection's `install` role. Community backups are offline, so they exercise the stop/start path. MinIO runs as a container inside the same inner Docker, for S3.
 **Why a container**: no VM tooling on the dev machine (Docker Desktop only). A later CI job could reuse it (out of scope, since it needs approval).
