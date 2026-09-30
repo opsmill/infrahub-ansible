@@ -26,7 +26,7 @@ This role requires:
 * An Infrahub instance deployed with Docker Engine and Docker Compose v2, for example with the [install role](./install.mdx). Kubernetes isn't supported yet (see [Not supported](#not-supported))
 * Outbound HTTPS access to GitHub to download the tool, or an overridden `backup_infrahub_tool_url` (see [Air-gapped installs](#air-gapped-installs))
 * Root or `sudo` access on the target host (`backup_infrahub_become` defaults to `true`)
-* Host facts: the role gathers the minimal fact subset itself when `ansible_facts.architecture` is missing, so `gather_facts: false` works
+* Host facts: when `backup_infrahub_install_tool` is `true` and `ansible_facts.architecture` is missing, the role gathers the minimal fact subset itself, so `gather_facts: false` works
 
 The pinned tool version (`backup_infrahub_version`) sets which Infrahub versions are supported. Check the [infrahub-backup release notes](https://github.com/opsmill/infrahub-backup/releases) and override `backup_infrahub_version` when needed.
 
@@ -42,7 +42,7 @@ The pinned tool version (`backup_infrahub_version`) sets which Infrahub versions
 | `backup_infrahub_bin_path` | `str` | `/usr/local/bin/infrahub-backup` | Path of the binary. Used as install destination and in the service `ExecStart`. |
 | `backup_infrahub_backup_directory` | `str` | `/var/backups/infrahub` | Directory where backups are written (`--backup-dir`). Can be an NFS mount (see [Remote storage](#remote-storage)). |
 | `backup_infrahub_backup_directory_mode` | `str` | `"0700"` | File mode of the backup directory. |
-| `backup_infrahub_config_directory` | `str` | `/etc/infrahub-backup` | Directory holding the `infrahub-backup.env` environment file. |
+| `backup_infrahub_config_directory` | `str` | `/etc/infrahub-backup` | Directory holding the `infrahub-backup.env` environment file. Must be an absolute path. |
 | `backup_infrahub_docker_project` | `str` | tool default (auto-detect) | Docker Compose project name of the Infrahub instance (`--project`). Set it when several Infrahub projects run on one host. |
 | `backup_infrahub_force` | `bool` | `false` | Pass `--force` to `create`. |
 | `backup_infrahub_neo4j_metadata` | `str` | tool default (`all`) | Neo4j metadata to include (`--neo4jmetadata`). One of `all`, `none`, `users`, `roles`. |
@@ -56,8 +56,8 @@ The pinned tool version (`backup_infrahub_version`) sets which Infrahub versions
 | `backup_infrahub_s3_endpoint` | `str` | unset | Endpoint URL for S3-compatible storage (`--s3-endpoint`). |
 | `backup_infrahub_s3_region` | `str` | unset (tool default `us-east-1`) | S3 region (`--s3-region`). |
 | `backup_infrahub_s3_keep_local` | `bool` | `false` | Keep the local archive after uploading to S3 (`--s3-keep-local`). |
-| `backup_infrahub_s3_access_key_id` | `str` | unset | S3 access key ID, written to the environment file as `AWS_ACCESS_KEY_ID`. Set together with the secret access key. Never logged. Must not contain a newline or carriage return. |
-| `backup_infrahub_s3_secret_access_key` | `str` | unset | S3 secret access key, written to the environment file as `AWS_SECRET_ACCESS_KEY`. Set together with the access key ID. Never logged. Must not contain a newline or carriage return. |
+| `backup_infrahub_s3_access_key_id` | `str` | unset | S3 access key ID, written to the environment file as `AWS_ACCESS_KEY_ID`. Set together with the secret access key; `null` counts as unset. Never logged. Must not contain a newline or carriage return. |
+| `backup_infrahub_s3_secret_access_key` | `str` | unset | S3 secret access key, written to the environment file as `AWS_SECRET_ACCESS_KEY`. Set together with the access key ID; `null` counts as unset. Never logged. Must not contain a newline or carriage return. |
 | `backup_infrahub_encrypt` | `bool` | `false` | Encrypt backups with the built-in OpsMill public key (`--encrypt`). Only OpsMill can decrypt them (see [Encryption](#encryption)). Ignored when `backup_infrahub_encrypt_key` is set. |
 | `backup_infrahub_encrypt_key` | `str` | unset | Absolute path on the host to a public key used to encrypt backups (`--encrypt-key`). Implies encryption. The role doesn't place the key file. |
 | `backup_infrahub_setup_systemd` | `bool` | `true` | Whether to install the `systemd` service and timer. When `false`, the role installs no units and, if `backup_infrahub_systemd_manage_state` is `true` and a timer file exists, stops and disables that timer. Existing unit files are left in place. |
@@ -65,8 +65,8 @@ The pinned tool version (`backup_infrahub_version`) sets which Infrahub versions
 | `backup_infrahub_systemd_manage_state` | `bool` | `true` | Whether to reload `systemd` and manage the timer state. Set to `false` to only render the unit files. |
 | `backup_infrahub_schedule` | `str` | `*-*-* 02:00:00` | `systemd` `OnCalendar` expression for the timer, in host time. |
 | `backup_infrahub_randomized_delay` | `str` | `"0"` | `systemd` time span for the timer `RandomizedDelaySec`. |
-| `backup_infrahub_service_user` | `str` | `root` | User running the backup service (`User=`) and on-demand backups. Needs access to Docker (see [Running as a non-root user](#running-as-a-non-root-user)). |
-| `backup_infrahub_environment` | `dict` | `{}` | Extra environment variables for the tool, for example `INFRAHUB_DB_PASSWORD`. Written to the environment file. Never logged. Names must match `^[A-Za-z_][A-Za-z0-9_]*$`. Values must not contain a newline or carriage return. |
+| `backup_infrahub_service_user` | `str` | `root` | User running the backup service (`User=`) and on-demand backups. Must exist on the host; checked before any change when `backup_infrahub_become` is `true`. Needs access to Docker (see [Running as a non-root user](#running-as-a-non-root-user)). |
+| `backup_infrahub_environment` | `dict` | `{}` | Extra environment variables for the tool, for example `INFRAHUB_DB_PASSWORD`. Written to the environment file. Never logged. Names must match `^[A-Za-z_][A-Za-z0-9_]*$`. Values must not contain a newline or carriage return. An `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` key here overrides the S3 credential variables. |
 | `backup_infrahub_run_now` | `bool` | `false` | Run a backup immediately during the role execution, as `backup_infrahub_service_user`. |
 | `backup_infrahub_become` | `bool` | `true` | Whether host-changing tasks use privilege escalation. |
 
@@ -138,16 +138,22 @@ Encrypt every backup with your own public key. Place the key on the host first; 
   become: true
 
   pre_tasks:
+    - name: Create the backup config directory
+      ansible.builtin.file:
+        path: /etc/infrahub-backup
+        state: directory
+        mode: "0700"
+
     - name: Place the backup public key
       ansible.builtin.copy:
         src: files/infrahub-backup.pub
-        dest: /etc/infrahub-backup.pub
+        dest: /etc/infrahub-backup/backup.pub
         mode: "0644"
 
   roles:
     - role: opsmill.infrahub.backup
       vars:
-        backup_infrahub_encrypt_key: /etc/infrahub-backup.pub
+        backup_infrahub_encrypt_key: /etc/infrahub-backup/backup.pub
 ```
 
 </TabItem>
@@ -200,7 +206,7 @@ Start a backup outside the schedule with `systemctl start infrahub-backup.servic
 * **Community Edition is backed up offline.** The tool stops the Infrahub services while it dumps the databases, then restarts them. Schedule backups in a maintenance window with `backup_infrahub_schedule`. The default is every day at 02:00, host time.
 * **Enterprise is backed up online**, with no downtime.
 
-A backup restores only to the edition that produced it.
+A restore must target the same edition that produced the backup: an Enterprise backup can't be restored to Community Edition.
 
 # Retention
 
@@ -208,7 +214,7 @@ The role keeps the 7 most recent backups by default (`backup_infrahub_retention_
 
 * **The rules combine as a union.** With both `backup_infrahub_retention_days` and `backup_infrahub_retention_count`, the tool keeps every backup newer than the age limit *and* the most recent backups up to the count, whichever set is larger. For a hard cap on the number of archives, set only `backup_infrahub_retention_count`.
 * **The newest backup is always kept**, at each location.
-* **Retention runs after a successful backup.** A failed backup never deletes anything.
+* **Retention runs only after a successful backup**, once the archive is written and its checksum recorded. A failed backup never triggers a deletion.
 * **The local directory and the S3 prefix are pruned separately.** Pruning on S3 needs `s3:ListBucket` and `s3:DeleteObject` on the bucket.
 
 See the [infrahub-backup retention guide](https://docs.infrahub.app/backup/backup/retention) for the full semantics.
@@ -240,6 +246,10 @@ By default the backup runs as `root`. To use another account, set `backup_infrah
 * Belong to the `docker` group, or otherwise have access to the Docker daemon
 * Own the backup directory and the config directory with its environment file. The role sets this ownership when `backup_infrahub_become` is `true`
 
+The service user owns the config directory, so it can replace the environment file. That's acceptable because Docker access is already equivalent to root on the host.
+
+On-demand backups (`backup_infrahub_run_now: true`) run as `backup_infrahub_service_user` through `become_user`. When Ansible connects as a different unprivileged user, becoming another unprivileged user needs [Ansible pipelining or ACL support](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_privilege_escalation.html#risks-of-becoming-an-unprivileged-user) (`setfacl`) on the host, as for any Ansible task that becomes an unprivileged user.
+
 # Multiple Infrahub projects on one host
 
 The tool auto-detects the Docker Compose project of the Infrahub instance. When several Infrahub projects run on the same host, set `backup_infrahub_docker_project` to the one to back up.
@@ -247,6 +257,8 @@ The tool auto-detects the Docker Compose project of the Infrahub instance. When 
 # Credentials
 
 The S3 credentials and `backup_infrahub_environment` are written to the `0600` environment file as `KEY="value"`, with `\`, `"`, `$` and `` ` `` escaped. The scheduled service reads it through `EnvironmentFile=`, and on-demand runs source it with `/bin/sh`. Both read back exactly the value you set, so any character works except a newline or carriage return, which the role rejects. The values never appear on a command line or in Ansible output.
+
+A credential set to `null` is treated as unset and isn't written. When `backup_infrahub_environment` has an `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` key, its value is written instead of `backup_infrahub_s3_access_key_id` or `backup_infrahub_s3_secret_access_key`.
 
 # Not supported
 

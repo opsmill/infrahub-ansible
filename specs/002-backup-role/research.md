@@ -25,7 +25,7 @@ Sources: `infrahub-backup` docs (`docs/docs/backup/{create,install,retention}.md
 
 ## R4 — systemd layout
 
-- **Decision**: `infrahub-backup.service` (`Type=oneshot`, optional `OnFailure=<backup_infrahub_on_failure>` in `[Unit]` (critique E1), `After=docker.service`, `Requires=docker.service`, `EnvironmentFile=-<env file>`, `ExecStart=<bin> <args>`, `User=` configurable default `root`) + `infrahub-backup.timer` (`OnCalendar=<schedule>` default `*-*-* 02:00:00`, `Persistent=true`, `RandomizedDelaySec=` configurable default `0`, `WantedBy=timers.target`). Timer enabled + started; service never enabled (triggered by timer).
+- **Decision**: `infrahub-backup.service` (`Type=oneshot`, optional `OnFailure=<backup_infrahub_on_failure>` in `[Unit]` (critique E1) (removed in iteration 2, decision 13), `After=docker.service`, `Requires=docker.service`, `EnvironmentFile=-<env file>`, `ExecStart=<bin> <args>`, `User=` configurable default `root`) + `infrahub-backup.timer` (`OnCalendar=<schedule>` default `*-*-* 02:00:00`, `Persistent=true`, `RandomizedDelaySec=` configurable default `0`, `WantedBy=timers.target`). Timer enabled + started; service never enabled (triggered by timer).
 - **Rationale**: Mirrors the tool's documented unit pair; `Persistent=true` satisfies "missed run executes at boot". Units rendered via `template` notify handlers `Reload systemd` → `Restart Infrahub backup timer`, mirroring the install role's handler style. `WantedBy=timers.target` (not `cloud-init.target` like install) because the timer must run on any host.
 - **Disable path** (FR-011): when `backup_infrahub_setup_systemd: false`, `stat` the timer unit; if present, stop + disable it. Unit files are left in place (harmless, disabled) — removing them adds no value and complicates idempotency.
 
@@ -82,7 +82,7 @@ Sources: `infrahub-backup` docs (`docs/docs/backup/{create,install,retention}.md
 ### R12 — Platform dispatch (decision 2)
 
 - **Decision**: `tasks/main.yml` = shared `validate.yml` → `ansible.builtin.include_tasks: "{{ backup_infrahub_platform }}/main.yml"`. Docker files move to `tasks/docker/{main.yml,validate.yml,setup_systemd.yml}`. Shared: flag builder `backup_infrahub_create_args`, retention/S3/encryption/force/metadata validation. Docker-only: arch/tool install, directories, env file, systemd, run-now, env-value checks. Templates stay under `templates/` (they are Docker-only; a later platform adds its own).
-- `include_tasks` (dynamic) so a future platform file is only parsed when selected; handlers stay in `handlers/main.yml`, gated by `when` on platform.
+- `include_tasks` (dynamic) so a future platform file is only parsed when selected; handlers stay in `handlers/main.yml`, gated by `when: backup_infrahub_systemd_manage_state` (not by platform: only the Docker platform notifies them).
 
 ### R13 — Tool-default alignment (decision 7)
 
