@@ -40,6 +40,7 @@
 | quickstart e2e | e2e | `quickstart.md` | deferred — local E2E not supported | Linux host + Infrahub on Docker Compose | — |
 
 Other checks:
+
 - **Passed:**
   - ansible-lint (production profile)
   - yamllint
@@ -84,7 +85,7 @@ Other checks:
 
 ---
 
-# Iteration 1 report (2026-09-29) — INCOMPLETE
+## Iteration 1 report (2026-09-29) — INCOMPLETE
 
 - **Feature**: `opsmill.infrahub.backup` role (issue #163)
 - **Spec dir**: `specs/002-backup-role`
@@ -92,7 +93,7 @@ Other checks:
 - **Wall clock**: ~35 min (15:36Z → 16:10Z, 2026-09-29)
 - **Status**: INCOMPLETE. 29 of 30 tasks are done. T030 (end-to-end on a real Linux systemd host with Infrahub) was not executed: no such host was available. All local tests pass.
 
-## 1. Chunk ledger
+### 1. Chunk ledger
 
 | # | Chunk | Tasks | ✅/⚠️/❌ | Commits | Flagged |
 |---|---|---|---|---|---|
@@ -105,11 +106,11 @@ Other checks:
 | 7 | Polish | T026–T030 | 4/1/0 | `d498107`, `5c3b3fb`, `2d408b2`, `6c78ebc` | restore URL is `…/backup/backup/restore` (the planned URL returns 404); readme template fixed to one role per line; CHANGELOG uses `Unreleased` (top entry v1.9.0 vs galaxy 1.8.3); T030 ⚠️ not executed |
 | R | Review fixes | — | — | `ef49e60`, `56499bc` | see §5 |
 
-## 2. Tasks not completed
+### 2. Tasks not completed
 
 - **T030**: end-to-end quickstart on a Linux systemd host with Infrahub. Not executed because this machine is macOS with no systemd, so no such host was available. Never exercised for real: tool download and checksum, timer enable/start, the handlers, stop/disable on opt-out, `become_user`, and a real backup against Infrahub. Commands to run are in `quickstart.md`.
 
-## 3. Local-pass evidence
+### 3. Local-pass evidence
 
 | Test id | Type | Run command | Passed at | Environment | Verbatim pass line |
 |---|---|---|---|---|---|
@@ -131,7 +132,7 @@ Other checks:
 - **`invoke lint`:** fails only on the untracked `.ansible/` copy; clean on tracked files.
 - **Not run:** `invoke docusaurus` (no pnpm) and Vale (not installed).
 
-## 4. Review findings
+### 4. Review findings
 
 | Sev | Source | File | Summary | Status |
 |---|---|---|---|---|
@@ -152,7 +153,7 @@ Other checks:
 | Advisory | simplify | role | Build the credential env once; drop the redundant reload handler; owner/`become` helpers; table-driven validation tests | deferred (advisory) |
 | — | types | — | Not applicable (no type definitions in an Ansible role) | skipped |
 
-## 5. Autonomous decisions
+### 5. Autonomous decisions
 
 - **Deferred e2e:** the quickstart e2e was not run locally (flagged). The role has never run against real systemd or Infrahub, so treat this as unverified until someone runs `quickstart.md`.
 - **Chunking:** US1 (12 tasks) was split into tests (T008–T010) and implementation (T011–T019).
@@ -161,7 +162,7 @@ Other checks:
 - **`Unreleased` changelog heading:** there is a version mismatch (CHANGELOG v1.9.0 vs `galaxy.yml` 1.8.3), and someone needs to pick the release number.
 - **Generated readme churn:** the readme's plugin order is nondeterministic, so that part of the regenerated diff was reverted.
 
-## 6. Suggested next steps
+### 6. Suggested next steps
 
 1. Run `quickstart.md` end-to-end on a Linux VM with Infrahub (US1–US3 plus the MinIO variant). Then tick T030.
 2. Decide the release version for the CHANGELOG entry.
