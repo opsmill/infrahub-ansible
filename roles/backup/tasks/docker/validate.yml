@@ -31,11 +31,11 @@
     backup_infrahub_unsafe_env_names: >-
       {{
         (['backup_infrahub_s3_access_key_id']
-         if backup_infrahub_s3_access_key_id is defined
+         if backup_infrahub_s3_access_key_id is defined and backup_infrahub_s3_access_key_id is not none
             and backup_infrahub_s3_access_key_id | string is search(backup_infrahub_env_unsafe_pattern)
          else [])
         + (['backup_infrahub_s3_secret_access_key']
-           if backup_infrahub_s3_secret_access_key is defined
+           if backup_infrahub_s3_secret_access_key is defined and backup_infrahub_s3_secret_access_key is not none
               and backup_infrahub_s3_secret_access_key | string is search(backup_infrahub_env_unsafe_pattern)
            else [])
         + (backup_infrahub_environment.keys() | map('string')
@@ -50,6 +50,25 @@
       {{ backup_infrahub_unsafe_env_names | join(', ') }} contains a newline or carriage
       return, which the env file cannot represent
     quiet: true
+
+# The service user must exist before the binary is installed (validation before
+# change). Only checked with become: without it the role sets no owner. getent
+# passwd needs no privilege.
+- name: Look up the service user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ backup_infrahub_service_user }}"
+    fail_key: false
+  register: backup_infrahub_service_user_entry
+  when: backup_infrahub_become | bool
+
+- name: Validate the service user exists
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_service_user_entry.ansible_facts.getent_passwd[backup_infrahub_service_user] is not none
+    fail_msg: "backup_infrahub_service_user {{ backup_infrahub_service_user }} does not exist on the host"
+    quiet: true
+  when: backup_infrahub_become | bool
 
 - name: Validate tool checksum is set with a custom tool URL
   ansible.builtin.assert:

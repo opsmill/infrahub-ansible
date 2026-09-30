@@ -77,6 +77,7 @@
       ansible.builtin.assert:
         that:
           - tokens == expected
+          - "'\nUser=root\n' in service"
         fail_msg: "tokens={{ tokens }} expected={{ expected }}\n{{ service }}"
         quiet: true
 
@@ -139,6 +140,8 @@
     backup_infrahub_s3_endpoint: http://minio.local:9000
     backup_infrahub_s3_region: eu-central-1
     backup_infrahub_s3_keep_local: true
+    # Stray var from iteration 1 (decision 13 dropped it): must not reach the unit.
+    backup_infrahub_on_failure: notify-failure@%n.service
     service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
 
   pre_tasks:
@@ -181,6 +184,7 @@
           - tokens.index('create') < tokens.index('--s3-upload')
           - tokens.index('create') < tokens.index('--s3-keep-local')
           - "'AWS_' not in service"
+          - "'OnFailure' not in service"
         fail_msg: "Unexpected service unit:\n{{ service }}"
         quiet: true
 
@@ -311,6 +315,7 @@
         quiet: true
 
 # encrypt_key implies encryption: --encrypt-key PATH after create, no bare --encrypt.
+# Also retention_days null: no --retention-days token.
 - name: Backup role render (encryption key)
   hosts: localhost
   connection: local
@@ -328,6 +333,8 @@
     backup_infrahub_setup_systemd: true
     backup_infrahub_encrypt: true
     backup_infrahub_encrypt_key: /etc/infrahub-backup/backup.pub
+    # null must omit the flag, not render `--retention-days None`.
+    backup_infrahub_retention_days: null
     service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
 
   pre_tasks:
@@ -367,5 +374,6 @@
         that:
           - tokens == expected
           - "'--encrypt' not in tokens"
+          - "'--retention-days' not in tokens"
         fail_msg: "tokens={{ tokens }} expected={{ expected }}"
         quiet: true

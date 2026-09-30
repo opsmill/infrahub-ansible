@@ -55,7 +55,7 @@ argument_specs:
         default: "0700"
       backup_infrahub_config_directory:
         description:
-          - Directory holding the environment file.
+          - Directory holding the environment file. Must be an absolute path.
         type: str
         default: /etc/infrahub-backup
       backup_infrahub_docker_project:
@@ -128,14 +128,14 @@ argument_specs:
       backup_infrahub_s3_access_key_id:
         description:
           - S3 access key ID, written to the environment file as C(AWS_ACCESS_KEY_ID).
-          - Must be set together with O(backup_infrahub_s3_secret_access_key).
+          - Must be set together with O(backup_infrahub_s3_secret_access_key). C(null) counts as unset.
           - Must not contain a newline or carriage return.
         type: str
         no_log: true
       backup_infrahub_s3_secret_access_key:
         description:
           - S3 secret access key, written to the environment file as C(AWS_SECRET_ACCESS_KEY).
-          - Must be set together with O(backup_infrahub_s3_access_key_id).
+          - Must be set together with O(backup_infrahub_s3_access_key_id). C(null) counts as unset.
           - Must not contain a newline or carriage return.
         type: str
         no_log: true
@@ -182,8 +182,14 @@ argument_specs:
       backup_infrahub_service_user:
         description:
           - User running the scheduled service and on-demand backups. The role does not create it.
+          - Must exist on the host; checked before any change when O(backup_infrahub_become) is C(true).
           - A non-root user needs Docker access (for example the C(docker) group); the role makes it
-            own the backup and config directories when O(backup_infrahub_become) is C(true).
+            own the backup and config directories when O(backup_infrahub_become) is C(true). Owning
+            the config directory lets it replace the env file, acceptable since Docker access is
+            already root-equivalent.
+          - With O(backup_infrahub_run_now), becoming an unprivileged O(backup_infrahub_service_user)
+            while Ansible connects as another unprivileged user needs Ansible pipelining or ACL
+            support (C(setfacl)) on the host.
         type: str
         default: root
       backup_infrahub_environment:
@@ -192,6 +198,7 @@ argument_specs:
           - Written to the environment file.
           - Names must match C(^[A-Za-z_][A-Za-z0-9_]*$).
           - Values must not contain a newline or carriage return; any other character is kept exactly.
+          - An C(AWS_ACCESS_KEY_ID) or C(AWS_SECRET_ACCESS_KEY) key overrides the S3 credential variables.
         type: dict
         default: {}
         no_log: true

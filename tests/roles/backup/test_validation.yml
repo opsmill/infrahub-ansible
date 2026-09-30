@@ -248,6 +248,64 @@
               - "'Unsupported architecture' in ansible_failed_result.msg"
             fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
 
+    - name: Case relative config_directory
+      block:
+        - name: Apply role with a relative config_directory
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_config_directory: etc/infrahub-backup
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert config_directory message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_config_directory must be an absolute path' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    # A null credential counts as unset, so a set id with a null secret is one-sided.
+    - name: Case S3 secret null with access key id set
+      block:
+        - name: Apply role with a null secret access key
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_s3_access_key_id: AKIATEST
+            backup_infrahub_s3_secret_access_key: null
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert credentials message
+          ansible.builtin.assert:
+            that:
+              - "'must be set together' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    # become: true is safe here: the check fails before any task that escalates.
+    # Linux only: the getent binary does not exist on macOS controllers.
+    - name: Case non-existent service_user (Linux only)
+      when: lookup('ansible.builtin.pipe', 'uname -s') == 'Linux'
+      block:
+        - name: Apply role with an unknown service user
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_become: true
+            backup_infrahub_service_user: infrahub-backup-no-such-user
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert service_user message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_service_user' in ansible_failed_result.msg"
+              - "'does not exist' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
     - name: Stat the test prefix
       ansible.builtin.stat:
         path: "{{ test_prefix }}"

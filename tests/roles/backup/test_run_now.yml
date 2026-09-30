@@ -22,6 +22,8 @@
     backup_infrahub_systemd_manage_state: false
     backup_infrahub_setup_systemd: false
     backup_infrahub_run_now: true
+    # Credentials must reach the tool through the env file, never through argv.
+    test_sentinel: SENTINEL-SECRET-e3b0c442
 
   pre_tasks:
     - name: Require test_root (never write under /)
@@ -86,6 +88,7 @@
           - "'create' in argv"
           - "'--backup-dir' in argv"
           - argv[argv.index('--backup-dir') + 1] == backup_infrahub_backup_directory
+          - test_sentinel not in (argv_raw.content | b64decode)
           - env_seen | map('regex_replace', '=.*$', '') | sort
             == ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'INFRAHUB_DB_PASSWORD']
         fail_msg: "argv={{ argv }} env={{ env_seen }}"

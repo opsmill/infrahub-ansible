@@ -61,6 +61,13 @@ for run in 1 2; do
     2>&1 | tee "$TMP/run$run.log"
 done
 
+# Separate playbook: extra vars (-e) beat play vars, so null credentials can only be
+# tested without secrets.yml. Its env file holds no secret, so it may be read.
+echo "==> test_render_no_secrets.yml"
+playbook "$HERE/test_render_no_secrets.yml" -vvv \
+  -e "test_root=$TMP" \
+  2>&1 | tee "$TMP/nosecrets.log"
+
 # Separate playbook: run-now always reports changed, so it cannot share the
 # idempotency check. Same secrets as the render runs, so no_log is active.
 echo "==> test_run_now.yml"
@@ -69,7 +76,7 @@ playbook "$HERE/test_run_now.yml" -vvv --diff \
   -e "@$TMP/secrets.yml" \
   2>&1 | tee "$TMP/runnow.log"
 
-for log in validation run1 run2 runnow; do
+for log in validation run1 run2 nosecrets runnow; do
   if grep -q "$SENTINEL" "$TMP/$log.log"; then
     echo "FAIL: secret leaked in $log output (-vvv)" >&2
     exit 1
@@ -95,7 +102,7 @@ sh "$HERE/envfile_roundtrip.sh" "$ENV_FILE" "$TMP/expected.txt"
 
 # Run-now path: the fake tool recorded KEY=<sha256> of what it received.
 echo "==> run-now received values"
-if ! diff -u "$TMP/expected.txt" <(sort "$TMP/runnow/env.txt") >&2; then
+if ! diff -u "$TMP/expected.txt" <(LC_ALL=C sort "$TMP/runnow/env.txt") >&2; then
   echo "FAIL: run-now tool did not receive the exact secret values" >&2
   exit 1
 fi

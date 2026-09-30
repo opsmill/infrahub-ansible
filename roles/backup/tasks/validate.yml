@@ -29,13 +29,25 @@
     quiet: true
   when: backup_infrahub_s3_upload | bool
 
-# Only tests `is defined`, never prints the values, so no_log is not needed and
-# would hide fail_msg (the contract requires "must be set together" to be visible).
+# Only tests definedness (null counts as unset), never prints the values, so no_log
+# is not needed and would hide fail_msg (the contract requires "must be set together"
+# to be visible).
 - name: Validate S3 credentials are set together
   ansible.builtin.assert:
     that:
-      - (backup_infrahub_s3_access_key_id is defined) == (backup_infrahub_s3_secret_access_key is defined)
+      - >-
+        (backup_infrahub_s3_access_key_id is defined and backup_infrahub_s3_access_key_id is not none)
+        == (backup_infrahub_s3_secret_access_key is defined and backup_infrahub_s3_secret_access_key is not none)
     fail_msg: backup_infrahub_s3_access_key_id and backup_infrahub_s3_secret_access_key must be set together
+    quiet: true
+
+# systemd EnvironmentFile= needs an absolute path, and the run-now wrapper's `.`
+# would search PATH for a relative one.
+- name: Validate backup_infrahub_config_directory is an absolute path
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_config_directory is abs
+    fail_msg: "backup_infrahub_config_directory must be an absolute path (got {{ backup_infrahub_config_directory }})"
     quiet: true
 
 # Path only: the key is not stat'ed, the operator may place it later in the same play.
