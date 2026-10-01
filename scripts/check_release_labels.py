@@ -32,7 +32,7 @@ def main() -> int:
     if (
         args.author_login == RELEASE_PR_AUTHOR
         and args.head_repository == args.repository
-        and args.head_ref.startswith("release/v")
+        and args.head_ref.startswith("release/")
         and args.title == f"{RELEASE_PR_PREFIX} {release_version}"
     ):
         sys.stdout.write("Skipping label check for generated release pull request.\n")
