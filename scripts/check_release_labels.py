@@ -10,7 +10,8 @@ import sys
 BUMP_LABELS = frozenset({"changes/major", "changes/minor", "changes/patch"})
 RELEASE_PR_PREFIX = "chore(release):"
 # trigger-push-stable.yml names the branch `release/<version>` (no `v`) and
-# validates <version> with this same pattern before it opens the pull request.
+# validates <version> with this same pattern before it opens the pull request;
+# a unit test fails if the two copies drift.
 RELEASE_BRANCH_PATTERN = re.compile(r"release/[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?")
 # trigger-push-stable.yml opens release pull requests with GH_INFRAHUB_BOT_TOKEN,
 # a personal access token of this user account (not a GitHub App, which would

@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -65,6 +66,14 @@ def test_version_drafter_reads_only_bump_labels() -> None:
         "minor-labels": ["changes/minor"],
         "patch-labels": ["changes/patch"],
     }
+
+
+def test_release_branch_pattern_matches_the_release_workflow() -> None:
+    """The exemption must accept exactly the versions trigger-push-stable.yml will release."""
+    workflow = (REPO_ROOT / ".github" / "workflows" / "trigger-push-stable.yml").read_text()
+    match = re.search(r"grep -Eq '\^(?P<version>.+)\$'", workflow)
+    assert match, "trigger-push-stable.yml no longer validates the version with grep -Eq"
+    assert check_release_labels.RELEASE_BRANCH_PATTERN.pattern == f"release/{match['version']}"
 
 
 def test_bump_labels_are_declared() -> None:
