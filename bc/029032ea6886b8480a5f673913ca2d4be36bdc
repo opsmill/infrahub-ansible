@@ -1,0 +1,24 @@
+tests/unit/scripts/test_check_release_labels.py
+  s_7e8bc0f59e77ac::t_b68651f948780a 1-118
+  s_7e8bc0f59e77ac::t_ac14023b4c9abe 119-120
+.github/workflows/update-infrahub-sdk.yml
+  s_7e8bc0f59e77ac::t_b876bfc4b4c4c8 84-86,92-93
+.github/workflows/update-infrahub.yml
+  s_7e8bc0f59e77ac::t_10d92efd552940 89-91,97-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bc029032ea6886b8480a5f673913ca2d4be36bdc",
+  "prompts": {},
+  "sessions": {
+    "s_7e8bc0f59e77ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8f58ef6-d8cb-4c10-9bd9-5e5f499aa838",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
