@@ -1,0 +1,1 @@
+Pull requests into `stable` now need exactly one `changes/major`, `changes/minor`, or `changes/patch` label, and only those labels decide the calculated release version; `type/*` labels no longer bump it. The automated Infrahub and infrahub-sdk update pull requests carry `changes/patch`.

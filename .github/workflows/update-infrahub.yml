@@ -86,10 +86,13 @@ jobs:
           # A dependency bump carries no behaviour change of its own, so it is
           # exempt from the news-fragment gate in changelog-check.yml. This
           # workflow opens its pull requests through a PAT, so the author is
-          # not dependabot[bot] and that exemption does not reach it.
+          # not dependabot[bot] and that exemption does not reach it. Like the
+          # dependabot pull requests, it ships as a patch release, and
+          # release-label-check.yml requires that intent as a label.
           gh pr create \
             --title "update Infrahub to version ${{ env.INFRAHUB_VERSION }} against ${{ matrix.branch-name }}" \
             --body "This PR updates Infrahub to version ${{ env.INFRAHUB_VERSION }}." \
             --base ${{ matrix.branch-name }} \
             --head ${{ env.BRANCH_NAME }} \
-            --label "ci/skip-changelog"
+            --label "ci/skip-changelog" \
+            --label "changes/patch"
