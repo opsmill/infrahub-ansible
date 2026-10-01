@@ -62,6 +62,11 @@ Every pull request that changes behaviour carries a news fragment in `changelog/
 - `uv run towncrier build --draft --version X.Y.Z` — preview what the release will say.
 - Label a PR `ci/skip-changelog` when it genuinely needs no entry.
 
+Every normal pull request must also carry exactly one release-intent label:
+`changes/major`, `changes/minor`, or `changes/patch`. These labels alone
+determine the automatic version bump. Generated `chore(release):` pull requests
+are exempt because they apply, rather than introduce, that release intent.
+
 Never run `towncrier build`, edit `CHANGELOG.md`, or bump `galaxy.yml` by hand. Merging to `stable` does not prepare a release on its own: dispatch `trigger-push-stable.yml` from Actions with `stable` selected, which opens a `chore(release): <version>` pull request carrying the bump and the assembled changelog. Merging that pull request tags and publishes the release, which is what triggers the Galaxy upload. Full detail in [dev/guides/releasing-the-collection.md](dev/guides/releasing-the-collection.md).
 
 ## Architecture & Standards Pointers

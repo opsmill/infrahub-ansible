@@ -1,4 +1,5 @@
 *.tar.gz
+.bug-analysis-*.md
 **/__pycache__
 *.pyc
 tests/output/*
