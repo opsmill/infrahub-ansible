@@ -71,20 +71,20 @@ def test_release_label_contract() -> None:
         assert rejected.returncode != 0
         assert "exactly one" in rejected.stderr
 
-    spoofed_release_pr = run_checker([], title="chore(release): v1.2.3", head_ref="release/v1.2.3")
+    spoofed_release_pr = run_checker([], title="chore(release): 1.2.3", head_ref="release/1.2.3")
     assert spoofed_release_pr.returncode != 0
     assert "exactly one" in spoofed_release_pr.stderr
 
     forked_bot_release_pr = run_checker(
-        [], title="chore(release): v1.2.3", head_ref="release/v1.2.3", author_login="opsmill-bot"
+        [], title="chore(release): 1.2.3", head_ref="release/1.2.3", author_login="opsmill-bot"
     )
     assert forked_bot_release_pr.returncode != 0
     assert "exactly one" in forked_bot_release_pr.stderr
 
     release_pr = run_checker(
         [],
-        title="chore(release): v1.2.3",
-        head_ref="release/v1.2.3",
+        title="chore(release): 1.2.3",
+        head_ref="release/1.2.3",
         author_login="opsmill-bot",
         head_repository="opsmill/example",
     )
