@@ -1,0 +1,20 @@
+tests/test_release_label_contract.py
+  s_7b740b0a09bab8::t_9fa553e84ede0b 50
+  s_7b740b0a09bab8::t_48d193c8ff7c1f 31-32,45-49,74,78-83,88-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3a20e1a8361acad64db45fd80c763521d41b34b4",
+  "prompts": {},
+  "sessions": {
+    "s_7b740b0a09bab8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f3cf-b8e2-7472-8987-ae8cafa06948",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
