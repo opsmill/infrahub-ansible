@@ -1,0 +1,24 @@
+scripts/check_release_labels.py
+  s_7e8bc0f59e77ac::t_07c033ede7ea63 12-14
+  s_7e8bc0f59e77ac::t_070dbb2e1ed128 39-40,43-45
+  s_7e8bc0f59e77ac::t_fefae7b288addf 7
+tests/unit/scripts/test_check_release_labels.py
+  s_7e8bc0f59e77ac::t_a0298f6f272fea 107-115,123-124,127-135
+  s_7e8bc0f59e77ac::t_5f4085cd0867a1 104-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1ff8434385e4774097da54ae848114839b971682",
+  "prompts": {},
+  "sessions": {
+    "s_7e8bc0f59e77ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8f58ef6-d8cb-4c10-9bd9-5e5f499aa838",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
