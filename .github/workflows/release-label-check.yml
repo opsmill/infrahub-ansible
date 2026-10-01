@@ -3,7 +3,12 @@
 name: Release bump label
 
 on:
-  pull_request:
+  # pull_request_target runs this file and the checker as they are on `stable`,
+  # so a pull request cannot rewrite the check that judges it. That is only safe
+  # because nothing from the pull request head is checked out or executed: the
+  # checker reads the event payload alone. Keep it that way. The flip side is
+  # that a pull request changing this workflow is judged by the old version.
+  pull_request_target:
     branches:
       - stable
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
@@ -26,8 +31,12 @@ jobs:
     permissions:
       contents: read
     steps:
+      # Base branch only — never `ref: ${{ github.event.pull_request.head.sha }}`.
       - name: "Check out repository code"
         uses: "actions/checkout@v7"
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
 
       - name: "Set up Python"
         uses: "actions/setup-python@v7"
