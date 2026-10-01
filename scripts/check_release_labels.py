@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 
 BUMP_LABELS = frozenset({"changes/major", "changes/minor", "changes/patch"})
 RELEASE_PR_PREFIX = "chore(release):"
-RELEASE_BRANCH_PREFIX = "release/"
+# trigger-push-stable.yml names the branch `release/<version>` (no `v`) and
+# validates <version> with this same pattern before it opens the pull request.
+RELEASE_BRANCH_PATTERN = re.compile(r"release/[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?")
 # trigger-push-stable.yml opens release pull requests with GH_INFRAHUB_BOT_TOKEN,
 # a personal access token of this user account (not a GitHub App, which would
 # surface as "<slug>[bot]").
@@ -33,15 +36,14 @@ def is_generated_release_pr(
     """Return True only for the release pull request trigger-push-stable.yml opens.
 
     Every condition is required: the title alone is user-controlled, and a fork
-    can name its branch anything.
+    can name its branch anything. The title is matched by prefix only, so a
+    maintainer retitling the release pull request does not lose the exemption.
     """
-    if not head_ref.startswith(RELEASE_BRANCH_PREFIX):
-        return False
-    version = head_ref.removeprefix(RELEASE_BRANCH_PREFIX)
     return (
-        author_login == RELEASE_PR_AUTHOR
+        title.startswith(RELEASE_PR_PREFIX)
+        and RELEASE_BRANCH_PATTERN.fullmatch(head_ref) is not None
+        and author_login == RELEASE_PR_AUTHOR
         and head_repository == repository
-        and title == f"{RELEASE_PR_PREFIX} {version}"
     )
 
 

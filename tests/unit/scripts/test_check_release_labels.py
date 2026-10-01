@@ -104,14 +104,35 @@ def test_exempts_generated_release_pr(capsys: pytest.CaptureFixture[str]) -> Non
 @pytest.mark.parametrize(
     "override",
     [
+        {"title": "chore(release): 1.2.3 with reviewed changelog"},
+        {"head_ref": "release/1.2.3-rc.1"},
+    ],
+    ids=["retitled", "prerelease"],
+)
+def test_exemption_survives_retitle_and_prerelease(override: dict[str, str]) -> None:
+    assert run([], **{**RELEASE_PR, **override}) == 0
+
+
+@pytest.mark.parametrize(
+    "override",
+    [
         {"author_login": "contributor"},
         {"author_login": "opsmill-bot[bot]"},
         {"head_repository": "fork/infrahub-ansible"},
         {"head_ref": "feature/1.2.3"},
-        {"title": "chore(release): 9.9.9"},
+        {"head_ref": "release/anything"},
+        {"head_ref": "release/1.2.3/extra"},
         {"title": "fix: 1.2.3"},
     ],
-    ids=["other-author", "app-identity", "fork", "non-release-branch", "title-version-mismatch", "non-release-title"],
+    ids=[
+        "other-author",
+        "app-identity",
+        "fork",
+        "non-release-branch",
+        "non-version-release-branch",
+        "trailing-path",
+        "non-release-title",
+    ],
 )
 def test_near_miss_release_prs_still_need_a_bump_label(
     override: dict[str, str], capsys: pytest.CaptureFixture[str]
