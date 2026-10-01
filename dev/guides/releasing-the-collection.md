@@ -23,7 +23,10 @@ run anywhere but `stable`. Collapsing `develop` into a single `stable` branch
 is specified in `specs/003-collapse-develop-branch/spec.md`.
 
 Leave **version** empty to have `version-drafter-action` compute the next
-version from the merged pull-request labels — that is the usual case. Fill it
+version from the merged pull-request labels — that is the usual case. Only the
+`changes/major`, `changes/minor`, and `changes/patch` labels count; every pull
+request into `stable` carries exactly one, enforced by
+`release-label-check.yml`. Fill it
 in to state the version yourself, the way infrahub and infrahub-sdk-python do
 for every release.
 
@@ -100,8 +103,8 @@ does not publish anything.
 ## Release checklist
 
 1. Ensure `develop` is green (`invoke lint`, `tests-sanity`, `tests-unit`).
-2. Confirm PRs are labelled so `version-drafter-action` computes the intended
-   semver bump.
+2. Confirm each merged PR's `changes/*` label reflects the intended semver bump —
+   `version-drafter-action` reads no other label.
 3. Confirm the changes going out carry news fragments in `changelog/` —
    `uv run towncrier build --draft --version <next>` previews exactly what the
    release will say.
