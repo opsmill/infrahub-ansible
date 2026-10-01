@@ -1,0 +1,24 @@
+AGENTS.md
+  s_7e8bc0f59e77ac::t_a99b73d119e941 65-70
+dev/guides/releasing-the-collection.md
+  s_7e8bc0f59e77ac::t_4512ce04f338f3 106-107
+  s_7e8bc0f59e77ac::t_a7b6523b77e07b 26-29
+changelog/+release-bump-label-contract.housekeeping.md
+  s_7e8bc0f59e77ac::t_dd2022719fc455 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "38c0b8d5531e1a4c49f7ff217ed782e97f586105",
+  "prompts": {},
+  "sessions": {
+    "s_7e8bc0f59e77ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8f58ef6-d8cb-4c10-9bd9-5e5f499aa838",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
