@@ -1,0 +1,20 @@
+.github/workflows/release-label-check.yml
+  s_7e8bc0f59e77ac::t_80089d3f93a1c3 6-11
+  s_7e8bc0f59e77ac::t_8ce3d19facb3ec 34,37-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6d4814448910426342edf3d9687bd498a4ce24e9",
+  "prompts": {},
+  "sessions": {
+    "s_7e8bc0f59e77ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8f58ef6-d8cb-4c10-9bd9-5e5f499aa838",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
