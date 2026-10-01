@@ -1,0 +1,31 @@
+changelog/+release-bump-label-contract.housekeeping.md
+  s_7b740b0a09bab8::t_6d6353f385966e 1
+.github/workflows/release-label-check.yml
+  s_7b740b0a09bab8::t_6d6353f385966e 1-28
+scripts/check_release_labels.py
+  s_7b740b0a09bab8::t_5edd54cfec9e58 27,33,37,48
+  s_7b740b0a09bab8::t_6d6353f385966e 1-26,28-32,34-36,38-44,46-47,49-53
+  s_7b740b0a09bab8::t_dcfb48f970fbe3 45
+.gitignore
+  s_7b740b0a09bab8::t_5cf4a6a0c84df8 2
+AGENTS.md
+  s_7b740b0a09bab8::t_868a74fb44ca6e 65-69
+.github/version-drafter.yml
+  s_7b740b0a09bab8::t_88908ded00da04 2-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "257af25ec684f9026a450b073bc515c8543b0887",
+  "prompts": {},
+  "sessions": {
+    "s_7b740b0a09bab8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f3cf-b8e2-7472-8987-ae8cafa06948",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
