@@ -1,0 +1,59 @@
+---
+backup_infrahub_arch_map:
+  x86_64: amd64
+  aarch64: arm64
+  arm64: arm64
+backup_infrahub_arch: "{{ backup_infrahub_arch_map.get(ansible_facts.architecture) }}"
+
+backup_infrahub_release_url: https://github.com/opsmill/infrahub-backup/releases/download/{{ backup_infrahub_version }}
+backup_infrahub_default_tool_url: "{{ backup_infrahub_release_url }}/infrahub-backup-linux-{{ backup_infrahub_arch }}"
+backup_infrahub_default_tool_checksum: "sha256:{{ backup_infrahub_release_url }}/SHA256SUMS"
+
+backup_infrahub_env_file: "{{ backup_infrahub_config_directory }}/infrahub-backup.env"
+
+# Env-file safety (validate.yml). \Z, not $: `$` also matches before a trailing newline.
+backup_infrahub_env_key_pattern: '^[A-Za-z_][A-Za-z0-9_]*\Z'
+# Newline or CR: the only characters the quoted env file cannot represent (R11).
+backup_infrahub_env_unsafe_pattern: '[\n\r]'
+
+# S3 credentials to write to the env file; a null credential counts as unset.
+backup_infrahub_s3_credentials: >-
+  {{
+    ({'AWS_ACCESS_KEY_ID': backup_infrahub_s3_access_key_id}
+     if backup_infrahub_s3_access_key_id is defined and backup_infrahub_s3_access_key_id is not none else {})
+    | combine({'AWS_SECRET_ACCESS_KEY': backup_infrahub_s3_secret_access_key}
+              if backup_infrahub_s3_secret_access_key is defined
+                 and backup_infrahub_s3_secret_access_key is not none else {})
+  }}
+
+# True when the env file carries values that must never be logged or diffed.
+backup_infrahub_has_secrets: >-
+  {{ (backup_infrahub_s3_credentials | length > 0) or (backup_infrahub_environment | length > 0) }}
+
+# CLI tokens for `infrahub-backup [global-flags] create [flags]`.
+# Single source of truth for the systemd ExecStart and the run-now task.
+# Only --backup-dir and --retention-count (unless null) are always passed; every other
+# flag only when its variable is set/true, so the tool's own defaults apply.
+backup_infrahub_create_args: >-
+  {{
+    ['--backup-dir', backup_infrahub_backup_directory]
+    + (['--project', backup_infrahub_docker_project] if backup_infrahub_docker_project | default('', true) else [])
+    + (['--log-format', backup_infrahub_log_format] if backup_infrahub_log_format | default('', true) else [])
+    + (['--s3-bucket', backup_infrahub_s3_bucket] if backup_infrahub_s3_bucket | default('') else [])
+    + (['--s3-prefix', backup_infrahub_s3_prefix] if backup_infrahub_s3_prefix | default('') else [])
+    + (['--s3-endpoint', backup_infrahub_s3_endpoint] if backup_infrahub_s3_endpoint | default('') else [])
+    + (['--s3-region', backup_infrahub_s3_region] if backup_infrahub_s3_region | default('') else [])
+    + ['create']
+    + (['--neo4jmetadata', backup_infrahub_neo4j_metadata]
+       if backup_infrahub_neo4j_metadata | default('', true) else [])
+    + (['--force'] if backup_infrahub_force | bool else [])
+    + (['--exclude-taskmanager'] if backup_infrahub_exclude_taskmanager | bool else [])
+    + (['--s3-upload'] if backup_infrahub_s3_upload | bool else [])
+    + (['--s3-keep-local'] if backup_infrahub_s3_keep_local | bool else [])
+    + (['--encrypt-key', backup_infrahub_encrypt_key] if backup_infrahub_encrypt_key | default('', true)
+       else (['--encrypt'] if backup_infrahub_encrypt | bool else []))
+    + (['--retention-days', backup_infrahub_retention_days | string]
+       if backup_infrahub_retention_days is defined and backup_infrahub_retention_days is not none else [])
+    + (['--retention-count', backup_infrahub_retention_count | string]
+       if backup_infrahub_retention_count is defined and backup_infrahub_retention_count is not none else [])
+  }}

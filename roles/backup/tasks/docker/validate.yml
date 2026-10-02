@@ -1,0 +1,90 @@
+---
+# Docker platform checks. Shared checks are in tasks/validate.yml.
+- name: Gather architecture fact
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+  when:
+    - backup_infrahub_install_tool | bool
+    - ansible_facts.architecture is not defined
+
+# The env checks below compute lists of offending NAMES in task vars (never printed)
+# and assert on those, so neither fail_msg nor the -vvv result can carry a value.
+- name: Validate environment variable names
+  vars:
+    backup_infrahub_invalid_env_keys: >-
+      {{ backup_infrahub_environment.keys() | map('string')
+         | reject('match', backup_infrahub_env_key_pattern) | list }}
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_invalid_env_keys | length == 0
+    fail_msg: >-
+      backup_infrahub_environment has an invalid environment variable name
+      (must match ^[A-Za-z_][A-Za-z0-9_]*$): {{ backup_infrahub_invalid_env_keys | join(', ') }}
+    quiet: true
+
+# The env file quotes and escapes every other character (research R11); a newline
+# or CR cannot be represented (a backslash-newline is a line continuation in both
+# systemd and sh).
+- name: Validate environment values have no newline
+  vars:
+    backup_infrahub_unsafe_env_names: >-
+      {{
+        (['backup_infrahub_s3_access_key_id']
+         if backup_infrahub_s3_access_key_id is defined and backup_infrahub_s3_access_key_id is not none
+            and backup_infrahub_s3_access_key_id | string is search(backup_infrahub_env_unsafe_pattern)
+         else [])
+        + (['backup_infrahub_s3_secret_access_key']
+           if backup_infrahub_s3_secret_access_key is defined and backup_infrahub_s3_secret_access_key is not none
+              and backup_infrahub_s3_secret_access_key | string is search(backup_infrahub_env_unsafe_pattern)
+           else [])
+        + (backup_infrahub_environment.keys() | map('string')
+           | zip(backup_infrahub_environment.values() | map('string'))
+           | selectattr('1', 'search', backup_infrahub_env_unsafe_pattern)
+           | map('first') | map('regex_replace', '^', 'backup_infrahub_environment.') | list)
+      }}
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_unsafe_env_names | length == 0
+    fail_msg: >-
+      {{ backup_infrahub_unsafe_env_names | join(', ') }} contains a newline or carriage
+      return, which the env file cannot represent
+    quiet: true
+
+# The service user must exist before the binary is installed (validation before
+# change). Only checked with become: without it the role sets no owner. getent
+# passwd needs no privilege.
+- name: Look up the service user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ backup_infrahub_service_user }}"
+    fail_key: false
+  register: backup_infrahub_service_user_entry
+  when: backup_infrahub_become | bool
+
+- name: Validate the service user exists
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_service_user_entry.ansible_facts.getent_passwd[backup_infrahub_service_user] is not none
+    fail_msg: "backup_infrahub_service_user {{ backup_infrahub_service_user }} does not exist on the host"
+    quiet: true
+  when: backup_infrahub_become | bool
+
+- name: Validate tool checksum is set with a custom tool URL
+  ansible.builtin.assert:
+    that:
+      - backup_infrahub_tool_checksum is defined
+    fail_msg: backup_infrahub_tool_checksum is required when backup_infrahub_tool_url is set
+    quiet: true
+  when:
+    - backup_infrahub_install_tool | bool
+    - backup_infrahub_tool_url is defined
+
+# The architecture only selects the default download asset.
+- name: Validate host architecture
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.architecture in backup_infrahub_arch_map
+    fail_msg: "Unsupported architecture: {{ ansible_facts.architecture }}"
+    quiet: true
+  when: backup_infrahub_install_tool | bool

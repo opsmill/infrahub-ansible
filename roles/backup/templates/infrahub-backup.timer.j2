@@ -1,0 +1,11 @@
+[Unit]
+Description=Scheduled Infrahub backup
+
+[Timer]
+OnCalendar={{ backup_infrahub_schedule }}
+Persistent=true
+RandomizedDelaySec={{ backup_infrahub_randomized_delay }}
+Unit=infrahub-backup.service
+
+[Install]
+WantedBy=timers.target

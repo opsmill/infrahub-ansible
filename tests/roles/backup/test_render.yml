@@ -1,0 +1,379 @@
+---
+# Render test: apply the role against a temp root without installing the tool or
+# touching systemd state, then assert on rendered units, env file and modes.
+# Credentials and backup_infrahub_environment are supplied only by run.sh (-e),
+# never set here, so extra-vars precedence cannot conflict with play vars.
+# Run via tests/roles/backup/run.sh (passes -e test_root=<tmpdir>).
+- name: Backup role render (default layout)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/default"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: true
+    service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+    timer_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer"
+    env_path: "{{ backup_infrahub_config_directory }}/infrahub-backup.env"
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read service unit
+      ansible.builtin.slurp:
+        src: "{{ service_path }}"
+      register: service_raw
+
+    - name: Read timer unit
+      ansible.builtin.slurp:
+        src: "{{ timer_path }}"
+      register: timer_raw
+
+    # The env file holds secrets: stat it only, never slurp it (would print at -vvv).
+    - name: Stat env file
+      ansible.builtin.stat:
+        path: "{{ env_path }}"
+        get_checksum: false
+      register: env_stat
+
+    - name: Stat backup directory
+      ansible.builtin.stat:
+        path: "{{ backup_infrahub_backup_directory }}"
+        get_checksum: false
+      register: backup_dir_stat
+
+    # Tool defaults (decision 7): only --backup-dir and --retention-count 7 are passed.
+    # Paths have no spaces or quotes, so a plain split is an exact tokenization.
+    - name: Assert default ExecStart tokens
+      vars:
+        service: "{{ service_raw.content | b64decode }}"
+        exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
+        tokens: "{{ exec_start | regex_replace('^ExecStart=', '') | split(' ') }}"
+        expected:
+          - "{{ backup_infrahub_bin_path }}"
+          - --backup-dir
+          - "{{ backup_infrahub_backup_directory }}"
+          - create
+          - --retention-count
+          - "7"
+      ansible.builtin.assert:
+        that:
+          - tokens == expected
+          - "'\nUser=root\n' in service"
+        fail_msg: "tokens={{ tokens }} expected={{ expected }}\n{{ service }}"
+        quiet: true
+
+    - name: Assert timer unit content
+      vars:
+        timer: "{{ timer_raw.content | b64decode }}"
+      ansible.builtin.assert:
+        that:
+          - "'OnCalendar=*-*-* 02:00:00' in timer"
+          - "'Persistent=true' in timer"
+        fail_msg: "Unexpected timer unit:\n{{ timer }}"
+        quiet: true
+
+    - name: Assert file modes
+      ansible.builtin.assert:
+        that:
+          - env_stat.stat.exists
+          - env_stat.stat.mode == '0600'
+          - backup_dir_stat.stat.exists
+          - backup_dir_stat.stat.isdir
+          - backup_dir_stat.stat.mode == '0700'
+        fail_msg: >-
+          env mode={{ env_stat.stat.mode | default('missing') }}
+          backup dir mode={{ backup_dir_stat.stat.mode | default('missing') }}
+        quiet: true
+
+    # install_tool is false here, so the role skipped fact gathering: gather now.
+    - name: Gather architecture fact for the default download URL
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+
+    - name: Assert default tool URL and checksum shape
+      ansible.builtin.assert:
+        that:
+          - backup_infrahub_default_tool_url is search('/infrahub-backup-linux-(amd64|arm64)$')
+          - backup_infrahub_default_tool_url is match('https://github.com/opsmill/infrahub-backup/releases/download/')
+          - backup_infrahub_default_tool_checksum is match('sha256:https://github.com/opsmill/infrahub-backup/releases/download/')
+          - backup_infrahub_default_tool_checksum is search('/SHA256SUMS$')
+        fail_msg: "url={{ backup_infrahub_default_tool_url }} checksum={{ backup_infrahub_default_tool_checksum }}"
+        quiet: true
+
+- name: Backup role render (S3 upload)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/s3"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: true
+    backup_infrahub_s3_upload: true
+    backup_infrahub_s3_bucket: infrahub-backups
+    backup_infrahub_s3_endpoint: http://minio.local:9000
+    backup_infrahub_s3_region: eu-central-1
+    backup_infrahub_s3_keep_local: true
+    # Stray var from iteration 1 (decision 13 dropped it): must not reach the unit.
+    backup_infrahub_on_failure: notify-failure@%n.service
+    service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read service unit
+      ansible.builtin.slurp:
+        src: "{{ service_path }}"
+      register: service_raw
+
+    # Global S3 flags must precede the `create` subcommand; upload flags follow it.
+    - name: Assert S3 flags and ordering in service unit
+      vars:
+        service: "{{ service_raw.content | b64decode }}"
+        exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
+        tokens: "{{ exec_start.split(' ') }}"
+      ansible.builtin.assert:
+        that:
+          - exec_start | length > 0
+          - "'--s3-bucket infrahub-backups' in exec_start"
+          - "'--s3-endpoint http://minio.local:9000' in exec_start"
+          - "'--s3-region eu-central-1' in exec_start"
+          - "'--s3-upload' in tokens"
+          - "'--s3-keep-local' in tokens"
+          - "'create' in tokens"
+          - tokens.index('--s3-bucket') < tokens.index('create')
+          - tokens.index('--s3-endpoint') < tokens.index('create')
+          - tokens.index('--s3-region') < tokens.index('create')
+          - tokens.index('create') < tokens.index('--s3-upload')
+          - tokens.index('create') < tokens.index('--s3-keep-local')
+          - "'AWS_' not in service"
+          - "'OnFailure' not in service"
+        fail_msg: "Unexpected service unit:\n{{ service }}"
+        quiet: true
+
+# US3-AS3 / FR-011: with systemd setup disabled no unit is rendered, the env file is.
+- name: Backup role render (systemd disabled)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/nosystemd"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: false
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Stat rendered files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+        get_checksum: false
+      loop:
+        - "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+        - "{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer"
+        - "{{ backup_infrahub_config_directory }}/infrahub-backup.env"
+      register: nosystemd_stats
+
+    - name: Assert no unit files and an env file
+      ansible.builtin.assert:
+        that:
+          - not nosystemd_stats.results[0].stat.exists
+          - not nosystemd_stats.results[1].stat.exists
+          - nosystemd_stats.results[2].stat.exists
+          - nosystemd_stats.results[2].stat.mode == '0600'
+        fail_msg: "Unexpected files under {{ render_root }}"
+        quiet: true
+
+# Every optional create flag, --project omitted, retention_count null (no
+# --retention-count), built-in-key encryption, and $ / % escaping: exact token list.
+- name: Backup role render (all create flags)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/flags"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: true
+    backup_infrahub_docker_project: ""
+    backup_infrahub_retention_days: 7
+    backup_infrahub_retention_count: null
+    backup_infrahub_encrypt: true
+    backup_infrahub_force: true
+    backup_infrahub_exclude_taskmanager: true
+    backup_infrahub_log_format: json
+    backup_infrahub_neo4j_metadata: none
+    backup_infrahub_s3_prefix: "pre$fix%x"
+    service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read service unit
+      ansible.builtin.slurp:
+        src: "{{ service_path }}"
+      register: service_raw
+
+    - name: Assert exact ExecStart tokens
+      vars:
+        service: "{{ service_raw.content | b64decode }}"
+        exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
+        tokens: "{{ exec_start | regex_replace('^ExecStart=', '') | split(' ') }}"
+        expected:
+          - "{{ backup_infrahub_bin_path | quote }}"
+          - --backup-dir
+          - "{{ backup_infrahub_backup_directory | quote }}"
+          - --log-format
+          - json
+          - --s3-prefix
+          - "'pre$$fix%%x'"
+          - create
+          - --neo4jmetadata
+          - none
+          - --force
+          - --exclude-taskmanager
+          - --encrypt
+          - --retention-days
+          - "7"
+      ansible.builtin.assert:
+        that:
+          - tokens == expected
+          - "'--retention-count' not in tokens"
+        fail_msg: "tokens={{ tokens }} expected={{ expected }}"
+        quiet: true
+
+# encrypt_key implies encryption: --encrypt-key PATH after create, no bare --encrypt.
+# Also retention_days null: no --retention-days token.
+- name: Backup role render (encryption key)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/encryptkey"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: true
+    backup_infrahub_encrypt: true
+    backup_infrahub_encrypt_key: /etc/infrahub-backup/backup.pub
+    # null must omit the flag, not render `--retention-days None`.
+    backup_infrahub_retention_days: null
+    service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
+
+  pre_tasks:
+    - name: Require test_root (never render under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read service unit
+      ansible.builtin.slurp:
+        src: "{{ service_path }}"
+      register: service_raw
+
+    - name: Assert exact ExecStart tokens with an encryption key
+      vars:
+        service: "{{ service_raw.content | b64decode }}"
+        exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
+        tokens: "{{ exec_start | regex_replace('^ExecStart=', '') | split(' ') }}"
+        expected:
+          - "{{ backup_infrahub_bin_path }}"
+          - --backup-dir
+          - "{{ backup_infrahub_backup_directory }}"
+          - create
+          - --encrypt-key
+          - /etc/infrahub-backup/backup.pub
+          - --retention-count
+          - "7"
+      ansible.builtin.assert:
+        that:
+          - tokens == expected
+          - "'--encrypt' not in tokens"
+          - "'--retention-days' not in tokens"
+        fail_msg: "tokens={{ tokens }} expected={{ expected }}"
+        quiet: true
