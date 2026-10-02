@@ -45,7 +45,7 @@ dev = [
 integration = [
     "pytest>=9.0.3,<10",
     "pytest-mock",
-    "infrahub-testcontainers>=1.11.3,<2",
+    "infrahub-testcontainers==1.11.4",
 ]
 
 [tool.uv]
