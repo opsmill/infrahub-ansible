@@ -1,0 +1,19 @@
+docker-compose.yml
+  s_2180c3ad02d948::t_af3600906a9609 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f57fb7d8f80c0710a54fbc583a121cbd65be7158",
+  "prompts": {},
+  "sessions": {
+    "s_2180c3ad02d948": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a115ab-41ae-75f2-9299-7505e35c8ec5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
