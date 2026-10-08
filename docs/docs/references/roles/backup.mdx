@@ -172,7 +172,7 @@ Take a single backup right now, for example before upgrading Infrahub. Only `bac
         backup_infrahub_run_now: true
 ```
 
-The on-demand backup runs as `backup_infrahub_service_user`, like the scheduled one, with the same flags. A `/bin/sh` wrapper sources the same environment file the scheduled service reads, then starts the tool. The role doesn't put credentials in Ansible's command invocation or output. The backup tool may pass database credentials to its own subprocesses as command-line arguments, where they can be visible in `ps` while those subprocesses run. When the tool fails, the role fails with the tool's error message.
+The on-demand backup runs as `backup_infrahub_service_user`, like the scheduled one, with the same flags. A `/bin/sh` wrapper sources the same environment file the scheduled service reads, then starts the tool. The role doesn't put credentials in Ansible's command invocation or output. The backup tool may pass database credentials to its own subprocesses as command-line arguments, where they can be visible in `ps` while those subprocesses run. When the tool fails, the role includes its error message only if no secrets are configured; otherwise, it reports the return code and hides the tool output.
 
 To remove the schedule, set `backup_infrahub_setup_systemd: false`. The role then installs no units and, when `backup_infrahub_systemd_manage_state` is `true` and a timer file exists, stops and disables the timer. The unit files are left in place.
 

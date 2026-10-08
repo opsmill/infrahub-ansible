@@ -78,8 +78,8 @@
 # (research R11) and no secret is on the command line (`environment:` would put
 # it in `ps` and the -vvv output even with no_log). A missing or unreadable file
 # makes `.` fail, which surfaces through the fail task below. no_log would also
-# hide the tool's error: the result is registered and a separate task fails with
-# the tool's output instead (US3-AS2).
+# hide the tool's error: the result is registered and separate tasks report either
+# a safe generic error or the tool's output when the environment has no secrets.
 - name: Run an Infrahub backup now
   ansible.builtin.command:
     argv: >-
@@ -97,7 +97,18 @@
   failed_when: false
   when: backup_infrahub_run_now | bool
 
-- name: Fail when the on-demand backup failed
+- name: Fail safely when the on-demand backup with secrets failed
+  ansible.builtin.fail:
+    msg: >-
+      infrahub-backup failed (rc={{ backup_infrahub_run_now_result.rc | default('n/a') }});
+      command output hidden because secrets are configured
+  when:
+    - backup_infrahub_run_now | bool
+    - backup_infrahub_has_secrets | bool
+    - backup_infrahub_run_now_result is not skipped
+    - backup_infrahub_run_now_result.rc | default(1) != 0
+
+- name: Fail with diagnostics when the on-demand backup without secrets failed
   ansible.builtin.fail:
     msg: >-
       infrahub-backup failed (rc={{ backup_infrahub_run_now_result.rc | default('n/a') }}):
@@ -106,5 +117,6 @@
          or backup_infrahub_run_now_result.stdout | default('', true) }}
   when:
     - backup_infrahub_run_now | bool
+    - not backup_infrahub_has_secrets | bool
     - backup_infrahub_run_now_result is not skipped
     - backup_infrahub_run_now_result.rc | default(1) != 0

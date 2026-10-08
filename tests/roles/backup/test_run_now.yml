@@ -94,8 +94,9 @@
         fail_msg: "argv={{ argv }} env={{ env_seen }}"
         quiet: true
 
-# US3-AS2: a failing backup fails the play with the tool's error, even with no_log.
-- name: Backup role run-now (failure surfaces the tool error)
+# US3-AS2: a failing backup with configured secrets fails without exposing the
+# tool's output, which may contain values inherited from the environment file.
+- name: Backup role run-now (failure hides tool output when secrets are configured)
   hosts: localhost
   connection: local
   gather_facts: false
@@ -111,7 +112,7 @@
     backup_infrahub_systemd_manage_state: false
     backup_infrahub_setup_systemd: false
     backup_infrahub_run_now: true
-    fake_error: "FAKE-ERROR tasks are running, use --force"
+    test_sentinel: SENTINEL-SECRET-e3b0c442
 
   tasks:
     - name: Require test_root (never write under /)
@@ -135,7 +136,7 @@
         mode: "0755"
         content: |
           #!/bin/sh
-          echo '{{ fake_error }}' >&2
+          echo "FAKE-ERROR includes $INFRAHUB_DB_PASSWORD" >&2
           exit 1
 
     - name: Apply the role and expect failure
@@ -148,11 +149,13 @@
           ansible.builtin.set_fact:
             backup_test_run_now_failed: false
       rescue:
-        - name: Assert the tool error surfaced in the failure message
+        - name: Assert the tool error was hidden from the failure message
           ansible.builtin.assert:
             that:
-              - fake_error in ansible_failed_result.msg
               - "'rc=1' in ansible_failed_result.msg"
+              - "'command output hidden because secrets are configured' in ansible_failed_result.msg"
+              - test_sentinel not in ansible_failed_result.msg
+              - "'FAKE-ERROR' not in ansible_failed_result.msg"
             fail_msg: "Unexpected failure: {{ ansible_failed_result.msg | default(ansible_failed_result) }}"
             quiet: true
 
