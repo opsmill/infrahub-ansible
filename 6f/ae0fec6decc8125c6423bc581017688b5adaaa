@@ -1,0 +1,19 @@
+docs/docs/references/roles/backup.mdx
+  s_265f8867abdada::t_5ef8e14abbe3e5 175,259
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6fae0fec6decc8125c6423bc581017688b5adaaa",
+  "prompts": {},
+  "sessions": {
+    "s_265f8867abdada": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11ce4-aaad-7ee0-989c-5f2dd13ef10b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
