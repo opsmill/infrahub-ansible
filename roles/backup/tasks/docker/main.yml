@@ -1,7 +1,7 @@
 ---
 # Docker Compose platform. Platform checks run first: no host change before they pass.
 - name: Validate Docker platform inputs
-  ansible.builtin.import_tasks: validate.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/docker/validate.yml"
 
 - name: Install the infrahub-backup binary
   ansible.builtin.get_url:
@@ -47,7 +47,7 @@
   diff: false
 
 - name: Setup systemd
-  ansible.builtin.import_tasks: setup_systemd.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/docker/setup_systemd.yml"
   when: backup_infrahub_setup_systemd | bool
 
 # Disable path (FR-011): stop a timer left by a previous enablement. Unit files are
