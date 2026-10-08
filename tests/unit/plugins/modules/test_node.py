@@ -26,7 +26,7 @@ def _module(mocker, *, state="present", check_mode=False, infrahub_node=None):
     mod.module.fail_json = mocker.Mock(side_effect=AssertionError("unexpected fail_json"))
     mod.check_mode = check_mode
     mod.state = state
-    mod.client = mocker.Mock()
+    mod.wrapper = mocker.Mock()
     mod.result = {"changed": False}
     mod.infrahub_node = infrahub_node
     return mod
@@ -116,23 +116,23 @@ def _schema(mocker):
 
 def test_create_check_mode_does_not_save(mocker, _schema):
     mod = _module(mocker, check_mode=True)
-    mod.client.fetch_single_schema.return_value = _schema
-    mod.client.create_node.return_value = _node(mocker)
+    mod.wrapper.fetch_single_schema.return_value = _schema
+    mod.wrapper.create_node.return_value = _node(mocker)
 
     mod._create_object(kind=KIND, data={"name": "thing1"})
 
-    mod.client.create_node.assert_called_once()
-    mod.client.save_node.assert_not_called()
+    mod.wrapper.create_node.assert_called_once()
+    mod.wrapper.save_node.assert_not_called()
 
 
 def test_create_persists_when_not_check_mode(mocker, _schema):
     mod = _module(mocker, check_mode=False)
-    mod.client.fetch_single_schema.return_value = _schema
-    mod.client.create_node.return_value = _node(mocker)
+    mod.wrapper.fetch_single_schema.return_value = _schema
+    mod.wrapper.create_node.return_value = _node(mocker)
 
     mod._create_object(kind=KIND, data={"name": "thing1"})
 
-    mod.client.save_node.assert_called_once()
+    mod.wrapper.save_node.assert_called_once()
 
 
 def test_delete_check_mode_does_not_delete(mocker):
@@ -140,7 +140,7 @@ def test_delete_check_mode_does_not_delete(mocker):
 
     mod._delete_object()
 
-    mod.client.delete_node.assert_not_called()
+    mod.wrapper.delete_node.assert_not_called()
 
 
 def test_delete_calls_client_when_not_check_mode(mocker):
@@ -148,4 +148,4 @@ def test_delete_calls_client_when_not_check_mode(mocker):
 
     mod._delete_object()
 
-    mod.client.delete_node.assert_called_once()
+    mod.wrapper.delete_node.assert_called_once()

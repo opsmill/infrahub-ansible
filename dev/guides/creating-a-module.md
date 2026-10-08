@@ -228,7 +228,7 @@ from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils im
 class MyModule(InfrahubModule):
     def run(self):
         data = self.data
-        # Implement logic using self.client, self.state, etc.
+        # Implement logic using self.wrapper, self.state, etc.
 
         if self.state == "present":
             self._ensure_object_exists(kind, data)

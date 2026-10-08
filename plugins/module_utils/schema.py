@@ -51,7 +51,7 @@ if HAS_INFRAHUBCLIENT:
 
             try:
                 if client is None:
-                    self.client = InfrahubclientWrapper(
+                    self.wrapper = InfrahubclientWrapper(
                         api_endpoint=api_endpoint,
                         token=token,
                         branch=branch,
@@ -59,7 +59,7 @@ if HAS_INFRAHUBCLIENT:
                         validate_certs=validate_certs,
                     )
                 else:
-                    self.client = client
+                    self.wrapper = client
             except Exception as exc:
                 self.module.fail_json(msg=str(exc), changed=False)
 
@@ -148,7 +148,7 @@ if HAS_INFRAHUBCLIENT:
                 return
 
             try:
-                response = self.client.client.schema.load(
+                response = self.wrapper.client.schema.load(
                     schemas=schemas,
                     branch=branch,
                     wait_until_converged=wait_until_converged,
@@ -179,7 +179,7 @@ if HAS_INFRAHUBCLIENT:
         def _check_for_check_mode(self, schemas: list[dict[str, Any]], branch: str) -> None:
             """Run schema check as a substitute for load in check mode."""
             try:
-                valid, response = self.client.client.schema.check(
+                valid, response = self.wrapper.client.schema.check(
                     schemas=schemas,
                     branch=branch,
                 )
@@ -206,7 +206,7 @@ if HAS_INFRAHUBCLIENT:
             branch = self.module.params.get("branch") or "main"
 
             try:
-                valid, response = self.client.client.schema.check(
+                valid, response = self.wrapper.client.schema.check(
                     schemas=schemas,
                     branch=branch,
                 )
@@ -237,7 +237,7 @@ if HAS_INFRAHUBCLIENT:
                 kwargs["namespaces"] = namespaces
 
             try:
-                exported = self.client.client.schema.export(**kwargs)
+                exported = self.wrapper.client.schema.export(**kwargs)
             except Exception as exc:
                 self.module.fail_json(msg=f"Failed to export schema: {exc}", changed=False)
 
