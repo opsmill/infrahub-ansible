@@ -227,8 +227,55 @@
         - name: Assert tool_checksum message
           ansible.builtin.assert:
             that:
-              - "'backup_infrahub_tool_checksum is required when backup_infrahub_tool_url is set' in ansible_failed_result.msg"
+              - "'backup_infrahub_tool_checksum must be non-empty when backup_infrahub_tool_url is set' in ansible_failed_result.msg"
             fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case tool_url with an empty tool_checksum
+      block:
+        - name: Apply role with a custom tool URL and an empty checksum
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_install_tool: true
+            backup_infrahub_tool_url: https://artifacts.example.com/infrahub-backup-linux-amd64
+            backup_infrahub_tool_checksum: ""
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert empty tool_checksum message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_tool_checksum must be non-empty when backup_infrahub_tool_url is set' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case tool_url with a null tool_checksum
+      block:
+        - name: Apply role with a custom tool URL and a null checksum
+          ansible.builtin.include_role:
+            name: backup
+          vars:
+            backup_infrahub_install_tool: true
+            backup_infrahub_tool_url: https://artifacts.example.com/infrahub-backup-linux-amd64
+            backup_infrahub_tool_checksum: null
+        - name: Role must not succeed
+          ansible.builtin.fail:
+            msg: "{{ role_should_have_failed }}"
+      rescue:
+        - name: Assert null tool_checksum message
+          ansible.builtin.assert:
+            that:
+              - "'backup_infrahub_tool_checksum must be non-empty when backup_infrahub_tool_url is set' in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg }}"
+
+    - name: Case tool_url with a valid tool_checksum
+      ansible.builtin.include_role:
+        name: backup
+        tasks_from: docker/validate.yml
+      vars:
+        backup_infrahub_install_tool: true
+        backup_infrahub_tool_url: https://artifacts.example.com/infrahub-backup-linux-amd64
+        backup_infrahub_tool_checksum: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 
     - name: Case unsupported architecture
       block:

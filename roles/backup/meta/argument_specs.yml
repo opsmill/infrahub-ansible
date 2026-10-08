@@ -30,7 +30,7 @@ argument_specs:
         description:
           - Checksum of the binary, as C(<algo>:<hex or URL>).
           - Defaults to C(sha256:https://github.com/opsmill/infrahub-backup/releases/download/<version>/SHA256SUMS).
-          - Required when O(backup_infrahub_tool_url) is set.
+          - A non-empty value is required when O(backup_infrahub_tool_url) is set.
         type: str
       backup_infrahub_install_tool:
         description:

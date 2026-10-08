@@ -73,8 +73,8 @@
 - name: Validate tool checksum is set with a custom tool URL
   ansible.builtin.assert:
     that:
-      - backup_infrahub_tool_checksum is defined
-    fail_msg: backup_infrahub_tool_checksum is required when backup_infrahub_tool_url is set
+      - backup_infrahub_tool_checksum | default('', true) | trim | length > 0
+    fail_msg: backup_infrahub_tool_checksum must be non-empty when backup_infrahub_tool_url is set
     quiet: true
   when:
     - backup_infrahub_install_tool | bool
