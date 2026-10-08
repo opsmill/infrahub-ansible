@@ -1,0 +1,8 @@
+---
+# Shared checks first, then the platform tasks, which run their own checks before
+# any host change.
+- name: Validate role inputs
+  ansible.builtin.import_tasks: validate.yml
+
+- name: Apply platform tasks for {{ backup_infrahub_platform }}
+  ansible.builtin.include_tasks: "{{ backup_infrahub_platform }}/main.yml"

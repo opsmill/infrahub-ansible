@@ -1,0 +1,10 @@
+---
+galaxy_info:
+  author: OpsMill <info@opsmill.com>
+  description: Back up Infrahub
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.16"
+
+  galaxy_tags:
+    - infrahub
+    - backup

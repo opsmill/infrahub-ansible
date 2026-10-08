@@ -46,5 +46,6 @@ These are the plugins in the `opsmill.infrahub` collection:
 ### Roles
 
 These are the roles in the `opsmill.infrahub` collection:
-
-{% for role in roles %}* [{{ role.name }}](./references/roles/{{ role.name }}.mdx){% if role.description %} – {{ role.description }}{% endif %}{% endfor %}
+{% for role in roles | sort(attribute='name') %}
+* [{{ role.name }}](./references/roles/{{ role.name }}.mdx){% if role.description %} – {{ role.description }}{% endif %}
+{%- endfor %}
