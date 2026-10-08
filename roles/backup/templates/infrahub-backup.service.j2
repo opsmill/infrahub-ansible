@@ -6,5 +6,5 @@ Requires=docker.service
 [Service]
 Type=oneshot
 User={{ backup_infrahub_service_user }}
-EnvironmentFile=-{{ backup_infrahub_env_file }}
-ExecStart={{ ([backup_infrahub_bin_path] + backup_infrahub_create_args) | map('quote') | map('replace', '%', '%%') | map('replace', '$', '$$') | join(' ') }}
+EnvironmentFile=-{{ backup_infrahub_env_file | replace('%', '%%') }}
+ExecStart={{ ([backup_infrahub_bin_path] + backup_infrahub_create_args) | map('quote') | map('replace', '\\', '\\\\') | map('replace', '%', '%%') | map('replace', '$', '$$') | join(' ') }}

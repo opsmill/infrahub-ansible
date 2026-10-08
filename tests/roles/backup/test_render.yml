@@ -240,7 +240,7 @@
         quiet: true
 
 # Every optional create flag, --project omitted, retention_count null (no
-# --retention-count), built-in-key encryption, and $ / % escaping: exact token list.
+# --retention-count), built-in-key encryption, and systemd escaping: exact token list.
 - name: Backup role render (all create flags)
   hosts: localhost
   connection: local
@@ -248,10 +248,10 @@
   vars:
     ansible_python_interpreter: "{{ ansible_playbook_python }}"
     render_root: "{{ test_root }}/flags"
-    backup_infrahub_backup_directory: "{{ render_root }}/backups"
-    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_backup_directory: '{{ render_root }}/backups\team'
+    backup_infrahub_config_directory: "{{ render_root }}/etc%n"
     backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
-    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_bin_path: /bin/echo
     backup_infrahub_become: false
     backup_infrahub_install_tool: false
     backup_infrahub_systemd_manage_state: false
@@ -264,7 +264,7 @@
     backup_infrahub_exclude_taskmanager: true
     backup_infrahub_log_format: json
     backup_infrahub_neo4j_metadata: none
-    backup_infrahub_s3_prefix: "pre$fix%x"
+    backup_infrahub_s3_prefix: 'customers\team\new\x41\pre$fix%x\'
     service_path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.service"
 
   pre_tasks:
@@ -292,13 +292,13 @@
         exec_start: "{{ service | regex_search('^ExecStart=.*$', multiline=True) | default('', true) }}"
         tokens: "{{ exec_start | regex_replace('^ExecStart=', '') | split(' ') }}"
         expected:
-          - "{{ backup_infrahub_bin_path | quote }}"
+          - /bin/echo
           - --backup-dir
-          - "{{ backup_infrahub_backup_directory | quote }}"
+          - "'{{ render_root }}/backups\\\\team'"
           - --log-format
           - json
           - --s3-prefix
-          - "'pre$$fix%%x'"
+          - "'customers\\\\team\\\\new\\\\x41\\\\pre$$fix%%x\\\\'"
           - create
           - --neo4jmetadata
           - none
@@ -311,6 +311,7 @@
         that:
           - tokens == expected
           - "'--retention-count' not in tokens"
+          - "'EnvironmentFile=-' ~ render_root ~ '/etc%%n/infrahub-backup.env' in service"
         fail_msg: "tokens={{ tokens }} expected={{ expected }}"
         quiet: true
 
