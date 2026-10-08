@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11, <3.15"
 resolution-markers = [
     "python_full_version >= '3.14' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
@@ -942,7 +942,7 @@ dev = [
     { name = "types-pyyaml", specifier = ">=6.0.12.20260408" },
 ]
 integration = [
-    { name = "infrahub-testcontainers", specifier = "==1.11.4" },
+    { name = "infrahub-testcontainers", specifier = "==1.11.5" },
     { name = "pytest", specifier = ">=9.0.3,<10" },
     { name = "pytest-mock" },
 ]
@@ -982,7 +982,7 @@ all = [
 
 [[package]]
 name = "infrahub-testcontainers"
-version = "1.11.4"
+version = "1.11.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -992,9 +992,9 @@ dependencies = [
     { name = "pytest" },
     { name = "testcontainers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/10/22/fb14890b44e949828b3b5ca0cddc8f820712c09e355f0a57a24f50adb71f/infrahub_testcontainers-1.11.4.tar.gz", hash = "sha256:b00178f86de83c5301e54d8963b8d488af0dc5945b6332ba1ede9fe0ff8cd88e", size = 20674, upload-time = "2026-10-01T08:00:04.735Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/e7/adbfe0423834ec631c22ac27f3e4cd01cc022fa754314925e030929231b7/infrahub_testcontainers-1.11.5.tar.gz", hash = "sha256:fe63659d1ab2e19ff5e8988cc15e6ae769ab4f601469d325eceece1e04594fe0", size = 20670, upload-time = "2026-10-08T06:53:00.133Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/27/49/36e792445c92cfe777b6ff468643ecfeeb1c5b6bbb173735dec2de39185a/infrahub_testcontainers-1.11.4-py3-none-any.whl", hash = "sha256:faa3c36d8f6a2460124080ef96f3ef721efbc25f094f087e329f59deac00de80", size = 27057, upload-time = "2026-10-01T08:00:03.565Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/e8/8dde970163c452f6837c830cfcda2785ada2e3df7ec134195790a6b4cdfe/infrahub_testcontainers-1.11.5-py3-none-any.whl", hash = "sha256:08a741d172c152150642ef64c218ab461e101b7b53257599e22a4b9bb980398f", size = 27056, upload-time = "2026-10-08T06:53:01.06Z" },
 ]
 
 [[package]]
