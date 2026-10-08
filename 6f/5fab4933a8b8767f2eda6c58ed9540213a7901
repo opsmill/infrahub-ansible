@@ -1,0 +1,21 @@
+tests/unit/test_backup_role.py
+  s_265f8867abdada::t_a18b634635cbdb 1-27
+roles/backup/tasks/docker/main.yml
+  s_265f8867abdada::t_a18b634635cbdb 4,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6f5fab4933a8b8767f2eda6c58ed9540213a7901",
+  "prompts": {},
+  "sessions": {
+    "s_265f8867abdada": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11ce4-aaad-7ee0-989c-5f2dd13ef10b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
