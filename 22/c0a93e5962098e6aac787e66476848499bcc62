@@ -1,0 +1,26 @@
+docs/docs/references/roles/backup.mdx
+  s_265f8867abdada::t_7c35015024b79f 175
+tests/roles/backup/test_render_no_secrets.yml
+  s_265f8867abdada::t_4ce81d5bff56f0 53-125
+roles/backup/tasks/docker/main.yml
+  s_265f8867abdada::t_e480eeb26ceb0b 81-82,100-111,120
+tests/roles/backup/test_run_now.yml
+  s_265f8867abdada::t_f92292bff29f31 115
+  s_265f8867abdada::t_4d928ef0053cd3 97-99,139,152,156-158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "22c0a93e5962098e6aac787e66476848499bcc62",
+  "prompts": {},
+  "sessions": {
+    "s_265f8867abdada": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11ce4-aaad-7ee0-989c-5f2dd13ef10b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
