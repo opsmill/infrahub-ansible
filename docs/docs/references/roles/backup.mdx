@@ -172,7 +172,7 @@ Take a single backup right now, for example before upgrading Infrahub. Only `bac
         backup_infrahub_run_now: true
 ```
 
-The on-demand backup runs as `backup_infrahub_service_user`, like the scheduled one, with the same flags. A `/bin/sh` wrapper sources the same environment file the scheduled service reads, then starts the tool. Credentials never appear on a command line, so they don't show up in `ps`, and they never appear in Ansible output. When the tool fails, the role fails with the tool's error message.
+The on-demand backup runs as `backup_infrahub_service_user`, like the scheduled one, with the same flags. A `/bin/sh` wrapper sources the same environment file the scheduled service reads, then starts the tool. The role doesn't put credentials in Ansible's command invocation or output. The backup tool may pass database credentials to its own subprocesses as command-line arguments, where they can be visible in `ps` while those subprocesses run. When the tool fails, the role fails with the tool's error message.
 
 To remove the schedule, set `backup_infrahub_setup_systemd: false`. The role then installs no units and, when `backup_infrahub_systemd_manage_state` is `true` and a timer file exists, stops and disables the timer. The unit files are left in place.
 
@@ -256,7 +256,7 @@ The tool auto-detects the Docker Compose project of the Infrahub instance. When 
 
 ## Credentials
 
-The S3 credentials and `backup_infrahub_environment` are written to the `0600` environment file as `KEY="value"`, with `\`, `"`, `$` and `` ` `` escaped. The scheduled service reads it through `EnvironmentFile=`, and on-demand runs source it with `/bin/sh`. Both read back exactly the value you set, so any character works except a newline or carriage return, which the role rejects. The values never appear on a command line or in Ansible output.
+The S3 credentials and `backup_infrahub_environment` are written to the `0600` environment file as `KEY="value"`, with `\`, `"`, `$` and `` ` `` escaped. The scheduled service reads it through `EnvironmentFile=`, and on-demand runs source it with `/bin/sh`. Both read back exactly the value you set, so any character works except a newline or carriage return, which the role rejects. The role doesn't put these values in Ansible's command invocation or output. The backup tool may pass database credentials to subprocesses as command-line arguments, where they can be visible in `ps` while those subprocesses run.
 
 A credential set to `null` is treated as unset and isn't written. When `backup_infrahub_environment` has an `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` key, its value is written instead of `backup_infrahub_s3_access_key_id` or `backup_infrahub_s3_secret_access_key`.
 
