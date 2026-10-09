@@ -10,7 +10,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    target-branch: develop
+    target-branch: stable
     labels:
       - "changes/patch"
     groups:
@@ -24,7 +24,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    target-branch: develop
+    target-branch: stable
     labels:
       - "changes/patch"
     groups:

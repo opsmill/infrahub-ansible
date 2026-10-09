@@ -1,22 +1,31 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11, <3.15"
 resolution-markers = [
-    "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.12.*' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version < '3.12' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version >= '3.14' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
+    "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version == '3.13.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.12.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version < '3.12' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
+    "python_full_version == '3.12.*' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
+    "python_full_version == '3.12.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version == '3.12.*' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
+    "python_full_version < '3.12' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
+    "python_full_version < '3.12' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version < '3.12' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
 ]
 conflicts = [[
     { package = "infrahub-ansible-modules", group = "dev" },
     { package = "infrahub-ansible-modules", group = "integration" },
 ]]
+
+[[package]]
+name = "amplitude-analytics"
+version = "1.2.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/f7/b23d28b1c405c22a25375e2c638c8cdcd054cbc4b43b76cf77bd358a0540/amplitude_analytics-1.2.3.tar.gz", hash = "sha256:4c9525847c391c19675d6e026f4601c27204ffeec71cb92252770d84d4538404", size = 22413, upload-time = "2026-03-31T18:33:20.291Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/56/83af6ef6a8bac9fdf2059de0276008e9eab40a315b8b732eba466bf6cc74/amplitude_analytics-1.2.3-py3-none-any.whl", hash = "sha256:ba2092c1d37ce8a2e3f69d023da145f4e322d02429e20436a5227178b1e594e9", size = 24762, upload-time = "2026-03-31T18:33:19.032Z" },
+]
 
 [[package]]
 name = "annotated-doc"
@@ -43,7 +52,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ansible-core" },
     { name = "jsonschema" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" } },
+    { name = "packaging" },
     { name = "pyyaml" },
     { name = "subprocess-tee" },
 ]
@@ -59,8 +68,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
     { name = "jinja2" },
-    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-integration'" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-dev' or extra != 'group-24-infrahub-ansible-modules-integration'" },
+    { name = "packaging" },
     { name = "pyyaml" },
     { name = "resolvelib" },
 ]
@@ -82,7 +90,7 @@ dependencies = [
     { name = "distro" },
     { name = "filelock" },
     { name = "jsonschema" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" } },
+    { name = "packaging" },
     { name = "pathspec" },
     { name = "pyyaml" },
     { name = "referencing" },
@@ -99,15 +107,15 @@ wheels = [
 
 [[package]]
 name = "anyio"
-version = "4.13.0"
+version = "4.14.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
     { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/19/14/2c5dd9f512b66549ae92767a9c7b330ae88e1932ca57876909410251fe13/anyio-4.13.0.tar.gz", hash = "sha256:334b70e641fd2221c1505b3890c69882fe4a2df910cba14d97019b90b24439dc", size = 231622, upload-time = "2026-03-24T12:59:09.671Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/cc/a381afa6efea9f496eff839d4a6a1aed3bfafc7b3ab4b0d1b243a12573dd/anyio-4.14.2.tar.gz", hash = "sha256:cfa139f3ed1a23ee8f88a145ddb5ac7605b8bbfd8592baacd7ce3d8bb4313c7f", size = 260176, upload-time = "2026-07-12T20:29:07.082Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/42/e921fccf5015463e32a3cf6ee7f980a6ed0f395ceeaa45060b61d86486c2/anyio-4.13.0-py3-none-any.whl", hash = "sha256:08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708", size = 114353, upload-time = "2026-03-24T12:59:08.246Z" },
+    { url = "https://files.pythonhosted.org/packages/da/35/f2287558c17e29fafc8ef3daf819bb9834061cfa43bff8014f7df7f63bdc/anyio-4.14.2-py3-none-any.whl", hash = "sha256:9f505dda5ac9f0c8309b5e8bd445a8c2bf7246f3ce950121e45ea15bc41d1494", size = 125813, upload-time = "2026-07-12T20:29:05.763Z" },
 ]
 
 [[package]]
@@ -169,8 +177,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "mypy-extensions" },
-    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-integration'" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-dev' or extra != 'group-24-infrahub-ansible-modules-integration'" },
+    { name = "packaging" },
     { name = "pathspec" },
     { name = "platformdirs" },
     { name = "pytokens" },
@@ -211,28 +218,8 @@ wheels = [
 
 [[package]]
 name = "cachetools"
-version = "6.2.6"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
-    "python_full_version < '3.12'",
-]
-sdist = { url = "https://files.pythonhosted.org/packages/39/91/d9ae9a66b01102a18cd16db0cf4cd54187ffe10f0865cc80071a4104fbb3/cachetools-6.2.6.tar.gz", hash = "sha256:16c33e1f276b9a9c0b49ab5782d901e3ad3de0dd6da9bf9bcd29ac5672f2f9e6", size = 32363, upload-time = "2026-01-27T20:32:59.956Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/45/f458fa2c388e79dd9d8b9b0c99f1d31b568f27388f2fdba7bb66bbc0c6ed/cachetools-6.2.6-py3-none-any.whl", hash = "sha256:8c9717235b3c651603fff0076db52d6acbfd1b338b8ed50256092f7ce9c85bda", size = 11668, upload-time = "2026-01-27T20:32:58.527Z" },
-]
-
-[[package]]
-name = "cachetools"
 version = "7.1.1"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.14'",
-    "python_full_version == '3.13.*'",
-    "python_full_version == '3.12.*'",
-    "python_full_version < '3.12'",
-]
 sdist = { url = "https://files.pythonhosted.org/packages/ff/e2/85f227594656000ff4d8adadae91a21f536d4a84c6c716a86bd6685874be/cachetools-7.1.1.tar.gz", hash = "sha256:27bdf856d68fd3c71c26c01b5edc312124ed427524d1ddb31aa2b7746fe20d4b", size = 40202, upload-time = "2026-05-03T20:00:29.391Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bf/0f/f897abe4ea0a8c408ae65c8c83bffab4936ad65d6032d4fb4cd35bbdc3ee/cachetools-7.1.1-py3-none-any.whl", hash = "sha256:0335cd7a0952d2b22327441fb0628139e234c565559eeb91a8a4ac7551c5353d", size = 16775, upload-time = "2026-05-03T20:00:27.857Z" },
@@ -730,7 +717,7 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.138.0"
+version = "0.141.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -739,9 +726,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5b/58/ff455d9fe47c60abadb34b9e05a304b1f05f5ab8000ac01565156b6f5e43/fastapi-0.138.0.tar.gz", hash = "sha256:d445a4877636ad191e7053e08c9bf98cb921a6756776848400bb773d1740c061", size = 419240, upload-time = "2026-06-20T01:18:05.259Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/02/91e3416a8fdd715abb903a952a6bec7cdd8d14eed55d415fc8595524c319/fastapi-0.141.1.tar.gz", hash = "sha256:e8822fc40db1e1858054d7a949a888695bc9bdce70139178e33bd2871a453ca1", size = 425799, upload-time = "2026-07-29T17:18:05.568Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/ff/8496d9847a5fedae775eb49460722d3efaa80487854273e9647ae876218c/fastapi-0.138.0-py3-none-any.whl", hash = "sha256:b6f54fd1bd72c80b0f899f172c61a600f6f7af9b43d4d772a018f35624048cb0", size = 126779, upload-time = "2026-06-20T01:18:03.483Z" },
+    { url = "https://files.pythonhosted.org/packages/cb/03/10388a42375ee7e4ac9b94eb2c5c569c8b5795e377e701c9ac3ad63de890/fastapi-0.141.1-py3-none-any.whl", hash = "sha256:bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3", size = 131954, upload-time = "2026-07-29T17:18:04.364Z" },
 ]
 
 [[package]]
@@ -885,7 +872,7 @@ wheels = [
 
 [[package]]
 name = "infrahub-ansible-modules"
-version = "1.8.3"
+version = "1.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "ansible-core" },
@@ -914,6 +901,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "ruff" },
     { name = "rumdl" },
+    { name = "towncrier" },
     { name = "tox" },
     { name = "types-pyyaml" },
 ]
@@ -949,11 +937,12 @@ dev = [
     { name = "pytest-xdist" },
     { name = "ruff", specifier = "==0.16.4" },
     { name = "rumdl" },
+    { name = "towncrier", specifier = ">=25.8.0" },
     { name = "tox", specifier = ">=4.52.1,<5" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20260408" },
 ]
 integration = [
-    { name = "infrahub-testcontainers", specifier = ">=1.7.3" },
+    { name = "infrahub-testcontainers", specifier = "==1.11.5" },
     { name = "pytest", specifier = ">=9.0.3,<10" },
     { name = "pytest-mock" },
 ]
@@ -993,7 +982,7 @@ all = [
 
 [[package]]
 name = "infrahub-testcontainers"
-version = "1.9.9"
+version = "1.11.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -1003,9 +992,9 @@ dependencies = [
     { name = "pytest" },
     { name = "testcontainers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5d/d1/a49e265267e9944db2c98b58ad26b9561deae2d9e64b5e5f4fec76f02f40/infrahub_testcontainers-1.9.9.tar.gz", hash = "sha256:72fad42cef0258af35e291cff04107f5602e9c97f71c718dac73ed7b761fa27a", size = 18151, upload-time = "2026-06-23T10:58:42.975Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/e7/adbfe0423834ec631c22ac27f3e4cd01cc022fa754314925e030929231b7/infrahub_testcontainers-1.11.5.tar.gz", hash = "sha256:fe63659d1ab2e19ff5e8988cc15e6ae769ab4f601469d325eceece1e04594fe0", size = 20670, upload-time = "2026-10-08T06:53:00.133Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/39/1f17d55a3335187937a929a77a199071bafde42e9d5c5fa81468bab6c43e/infrahub_testcontainers-1.9.9-py3-none-any.whl", hash = "sha256:f8139b3f1acd34649f73f994a9082806803b13856fcb8f8a5b9d84a5c4c1a19e", size = 23962, upload-time = "2026-06-23T10:58:43.908Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/e8/8dde970163c452f6837c830cfcda2785ada2e3df7ec134195790a6b4cdfe/infrahub_testcontainers-1.11.5-py3-none-any.whl", hash = "sha256:08a741d172c152150642ef64c218ab461e101b7b53257599e22a4b9bb980398f", size = 27056, upload-time = "2026-10-08T06:53:01.06Z" },
 ]
 
 [[package]]
@@ -1373,8 +1362,8 @@ name = "numpy"
 version = "2.4.4"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version >= '3.14' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
+    "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version == '3.13.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
     "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
 ]
@@ -1535,31 +1524,8 @@ wheels = [
 
 [[package]]
 name = "packaging"
-version = "25.0"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
-    "python_full_version < '3.12'",
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/d4/1fc4078c65507b51b96ca8f8c3ba19e6a61c8253c72794544580a7b6c24d/packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f", size = 165727, upload-time = "2025-04-19T11:48:59.673Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484", size = 66469, upload-time = "2025-04-19T11:48:57.875Z" },
-]
-
-[[package]]
-name = "packaging"
 version = "26.2"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.14' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.13.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.12.*' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version < '3.12' and extra == 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version >= '3.13' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version == '3.12.*' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-    "python_full_version < '3.12' and extra != 'group-24-infrahub-ansible-modules-dev' and extra != 'group-24-infrahub-ansible-modules-integration'",
-]
 sdist = { url = "https://files.pythonhosted.org/packages/d7/f1/e7a6dd94a8d4a5626c03e4e99c87f241ba9e350cd9e6d75123f992427270/packaging-26.2.tar.gz", hash = "sha256:ff452ff5a3e828ce110190feff1178bb1f2ea2281fa2075aadb987c2fb221661", size = 228134, upload-time = "2026-04-24T20:15:23.917Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl", hash = "sha256:5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e", size = 100195, upload-time = "2026-04-24T20:15:22.081Z" },
@@ -1654,12 +1620,13 @@ wheels = [
 
 [[package]]
 name = "prefect-client"
-version = "3.6.13"
+version = "3.8.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "amplitude-analytics" },
     { name = "anyio" },
     { name = "asgi-lifespan" },
-    { name = "cachetools", version = "6.2.6", source = { registry = "https://pypi.org/simple" } },
+    { name = "cachetools" },
     { name = "cloudpickle" },
     { name = "coolname" },
     { name = "dateparser" },
@@ -1675,7 +1642,7 @@ dependencies = [
     { name = "jsonschema" },
     { name = "opentelemetry-api" },
     { name = "orjson" },
-    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "packaging" },
     { name = "pathspec" },
     { name = "pendulum", marker = "python_full_version < '3.13'" },
     { name = "prometheus-client" },
@@ -1692,15 +1659,16 @@ dependencies = [
     { name = "ruamel-yaml" },
     { name = "ruamel-yaml-clib", marker = "platform_python_implementation == 'CPython'" },
     { name = "sniffio" },
+    { name = "starlette" },
     { name = "toml" },
     { name = "typing-extensions" },
     { name = "uvicorn" },
     { name = "websockets" },
     { name = "whenever", marker = "python_full_version >= '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/a9/5bfc95aee6ca8e202b7f4235e7e2dcb61a29e62e4b1e2f9eef3163883e6e/prefect_client-3.6.13.tar.gz", hash = "sha256:9f3ceb2771c9f6bffa7c8ec01f625ed27c2c7743e69b42d845311a55da8b3d60", size = 728904, upload-time = "2026-01-23T04:17:50.173Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3a/ff/38a8c1121da48475fb514111bb9b3aa34ddb4e7f3930b1c2cec743259557/prefect_client-3.8.6.tar.gz", hash = "sha256:8dab799dfa038e32c75578eae3a73a46722cd72a0bdc6f32a04151c50d7552f4", size = 939865, upload-time = "2026-09-14T14:38:42.549Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/51/0216ef9c7ca6002e7b5ae92cdb2858e4f8c5d69c7f2a4a9050afc1086934/prefect_client-3.6.13-py3-none-any.whl", hash = "sha256:3076194ec12b3770e53b1cb8f1d68a7628b8658912e183431a398d7e1617570d", size = 899733, upload-time = "2026-01-23T04:17:47.825Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/e9/7bf15991b7419286cbba9425c6ec916da6572742d0d946a1a2d8803e8d26/prefect_client-3.8.6-py3-none-any.whl", hash = "sha256:641d878d0a51c94e7de8a38576e9f7a115759f699ae2731c2b83152e21665955", size = 1160105, upload-time = "2026-09-14T14:38:40.523Z" },
 ]
 
 [[package]]
@@ -1966,7 +1934,7 @@ name = "pyproject-api"
 version = "1.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" } },
+    { name = "packaging" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/45/7b/c0e1333b61d41c69e59e5366e727b18c4992688caf0de1be10b3e5265f6b/pyproject_api-1.10.0.tar.gz", hash = "sha256:40c6f2d82eebdc4afee61c773ed208c04c19db4c4a60d97f8d7be3ebc0bbb330", size = 22785, upload-time = "2025-10-09T19:12:27.21Z" }
 wheels = [
@@ -1980,8 +1948,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-24-infrahub-ansible-modules-dev' and extra == 'group-24-infrahub-ansible-modules-integration')" },
     { name = "iniconfig" },
-    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-integration'" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-24-infrahub-ansible-modules-dev' or extra != 'group-24-infrahub-ansible-modules-integration'" },
+    { name = "packaging" },
     { name = "pluggy" },
     { name = "pygments" },
 ]
@@ -2051,15 +2018,14 @@ wheels = [
 
 [[package]]
 name = "python-discovery"
-version = "1.2.2"
+version = "1.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
-    { name = "platformdirs" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/de/ef/3bae0e537cfe91e8431efcba4434463d2c5a65f5a89edd47c6cf2f03c55f/python_discovery-1.2.2.tar.gz", hash = "sha256:876e9c57139eb757cb5878cbdd9ae5379e5d96266c99ef731119e04fffe533bb", size = 58872, upload-time = "2026-04-07T17:28:49.249Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/57/250bd238b966cece44328235eb85290045d059265fdaf7527a3a958123db/python_discovery-1.6.1.tar.gz", hash = "sha256:cf87d3627dfb4412437fdd5b13eae402607722998d21567993aedbc59b23c15e", size = 84338, upload-time = "2026-09-18T01:31:53.971Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/db/795879cc3ddfe338599bddea6388cc5100b088db0a4caf6e6c1af1c27e04/python_discovery-1.2.2-py3-none-any.whl", hash = "sha256:e1ae95d9af875e78f15e19aed0c6137ab1bb49c200f21f5061786490c9585c7a", size = 31894, upload-time = "2026-04-07T17:28:48.09Z" },
+    { url = "https://files.pythonhosted.org/packages/16/7d/e9ffbadfbf89c93848412d04594135c4ae8c1d37d9e053b9c3ed718fabc4/python_discovery-1.6.1-py3-none-any.whl", hash = "sha256:d43fcdef879fe795352bd13ccf8d185ba5a9f86f36cfcd00529f596e737442b3", size = 38664, upload-time = "2026-09-18T01:31:52.448Z" },
 ]
 
 [[package]]
@@ -2664,14 +2630,27 @@ wheels = [
 ]
 
 [[package]]
+name = "towncrier"
+version = "26.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "jinja2" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/92/d4/e85ce614bf45b1a7fe13b82cc687819c2eaac5a1dd94b84834322095fd98/towncrier-26.9.0.tar.gz", hash = "sha256:ace9031631c718cc0709107b8755e6e31350eb8acdc877af43df3177addb9a55", size = 79338, upload-time = "2026-09-04T12:57:25.341Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/82/88/f9340b545dafa64de053798e760515a2736fbb60092cf9aa6b146ccf3ede/towncrier-26.9.0-py3-none-any.whl", hash = "sha256:ae4d223e6aadaff98d29b7f09e58d9c9ccf4cd3b455a2d2e0486d432cd8bf660", size = 67030, upload-time = "2026-09-04T12:57:23.986Z" },
+]
+
+[[package]]
 name = "tox"
 version = "4.53.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cachetools", version = "7.1.1", source = { registry = "https://pypi.org/simple" } },
+    { name = "cachetools" },
     { name = "colorama" },
     { name = "filelock" },
-    { name = "packaging", version = "26.2", source = { registry = "https://pypi.org/simple" } },
+    { name = "packaging" },
     { name = "platformdirs" },
     { name = "pluggy" },
     { name = "pyproject-api" },
@@ -2839,11 +2818,11 @@ wheels = [
 
 [[package]]
 name = "urllib3"
-version = "2.7.0"
+version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/53/0c/06f8b233b8fd13b9e5ee11424ef85419ba0d8ba0b3138bf360be2ff56953/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c", size = 433602, upload-time = "2026-05-07T16:13:18.596Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/05/b17359e1cefb4f909b5e40b1b90a496d987258916dbbf88e842c729f510e/urllib3-2.8.0.tar.gz", hash = "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63", size = 458972, upload-time = "2026-09-15T19:29:36.253Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897", size = 131087, upload-time = "2026-05-07T16:13:17.151Z" },
+    { url = "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl", hash = "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3", size = 135717, upload-time = "2026-09-15T19:29:34.577Z" },
 ]
 
 [[package]]
@@ -2861,7 +2840,7 @@ wheels = [
 
 [[package]]
 name = "virtualenv"
-version = "21.3.0"
+version = "21.7.13"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "distlib" },
@@ -2869,9 +2848,9 @@ dependencies = [
     { name = "platformdirs" },
     { name = "python-discovery" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3f/8b/6331f7a7fe70131c301106ec1e7cf23e2501bf7d4ca3636805801ca191bb/virtualenv-21.3.0.tar.gz", hash = "sha256:733750db978ec95c2d8eb4feadaa57091002bce404cb39ba69899cf7bd28944e", size = 7614069, upload-time = "2026-04-27T17:05:58.927Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/13/50/c9b84eb106d0db420b9878dac0a386c5791726f127ce20b06897f6e3a1e9/virtualenv-21.7.13.tar.gz", hash = "sha256:0355558b6f33619aab31347e43643b0ebc97f61ea3acf617b2b69e1f8a843d11", size = 5360306, upload-time = "2026-09-18T04:35:49.354Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4b/eb/03bfb1299d4c4510329e470f13f9a4ce793df7fcb5a2fd3510f911066f61/virtualenv-21.3.0-py3-none-any.whl", hash = "sha256:4d28ee41f6d9ec8f1f00cd472b9ffbcedda1b3d3b9a575b5c94a2d004fd51bd7", size = 7594690, upload-time = "2026-04-27T17:05:55.468Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/ce/e74453531b0c49a58d0e8a4f9bab4495705859fee4a4f7de27d58f4a791a/virtualenv-21.7.13-py3-none-any.whl", hash = "sha256:1bea5af7463f59c4719db48fe739579a2a4f569c96f26c086edda85c96da9f59", size = 5328680, upload-time = "2026-09-18T04:35:47.194Z" },
 ]
 
 [[package]]

@@ -1,0 +1,1 @@
+Assemble the changelog with [towncrier](https://towncrier.readthedocs.io/) from per-change news fragments, replacing the hand-maintained `CHANGELOG.rst` and release-drafter. Releases now arrive as a reviewable pull request whose merge tags and publishes the release with the assembled changelog as its body.

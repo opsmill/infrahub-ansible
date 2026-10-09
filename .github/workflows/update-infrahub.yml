@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         branch-name:
-          - develop
+          - stable
 
     runs-on: ubuntu-22.04
     concurrency:
@@ -48,9 +48,12 @@ jobs:
 
       # infrahub-testcontainers lives in this repo's `integration` dependency group
       # (kept separate from `dev` due to a cachetools transitive-pin conflict).
+      # --no-sync: only the lock is needed here, and syncing would enable the
+      # default `dev` group alongside `integration`, which uv refuses because the
+      # two are declared as conflicting.
       - name: Update testcontainers to workflow version ${{ env.INFRAHUB_VERSION }}
         run: |
-          uv add --group integration infrahub-testcontainers==${INFRAHUB_VERSION}
+          uv add --no-sync --group integration infrahub-testcontainers==${INFRAHUB_VERSION}
 
       - name: Prepare the branch for the update
         id: prepare-branch
@@ -80,8 +83,16 @@ jobs:
             echo "PR for ${{ env.BRANCH_NAME }} already open, skipping create"
             exit 0
           fi
+          # A dependency bump carries no behaviour change of its own, so it is
+          # exempt from the news-fragment gate in changelog-check.yml. This
+          # workflow opens its pull requests through a PAT, so the author is
+          # not dependabot[bot] and that exemption does not reach it. Like the
+          # dependabot pull requests, it ships as a patch release, and
+          # release-label-check.yml requires that intent as a label.
           gh pr create \
             --title "update Infrahub to version ${{ env.INFRAHUB_VERSION }} against ${{ matrix.branch-name }}" \
             --body "This PR updates Infrahub to version ${{ env.INFRAHUB_VERSION }}." \
             --base ${{ matrix.branch-name }} \
-            --head ${{ env.BRANCH_NAME }}
+            --head ${{ env.BRANCH_NAME }} \
+            --label "ci/skip-changelog" \
+            --label "changes/patch"
