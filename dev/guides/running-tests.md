@@ -135,9 +135,12 @@ Four details behind that command, three of which will otherwise cost you a faile
   to every pytest run, so the copy above is redundant and omitting it costs nothing. It is there at all
   because that plugin's startup hook calls `psutil.cpu_freq()`, which raises on macOS and aborts collection.
 - **`INFRAHUB_TESTING_IMAGE_VER`** selects the Infrahub image. It has no default.
-- **Two markers, two audiences.** `integration` rides the PR gate. `measurement` additionally marks the
-  heavy round-trip benchmarks in `test_fetch_roundtrip_measurement.py`, which load a schema and wait for
-  convergence — too slow for a standard runner, so they run on scheduled builds only.
+- **Two markers, two audiences.** `integration` marks every integration test. CI runs them on the nightly
+  schedule, on manual dispatch, and on the pull requests that move the Infrahub version (head branch
+  `update-infrahub-<version>`), where a failure blocks the merge; other pull requests, infrahub-sdk bumps
+  included, do not run them. `measurement` additionally marks the heavy round-trip benchmarks in
+  `test_fetch_roundtrip_measurement.py`, which load a schema and wait for convergence — too slow to run on
+  every pull request.
 
 Fixtures are **class-scoped**, so every additional test class starts another Infrahub container. Adding
 a test to an existing class rather than a new one is worth roughly a minute of PR wall-clock.
