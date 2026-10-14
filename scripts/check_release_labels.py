@@ -8,6 +8,7 @@ import re
 import sys
 
 BUMP_LABELS = frozenset({"changes/major", "changes/minor", "changes/patch"})
+SKIP_CHANGELOG_LABEL = "ci/skip-changelog"
 RELEASE_PR_PREFIX = "chore(release):"
 # trigger-push-stable.yml names the branch `release/<version>` (no `v`) and
 # validates <version> with this same pattern before it opens the pull request;
@@ -58,7 +59,7 @@ def parse_labels(labels_json: str) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Validate that a normal pull request has exactly one release label."""
+    """Validate that a normal pull request has one release label, or ci/skip-changelog."""
     args = build_parser().parse_args(argv)
 
     if is_generated_release_pr(
@@ -78,10 +79,18 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     selected = sorted(BUMP_LABELS.intersection(labels))
+    # A pull request that needs no changelog entry needs no release either, so
+    # ci/skip-changelog stands in for the bump label. Two bump labels still fail.
+    if not selected and SKIP_CHANGELOG_LABEL in labels:
+        sys.stdout.write(f"No release bump label: {SKIP_CHANGELOG_LABEL} is set, so the next version is unchanged.\n")
+        return 0
     if len(selected) != 1:
         choices = ", ".join(sorted(BUMP_LABELS))
         found = ", ".join(selected) if selected else "none"
-        sys.stderr.write(f"Pull requests must have exactly one release bump label ({choices}); found: {found}.\n")
+        sys.stderr.write(
+            f"Pull requests must have exactly one release bump label ({choices}),"
+            f" or {SKIP_CHANGELOG_LABEL} when they need no release; found: {found}.\n"
+        )
         return 1
 
     sys.stdout.write(f"Release bump label: {selected[0]}\n")
