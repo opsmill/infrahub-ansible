@@ -53,7 +53,10 @@ jobs:
       # two are declared as conflicting.
       - name: Update testcontainers to workflow version ${{ env.INFRAHUB_VERSION }}
         run: |
-          uv add --no-sync --group integration infrahub-testcontainers==${INFRAHUB_VERSION}
+          # Bound the specifier on both sides (e.g. >=1.11.3,<2) instead of letting
+          # `uv add` rewrite it as an exact `==` pin on every bump.
+          MAJOR="${INFRAHUB_VERSION%%.*}"
+          uv add --no-sync --group integration "infrahub-testcontainers>=${INFRAHUB_VERSION},<$((MAJOR + 1))"
 
       - name: Prepare the branch for the update
         id: prepare-branch
