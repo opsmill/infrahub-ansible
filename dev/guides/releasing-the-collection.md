@@ -26,7 +26,8 @@ Leave **version** empty to have `version-drafter-action` compute the next
 version from the merged pull-request labels — that is the usual case. Only the
 `changes/major`, `changes/minor`, and `changes/patch` labels count; every pull
 request into `stable` carries exactly one, enforced by
-`release-label-check.yml`. Fill it
+`release-label-check.yml`. A pull request labelled `ci/skip-changelog` may carry
+none, and then does not count towards the version. Fill it
 in to state the version yourself, the way infrahub and infrahub-sdk-python do
 for every release.
 

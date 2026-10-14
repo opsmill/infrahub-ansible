@@ -97,6 +97,25 @@ def test_rejects_missing_or_conflicting_bump_labels(labels: list[str], capsys: p
     assert "exactly one" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize(
+    "labels",
+    [["ci/skip-changelog"], ["ci/skip-changelog", "changes/patch"]],
+    ids=["skip-changelog-only", "skip-changelog-and-bump-label"],
+)
+def test_accepts_skip_changelog_with_at_most_one_bump_label(labels: list[str]) -> None:
+    assert run(labels) == 0
+
+
+def test_skip_changelog_alone_leaves_the_version_unchanged(capsys: pytest.CaptureFixture[str]) -> None:
+    assert run(["ci/skip-changelog"]) == 0
+    assert "next version is unchanged" in capsys.readouterr().out
+
+
+def test_skip_changelog_does_not_excuse_conflicting_bump_labels(capsys: pytest.CaptureFixture[str]) -> None:
+    assert run(["ci/skip-changelog", "changes/patch", "changes/minor"]) == 1
+    assert "exactly one" in capsys.readouterr().err
+
+
 @pytest.mark.parametrize("labels_json", ["not json", '{"a": 1}', "[1]"])
 def test_rejects_malformed_labels(labels_json: str, capsys: pytest.CaptureFixture[str]) -> None:
     argv = ["--labels-json", labels_json, "--title", "t", "--head-ref", "h"]

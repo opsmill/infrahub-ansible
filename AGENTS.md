@@ -63,7 +63,8 @@ Every pull request that changes behaviour carries a news fragment in `changelog/
 - Label a PR `ci/skip-changelog` when it genuinely needs no entry.
 
 Every pull request into `stable` must also carry exactly one release-intent
-label: `changes/major`, `changes/minor`, or `changes/patch`.
+label: `changes/major`, `changes/minor`, or `changes/patch`. A pull request
+labelled `ci/skip-changelog` needs none, and does not change the next version.
 `release-label-check.yml` enforces this, and these labels alone determine the
 calculated version bump. The `chore(release):` pull request that
 `trigger-push-stable.yml` opens is exempt because it applies, rather than
