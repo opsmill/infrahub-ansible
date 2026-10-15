@@ -134,3 +134,7 @@
 - name: "ci/skip-changelog"
   description: "This will not be added to release notes"
   color: "dddddd"
+
+- name: "dependencies"
+  description: "Pull requests that update a dependency file"
+  color: "0366d6"

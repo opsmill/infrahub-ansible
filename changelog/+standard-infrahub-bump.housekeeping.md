@@ -1,0 +1,1 @@
+Infrahub and infrahub-sdk version bumps now come from one `update-infrahub.yml` workflow that moves the pins in place, and a pull request that moves the Infrahub version runs the integration tests and blocks the merge if they fail.

@@ -59,13 +59,29 @@ jobs:
 
   # Integration tests: spin up a real Infrahub via testcontainers. The full stack
   # (neo4j, rabbitmq, prefect, ...) is too flaky on standard GitHub-hosted runners
-  # to gate pull requests — observed both schema-load convergence timeouts and a
+  # to gate every pull request — observed both schema-load convergence timeouts and a
   # rabbitmq .erlang.cookie permission failure — so this runs on the nightly
-  # schedule and manual dispatch only, never on PRs. PRs are gated by sanity,
-  # ansible-lint and the (reliable) unit-tests job above.
+  # schedule, on manual dispatch, and on the pull requests that update-infrahub.yml
+  # opens to move Infrahub (head branch update-infrahub-<v>). Those pull requests
+  # change nothing but the Infrahub version, so the integration tests are their only
+  # test; a failure fails all_green, and auto-merge-testcontainers.yml merges only
+  # when this job passed. infrahub-sdk bumps (update-infrahub-sdk-<s>, or a branch
+  # containing -sdk-) and other pull requests do not run it, and are gated by
+  # sanity, ansible-lint and the unit-tests job above.
+  # Inside workflow_call, github.event_name and github.head_ref are the caller's.
   integration-testcontainers:
     needs: sanity
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    if: >-
+      ${{
+        github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'pull_request' &&
+          startsWith(github.head_ref, 'update-infrahub-') &&
+          !startsWith(github.head_ref, 'update-infrahub-sdk-') &&
+          !contains(github.head_ref, '-sdk-')
+        )
+      }}
     uses: ./.github/workflows/workflow-integration-testcontainers.yml
     secrets: inherit
 

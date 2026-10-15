@@ -1,0 +1,127 @@
+---
+# yamllint disable rule:truthy rule:line-length
+# Identical in every OpsMill demo and solution repository, except for the
+# workflow name under `workflows:`, INTEGRATION_JOB and INFRAHUB_IMAGE_FILES.
+name: Auto-merge tested Infrahub bumps
+
+# workflow_run reads a completed CI run. No pull request code is checked out,
+# and the merge token is used only after CI passed on the tested commit.
+on:
+  workflow_run:
+    workflows: ["Pull Request on stable"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+
+env:
+  # Name, or name prefix, of the CI job that runs the integration tests.
+  INTEGRATION_JOB: "ansible_linter_and_tests / integration-testcontainers"
+  # Same value as in update-infrahub.yml.
+  INFRAHUB_IMAGE_FILES: ""
+
+jobs:
+  merge:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check the pull request and merge its tested commit
+        env:
+          GH_TOKEN: ${{ secrets.GH_UPDATE_PACKAGE_OTTO }}
+          GH_REPO: ${{ github.repository }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          # A green CI run is not enough if the integration tests were skipped.
+          INTEGRATION=$(gh api "repos/${GH_REPO}/actions/runs/${RUN_ID}/jobs" --paginate \
+            --jq ".jobs[] | select(.name | startswith(\"${INTEGRATION_JOB}\")) | .conclusion" | sort -u)
+          if [ "${INTEGRATION}" != "success" ]; then
+            echo "::notice::The integration tests did not pass in CI run ${RUN_ID} (${INTEGRATION:-no job}); leaving the pull request open."
+            exit 0
+          fi
+
+          # Some runs omit pull_requests. The commit's pull requests are a safe
+          # fallback only when exactly one is open.
+          PR_NUMBER=$(gh api "repos/${GH_REPO}/actions/runs/${RUN_ID}" \
+            --jq '.pull_requests | map(.number) | unique | if length == 1 then .[0] else empty end')
+          if [ -z "${PR_NUMBER}" ]; then
+            PR_NUMBER=$(gh api "repos/${GH_REPO}/commits/${RUN_SHA}/pulls" \
+              --jq '[.[] | select(.state == "open") | .number] | unique | if length == 1 then .[0] else empty end')
+          fi
+          if [ -z "${PR_NUMBER}" ]; then
+            echo "::notice::CI run ${RUN_ID} matches no single open pull request."
+            exit 0
+          fi
+
+          PR=$(gh api "repos/${GH_REPO}/pulls/${PR_NUMBER}")
+          AUTHOR=$(jq -r '.user.login' <<< "${PR}")
+          BASE=$(jq -r '.base.ref' <<< "${PR}")
+          HEAD_REPO=$(jq -r '.head.repo.full_name // empty' <<< "${PR}")
+          HEAD_REF=$(jq -r '.head.ref' <<< "${PR}")
+          HEAD_SHA=$(jq -r '.head.sha' <<< "${PR}")
+          STATE=$(jq -r '.state' <<< "${PR}")
+          if [ "${STATE}" != "open" ] || [ "${BASE}" != "${BASE_BRANCH}" ] ||
+             [ "${HEAD_REPO}" != "${GH_REPO}" ] || [ "${HEAD_SHA}" != "${RUN_SHA}" ]; then
+            echo "::notice::Pull request #${PR_NUMBER} is closed, comes from a fork, targets another branch, or changed since CI ran."
+            exit 0
+          fi
+
+          # Only Infrahub bumps opened by update-infrahub.yml. A bump that also
+          # moves infrahub-sdk waits for a review.
+          if [ "${AUTHOR}" != "opsmill-bot" ]; then
+            exit 0
+          fi
+          case "${HEAD_REF}" in
+            update-infrahub-sdk-*|*-sdk-*) echo "::notice::infrahub-sdk bump; leaving it for review."; exit 0 ;;
+            update-infrahub-*) ;;
+            *) exit 0 ;;
+          esac
+
+          ALLOWED="pyproject.toml uv.lock ${INFRAHUB_IMAGE_FILES}"
+          FILES=$(gh api "repos/${GH_REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename')
+          if [ -z "${FILES}" ]; then
+            echo "::error::Pull request #${PR_NUMBER} changes no file."
+            exit 1
+          fi
+          while IFS= read -r file; do
+            case " ${ALLOWED} " in
+              *" ${file} "*) ;;
+              *)
+                echo "::notice::${file} is not a file an Infrahub bump changes; leaving pull request #${PR_NUMBER} for review."
+                exit 0
+                ;;
+            esac
+          done <<< "${FILES}"
+
+          # The branch name and the file list alone do not prove this is an
+          # Infrahub bump: require the infrahub-testcontainers pin to move.
+          BASE_SHA=$(jq -r '.base.sha' <<< "${PR}")
+          pin() {
+            gh api -H "Accept: application/vnd.github.raw+json" \
+              "repos/${GH_REPO}/contents/pyproject.toml?ref=$1" \
+              | grep -E '"infrahub-testcontainers' || true
+          }
+          BASE_PIN=$(pin "${BASE_SHA}")
+          HEAD_PIN=$(pin "${RUN_SHA}")
+          if [ -z "${HEAD_PIN}" ] || [ "${BASE_PIN}" = "${HEAD_PIN}" ]; then
+            echo "::notice::Pull request #${PR_NUMBER} does not move the infrahub-testcontainers pin."
+            exit 0
+          fi
+
+          # The tested SHA makes GitHub refuse the merge if anyone pushed since CI ran.
+          # opsmill-bot needs a bypass of the approval rule for pull requests.
+          MERGED=$(gh api --method PUT "repos/${GH_REPO}/pulls/${PR_NUMBER}/merge" \
+            -f sha="${RUN_SHA}" -f merge_method=squash --jq '.merged')
+          if [ "${MERGED}" != "true" ]; then
+            echo "::error::GitHub did not merge pull request #${PR_NUMBER}."
+            exit 1
+          fi
+          echo "Merged pull request #${PR_NUMBER}."
