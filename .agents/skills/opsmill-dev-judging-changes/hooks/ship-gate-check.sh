@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# quality-gates Bash/MCP guard — Claude Code PreToolUse hook.
+# ship-gate-check — Claude Code PreToolUse hook shipped by the opsmill-dev-judging-changes skill.
 # Active only when the repo opted in (.claude/quality-gates/enabled); overridable via
-# QUALITY_GATES_BYPASS=1. Two deterministic gates:
+# QUALITY_GATES_BYPASS=1. The on-disk `quality-gates` names are kept for compatibility with repos
+# that opted in before the gates became standalone skills. Two deterministic gates:
 #   (A) Branch discipline: deny `git commit`/`git push` on a protected branch (Bash only).
 #   (B) Ship-gate receipt: deny irreversible ship actions unless a commit-bound PASS/DEGRADED
 #       receipt exists for HEAD. Ship actions = gh pr create|merge, git push --force*,
 #       AGENT_*_COMPLETE marker stamps via `gh pr` (Bash), and MCP PR/MR create|merge tools.
 # Detection is LEXICAL and best-effort: it covers the common command shapes, not every possible
-# invocation. It is defense-in-depth; the prose gates + independent judge are the primary control.
+# invocation. It is defense-in-depth; the /opsmill-dev-judging-changes skill is the primary control.
 # Infrastructure errors fail OPEN; an operational error (no git repo on a detected ship action)
 # fails CLOSED.
 
@@ -68,6 +69,6 @@ verdict=""
 [ -f "$receipt" ] && verdict=$(jq -r --arg h "$head" 'if (.sha==$h) then (.verdict // "") else "" end' "$receipt" 2>/dev/null)
 case "$verdict" in
   PASS) exit 0 ;;
-  DEGRADED) emit_allow "quality-gates: shipping under a DEGRADED gate for commit ${head} (R2 fallback — no independent judge). Verify manually." ;;
+  DEGRADED) emit_allow "quality-gates: shipping under a DEGRADED gate for commit ${head} (R2 fallback — in-context re-read, no independent judge). Verify manually." ;;
 esac
-emit_deny "quality-gates: no ship-gate receipt for commit ${head}. Run the independent judge (skills/quality-gates/gates/primitives/independent-judge.md); on PASS it writes .claude/quality-gates/receipts/${head}.json. Override with QUALITY_GATES_BYPASS=1."
+emit_deny "quality-gates: no ship-gate receipt for commit ${head}. Run /opsmill-dev-judging-changes with the change's original criteria; on PASS it writes .claude/quality-gates/receipts/${head}.json. Override with QUALITY_GATES_BYPASS=1."
