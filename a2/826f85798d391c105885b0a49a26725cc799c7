@@ -1,0 +1,59 @@
+.agents/skills/opsmill-dev-commit/SKILL.md
+  s_4cf22207443ec9::t_d2b2702e9eb38e 2,6
+.agents/skills/opsmill-dev-creating-issues/SKILL.md
+  s_4cf22207443ec9::t_2d3f8f31a311fa 2,8,13,43,45,51-91,107,123,128,133,138-159,163,177
+.agents/skills/opsmill-dev-creating-prd/SKILL.md
+  s_4cf22207443ec9::t_cd4b1aab755790 2,8-9,36,42,46-47,149,154,158,242,259,300,322
+.agents/skills/opsmill-dev-grilling-ideas/SKILL.md
+  s_4cf22207443ec9::t_97856b524651c9 2,8,148,152,154,157,159,163,168,172,176,180,184,193,197,201
+.agents/skills/opsmill-dev-monitoring-pull-requests/SKILL.md
+  s_4cf22207443ec9::t_6fe4a4dcd9a6c3 2,6-8,31,40,79,107,115-117,138,263,278,284,334-335,359,369,373,378,380-381,386,403
+.agents/skills/opsmill-dev-pr/SKILL.md
+  s_2fae1787d146ee::t_f5049af746a2ee 2,6-9,11,30,46,59,68,106,119,123,128,130,135,140,145,162,164,166,169-170,173,181,192,210,236
+.agents/skills/opsmill-dev-rebase/SKILL.md
+  s_4cf22207443ec9::t_19f00d7f1ac6de 2,5-6,9,65,68,71-72,127,174-178,193
+.agents/skills/opsmill-dev-judging-changes/DECISION.md
+  s_4cf22207443ec9::t_962310ffc9c68e 1-4,12-13,25-62,64,66-70
+.agents/skills/opsmill-dev-judging-changes/SKILL.md
+  s_4cf22207443ec9::t_65b297111b48c7 1-176
+.agents/skills/opsmill-dev-judging-changes/evals/evals.json
+  s_4cf22207443ec9::t_52d333eca30380 1-60
+.agents/skills/opsmill-dev-judging-changes/hooks/ship-gate-check.sh
+  s_4cf22207443ec9::t_ceb9e57e431744 2,4-5,11,72,74
+.agents/skills/opsmill-dev-judging-changes/references/anti-gaming.md
+  s_4cf22207443ec9::t_4f24ef2efe7450 1,3-4,9-11,15-34
+.agents/skills/opsmill-dev-judging-changes/references/gate-model.md
+  s_4cf22207443ec9::t_f3b5e2deea764f 3-6,8-12,14,19,22,24,26-30,32,34-40,42-44,46,48-53
+.agents/skills/opsmill-dev-verifying-changes/SKILL.md
+  s_4cf22207443ec9::t_a670c8bc35e09f 2,4-13,19,21-24,26-28,30,32-33,35,37-44,46,48-50,52-80
+.agents/skills/opsmill-dev-verifying-changes/evals/evals.json
+  s_4cf22207443ec9::t_81fb2fd15938a5 2-3,7-16,20-29,33-42
+.claude/skills
+  s_4cf22207443ec9::t_049693d5693194 1
+skills-lock.json
+  s_4cf22207443ec9::t_06993262e4a81e 4,8,10,14,16,20,22,26,28-34,38,40,44,46,49-50,52,55-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a2826f85798d391c105885b0a49a26725cc799c7",
+  "prompts": {},
+  "sessions": {
+    "s_2fae1787d146ee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c38a01a-cf7a-4707-9e40-59d796ec98f5",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    },
+    "s_4cf22207443ec9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dab1673b-c8c7-4855-870c-7c27dcc36ce0",
+        "model": "unknown"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
