@@ -1,11 +1,12 @@
 ---
-name: rebase
+name: opsmill-dev-rebase
 description: >-
   Rebases a feature branch onto its latest base, resolving conflicts while preserving the intent
-  of local changes, optionally force-pushing and watching CI afterward. TRIGGER when: the user
+  of local changes and each commit's original committer date/name/email, optionally force-pushing
+  and watching CI afterward. TRIGGER when: the user
   wants to rebase a feature branch, update a branch against its base, or replay local work on top
   of the latest upstream. DO NOT TRIGGER when: merging a release branch into dev →
-  merging-branches; only watching CI on an already-open PR → monitoring-pull-requests.
+  opsmill-dev-merging-branches; only watching CI on an already-open PR → opsmill-dev-monitoring-pull-requests.
 argument-hint: Optional `push` to force-push and monitor CI after a successful rebase
 compatibility: Requires a Git working tree. CI monitoring requires GitHub access (gh CLI authenticated, GitHub MCP server, or equivalent).
 metadata:
@@ -61,11 +62,13 @@ Understand the branch topology and working tree before doing anything destructiv
    git fetch origin
    ```
 
-2. Start the rebase:
+2. Start the rebase, preserving each replayed commit's original committer date, name, and email:
 
    ```bash
-   git rebase origin/<base-branch>
+   git -c rebase.instructionFormat='%s%nexec GIT_COMMITTER_DATE="%cI" GIT_COMMITTER_NAME="%cN" GIT_COMMITTER_EMAIL="%cE" git commit --amend --no-edit%n' rebase origin/<base-branch>
    ```
+
+   A plain `git rebase` rewrites every replayed commit with the *current* user as committer and *now* as the committer date. The `-c rebase.instructionFormat=…` flag appends an `exec` line after each commit that amends it back to the original committer identity and date (rebase already preserves the *author* fields). It is a one-shot config passed on the command line, so it never touches the user's own Git config, and the `exec` line runs for every commit — including ones you finish with `git rebase --continue` after resolving a conflict.
 
 3. If the rebase completes cleanly, skip to Phase 4.
 
@@ -113,8 +116,6 @@ For each conflict that arises during the rebase:
 2. Confirm the commit history looks correct (same number of local commits, no duplicates).
 3. If the project defines fast validation commands (formatters, linters), run them to catch any issues introduced by conflict resolution. Discover them from the project's own context — for example `AGENTS.md`/`CONTAINER`-style docs, a `Makefile`/`Taskfile`/`justfile`, `package.json` scripts, `pyproject.toml`/`tox.ini`, or a `pre-commit` config. Run whatever the project actually defines, then fix any issues introduced by conflict resolution. If the project defines no such commands, skip this step.
 
-> **Gate (T2-verify · P1):** paste the test run showing the rebased branch preserves local intent. See `../quality-gates/gates/primitives/evidence-before-done.md`.
-
 ### 5. Force Push & Monitor CI (only when `push` argument is provided)
 
 **Skip this phase entirely if `push` was NOT passed as an argument.** Instead, inform the user the rebase is complete and they can push when ready.
@@ -123,7 +124,7 @@ When `push` IS provided:
 
 1. Force-push the rebased branch:
 
-   > **Ship gate (T2 · P2 + P3) — before force-push.** Run the ship gate per `../quality-gates/gates/primitives/independent-judge.md` (judge → on-FAIL STOP → R2 degrade → write receipt on PASS, all defined there). R1 criteria: the pre-rebase branch diff vs base (the local intent — NOT your summary). Artifact: the rebased branch diff vs the new base. Forbidden evasions: the merge/rebase-gate evasions from `../quality-gates/gates/primitives/anti-gaming.md`. The judge confirms no semantic drift was introduced by conflict resolution.
+   > **Optional independent verdict:** run `/opsmill-dev-judging-changes <pre-rebase diff vs base> artifact: <rebased diff vs the new base>` (gate kind `merge-rebase`) before force-pushing. Only repos that enforce ship-gate receipts (`.claude/quality-gates/enabled`) require it.
 
    ```bash
    git push --force-with-lease origin <branch-name>
@@ -170,6 +171,11 @@ When `push` IS provided:
 - Will not proceed with uncommitted changes in the working tree.
 - `git rebase --abort` always restores the exact pre-rebase state — use it whenever a rebase cannot be completed cleanly rather than leaving the branch half-rebased.
 
+**Committer Metadata:**
+
+- The rebase preserves each replayed commit's original committer date, name, and email via the one-shot `-c rebase.instructionFormat=…` flag in Phase 2. Without it, rebase would stamp every commit with the current user and the current time.
+- This is passed on the command line only. It does not read or modify the user's own Git config, so anyone running the skill gets the same behavior whether or not they set `rebase.instructionFormat` globally.
+
 **Conflict Resolution Strategy:**
 
 - Local changes take priority — the goal is to land *our* work on top of the latest base.
@@ -184,15 +190,7 @@ When `push` IS provided:
 - **Inspecting `HEAD` during a conflict.** The commit being replayed is `REBASE_HEAD`, not `HEAD`. Looking at `HEAD` shows the wrong commit.
 - **Force-pushing without `--lease`.** Plain `git push --force` can silently clobber a teammate's push. Always use `--force-with-lease`.
 - **Counting commits against a stale local base.** Use `origin/<base-branch>..HEAD`, not the local ref, or the count can be wrong on an out-of-date or freshly cloned checkout.
-
-## Quality gates
-
-Gates for this skill follow `../quality-gates/gates/gate-model.md`. `rebase` is **Tier 1, escalating to Tier 2 at force-push**.
-
-| Gate | Step / trigger | Tier | Primitives | Pass criteria | On-fail |
-|---|---|---|---|---|---|
-| Intent-preserved | after resolving conflicts | T2-verify | P1 | Rebased diff preserves local intent; tests pass. Paste the run. | STOP |
-| No-drift | before force-push | T2-ship | P2 + P3 | A fresh judge, given the pre-rebase intent and the rebased diff, confirms no semantic drift was introduced by conflict resolution. | STOP; do not force-push |
+- **Letting the rebase reset the committer.** A bare `git rebase` re-stamps every replayed commit with the current user and time. Use the `-c rebase.instructionFormat=…` form from Phase 2 to keep each commit's original committer date, name, and email.
 
 ## Expected Outcome
 
