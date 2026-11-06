@@ -25,7 +25,7 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 ## Commands
 
 ```bash
-invoke lint            # autoflake (rewrites files!) + ruff + yamllint + rumdl -- NOT mypy, see below
+invoke lint            # autoflake (rewrites files!) + ruff + mypy + yamllint + rumdl
 invoke format          # Auto-fix (ruff)
 invoke tests-sanity    # Ansible compliance (boilerplate, docs, imports)
 invoke tests-unit      # Unit tests
@@ -43,11 +43,12 @@ All tests run in Docker. Run checks as you go, not just at the end:
 | any plugin file (`plugins/**/*.py`) | `invoke format` → `invoke lint` → `invoke tests-sanity` |
 | module logic or `module_utils` | also `invoke tests-unit` |
 | module docstrings (DOCUMENTATION / EXAMPLES / RETURN) | `invoke generate-doc` |
-| any Python file | also `uv run mypy .` -- `invoke lint` does **not** run it, CI does |
 
-Full verification before a PR: `invoke format && invoke lint && uv run mypy . && invoke tests-sanity && invoke tests-unit && invoke generate-doc`.
+Full verification before a PR: `invoke format && invoke lint && invoke tests-sanity && invoke tests-unit && invoke generate-doc`.
 
-`uv run mypy .` is listed separately because `invoke lint` does not include it while CI's `python-lint` job does — a green `invoke lint` is not a green CI. Note also that mypy currently **excludes** `plugins/module_utils/infrahub_utils.py`, so the collection's largest file is not typechecked at all.
+`invoke lint` runs mypy, so it now covers everything CI's `python-lint` job checks. Nothing under `plugins/` is excluded from the typecheck.
+
+One limit to know: `ansible_collections.opsmill.infrahub.*` is not importable outside an installed collection tree, and `ignore_missing_imports` is on, so anything a plugin imports from a sibling `module_utils` resolves to `Any`. Types are checked within a file and against `infrahub-sdk`, but not across the collection's own modules.
 
 `invoke lint` is not purely a check: its first step is `autoflake --in-place --remove-all-unused-imports --remove-unused-variables`, which edits your working tree before ruff ever runs. Expect it to leave modified files behind, and review that diff rather than assuming a linter only reported.
 
