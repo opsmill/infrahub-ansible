@@ -1,0 +1,16 @@
+---
+# Names include "Infrahub backup": handler names are global across roles
+# in a play, and the install role already defines "Reload systemd".
+- name: Reload systemd for Infrahub backup
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  become: "{{ backup_infrahub_become }}"
+  when: backup_infrahub_systemd_manage_state | bool
+
+- name: Restart Infrahub backup timer
+  ansible.builtin.systemd_service:
+    name: infrahub-backup.timer
+    state: restarted
+    enabled: true
+  become: "{{ backup_infrahub_become }}"
+  when: backup_infrahub_systemd_manage_state | bool

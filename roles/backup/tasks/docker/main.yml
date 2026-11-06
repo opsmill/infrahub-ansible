@@ -1,0 +1,122 @@
+---
+# Docker Compose platform. Platform checks run first: no host change before they pass.
+- name: Validate Docker platform inputs
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/docker/validate.yml"
+
+- name: Install the infrahub-backup binary
+  ansible.builtin.get_url:
+    url: "{{ backup_infrahub_tool_url | default(backup_infrahub_default_tool_url) }}"
+    checksum: "{{ backup_infrahub_tool_checksum | default(backup_infrahub_default_tool_checksum) }}"
+    dest: "{{ backup_infrahub_bin_path }}"
+    mode: "0755"
+    owner: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+  when: backup_infrahub_install_tool | bool
+
+- name: Create the backup directory
+  ansible.builtin.file:
+    path: "{{ backup_infrahub_backup_directory }}"
+    state: directory
+    mode: "{{ backup_infrahub_backup_directory_mode }}"
+    owner: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+
+# Owned by service_user: the run-now wrapper sources the env file as that user
+# (systemd reads EnvironmentFile= as PID 1 regardless).
+- name: Create the config directory
+  ansible.builtin.file:
+    path: "{{ backup_infrahub_config_directory }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+
+# Holds S3 credentials and backup_infrahub_environment: never log or diff it.
+# No notify: the oneshot service and the run-now wrapper read it on every run.
+- name: Configure the infrahub-backup environment file
+  ansible.builtin.template:
+    src: infrahub-backup.env.j2
+    dest: "{{ backup_infrahub_env_file }}"
+    mode: "0600"
+    owner: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
+    group: "{{ 'root' if backup_infrahub_become | bool else omit }}"
+  become: "{{ backup_infrahub_become }}"
+  no_log: true
+  diff: false
+
+- name: Setup systemd
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/docker/setup_systemd.yml"
+  when: backup_infrahub_setup_systemd | bool
+
+# Disable path (FR-011): stop a timer left by a previous enablement. Unit files are
+# left in place (harmless once disabled, research R4).
+- name: Check for a previously installed Infrahub backup timer
+  ansible.builtin.stat:
+    path: "{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer"
+    get_checksum: false
+  register: backup_infrahub_existing_timer
+  when: not backup_infrahub_setup_systemd | bool
+
+- name: Stop and disable the Infrahub backup timer
+  ansible.builtin.systemd_service:
+    name: infrahub-backup.timer
+    state: stopped
+    enabled: false
+  become: "{{ backup_infrahub_become }}"
+  when:
+    - not backup_infrahub_setup_systemd | bool
+    - backup_infrahub_existing_timer.stat.exists
+    - backup_infrahub_systemd_manage_state | bool
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+# On-demand backup (FR-012). The sh wrapper sources the same env file as the
+# scheduled unit (`set -a; . file`), so both runs get the exact same values
+# (research R11) and no secret is on the command line (`environment:` would put
+# it in `ps` and the -vvv output even with no_log). A missing or unreadable file
+# makes `.` fail, which surfaces through the fail task below. no_log would also
+# hide the tool's error: the result is registered and separate tasks report either
+# a safe generic error or the tool's output when the environment has no secrets.
+- name: Run an Infrahub backup now
+  ansible.builtin.command:
+    argv: >-
+      {{
+        ['/bin/sh', '-c', 'set -a; . "$1"; set +a; shift; exec "$@"',
+         'infrahub-backup', backup_infrahub_env_file, backup_infrahub_bin_path]
+        + backup_infrahub_create_args
+      }}
+  become: "{{ backup_infrahub_become }}"
+  # Same identity as the scheduled unit (User=), so both runs have the same access.
+  become_user: "{{ backup_infrahub_service_user if backup_infrahub_become | bool else omit }}"
+  no_log: "{{ backup_infrahub_has_secrets | bool }}"
+  register: backup_infrahub_run_now_result
+  changed_when: true
+  failed_when: false
+  when: backup_infrahub_run_now | bool
+
+- name: Fail safely when the on-demand backup with secrets failed
+  ansible.builtin.fail:
+    msg: >-
+      infrahub-backup failed (rc={{ backup_infrahub_run_now_result.rc | default('n/a') }});
+      command output hidden because secrets are configured
+  when:
+    - backup_infrahub_run_now | bool
+    - backup_infrahub_has_secrets | bool
+    - backup_infrahub_run_now_result is not skipped
+    - backup_infrahub_run_now_result.rc | default(1) != 0
+
+- name: Fail with diagnostics when the on-demand backup without secrets failed
+  ansible.builtin.fail:
+    msg: >-
+      infrahub-backup failed (rc={{ backup_infrahub_run_now_result.rc | default('n/a') }}):
+      {{ backup_infrahub_run_now_result.stderr | default('', true)
+         or backup_infrahub_run_now_result.msg | default('', true)
+         or backup_infrahub_run_now_result.stdout | default('', true) }}
+  when:
+    - backup_infrahub_run_now | bool
+    - not backup_infrahub_has_secrets | bool
+    - backup_infrahub_run_now_result is not skipped
+    - backup_infrahub_run_now_result.rc | default(1) != 0

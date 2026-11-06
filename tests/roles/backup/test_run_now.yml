@@ -1,0 +1,171 @@
+---
+# Run-now test (US3, FR-012): a fake infrahub-backup records its argv and the
+# sha256 of each credential it received (never the value); run.sh compares them
+# to the expected hashes (decision 11). Kept out of
+# test_render.yml because run-now always reports changed, which would break the
+# render idempotency check. Credentials come from run.sh (-e), so no_log is active
+# and run.sh greps this playbook's -vvv output for the sentinel.
+# Run via tests/roles/backup/run.sh (passes -e test_root=<tmpdir>).
+- name: Backup role run-now (success)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/runnow"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: false
+    backup_infrahub_run_now: true
+    # Credentials must reach the tool through the env file, never through argv.
+    test_sentinel: SENTINEL-SECRET-e3b0c442
+
+  pre_tasks:
+    - name: Require test_root (never write under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+    - name: Create the fake tool directory
+      ansible.builtin.file:
+        path: "{{ render_root }}/bin"
+        state: directory
+        mode: "0755"
+
+    # Records KEY=<sha256 of value>, never the value; run.sh compares the hashes.
+    - name: Install a fake infrahub-backup that records argv and env value hashes
+      ansible.builtin.copy:
+        dest: "{{ backup_infrahub_bin_path }}"
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          sha256() {
+            if command -v sha256sum >/dev/null 2>&1; then
+              sha256sum | cut -d' ' -f1
+            else
+              shasum -a 256 | cut -d' ' -f1
+            fi
+          }
+          printf '%s\n' "$@" > '{{ render_root }}/argv.txt'
+          for v in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY INFRAHUB_DB_PASSWORD; do
+            if printenv "$v" >/dev/null; then
+              eval "val=\${$v}"
+              printf '%s=%s\n' "$v" "$(printf '%s' "$val" | sha256)"
+            fi
+          done > '{{ render_root }}/env.txt'
+          exit 0
+
+  roles:
+    - role: backup
+
+  post_tasks:
+    - name: Read recorded argv
+      ansible.builtin.slurp:
+        src: "{{ render_root }}/argv.txt"
+      register: argv_raw
+
+    - name: Read recorded env hashes
+      ansible.builtin.slurp:
+        src: "{{ render_root }}/env.txt"
+      register: env_raw
+
+    - name: Assert the tool ran once with create args and credentials
+      vars:
+        argv: "{{ (argv_raw.content | b64decode).splitlines() }}"
+        env_seen: "{{ (env_raw.content | b64decode).splitlines() }}"
+      ansible.builtin.assert:
+        that:
+          - backup_infrahub_run_now_result is changed
+          - "'create' in argv"
+          - "'--backup-dir' in argv"
+          - argv[argv.index('--backup-dir') + 1] == backup_infrahub_backup_directory
+          - test_sentinel not in (argv_raw.content | b64decode)
+          - env_seen | map('regex_replace', '=.*$', '') | sort
+            == ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'INFRAHUB_DB_PASSWORD']
+        fail_msg: "argv={{ argv }} env={{ env_seen }}"
+        quiet: true
+
+# US3-AS2: a failing backup with configured secrets fails without exposing the
+# tool's output, which may contain values inherited from the environment file.
+- name: Backup role run-now (failure hides tool output when secrets are configured)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    render_root: "{{ test_root }}/runnow-fail"
+    backup_infrahub_backup_directory: "{{ render_root }}/backups"
+    backup_infrahub_config_directory: "{{ render_root }}/etc"
+    backup_infrahub_systemd_directory: "{{ render_root }}/systemd"
+    backup_infrahub_bin_path: "{{ render_root }}/bin/infrahub-backup"
+    backup_infrahub_become: false
+    backup_infrahub_install_tool: false
+    backup_infrahub_systemd_manage_state: false
+    backup_infrahub_setup_systemd: false
+    backup_infrahub_run_now: true
+    test_sentinel: SENTINEL-SECRET-e3b0c442
+
+  tasks:
+    - name: Require test_root (never write under /)
+      ansible.builtin.assert:
+        that:
+          - test_root is defined
+          - test_root | length > 1
+          - test_root is abs
+        fail_msg: "Pass -e test_root=<absolute temp dir>"
+        quiet: true
+
+    - name: Create the fake tool directory
+      ansible.builtin.file:
+        path: "{{ render_root }}/bin"
+        state: directory
+        mode: "0755"
+
+    - name: Install a fake infrahub-backup that fails
+      ansible.builtin.copy:
+        dest: "{{ backup_infrahub_bin_path }}"
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          echo "FAKE-ERROR includes $INFRAHUB_DB_PASSWORD" >&2
+          exit 1
+
+    - name: Apply the role and expect failure
+      block:
+        - name: Apply the backup role
+          ansible.builtin.include_role:
+            name: backup
+
+        - name: Role did not fail
+          ansible.builtin.set_fact:
+            backup_test_run_now_failed: false
+      rescue:
+        - name: Assert the tool error was hidden from the failure message
+          ansible.builtin.assert:
+            that:
+              - "'rc=1' in ansible_failed_result.msg"
+              - "'command output hidden because secrets are configured' in ansible_failed_result.msg"
+              - test_sentinel not in ansible_failed_result.msg
+              - "'FAKE-ERROR' not in ansible_failed_result.msg"
+            fail_msg: "Unexpected failure: {{ ansible_failed_result.msg | default(ansible_failed_result) }}"
+            quiet: true
+
+        - name: Record expected failure
+          ansible.builtin.set_fact:
+            backup_test_run_now_failed: true
+
+    - name: Assert the role failed
+      ansible.builtin.assert:
+        that:
+          - backup_test_run_now_failed | default(false)
+        fail_msg: "Role succeeded although the backup tool exited 1"
+        quiet: true

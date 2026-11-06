@@ -1,0 +1,43 @@
+---
+backup_infrahub_platform: docker
+backup_infrahub_version: v2.3.0
+backup_infrahub_install_tool: true
+backup_infrahub_bin_path: /usr/local/bin/infrahub-backup
+# backup_infrahub_tool_url: <release URL>/infrahub-backup-linux-<arch> (derived from backup_infrahub_version)
+# backup_infrahub_tool_checksum: sha256:<release URL>/SHA256SUMS (derived from backup_infrahub_version)
+
+backup_infrahub_backup_directory: /var/backups/infrahub
+backup_infrahub_backup_directory_mode: "0700"
+backup_infrahub_config_directory: /etc/infrahub-backup
+# backup_infrahub_docker_project: infrahub  # unset: tool auto-detects the project
+
+backup_infrahub_force: false
+# backup_infrahub_neo4j_metadata: all  # unset: tool default (all)
+backup_infrahub_exclude_taskmanager: false
+# backup_infrahub_log_format: text  # unset: tool default (text)
+# backup_infrahub_retention_days: 7
+backup_infrahub_retention_count: 7  # null disables
+
+backup_infrahub_s3_upload: false
+backup_infrahub_s3_keep_local: false
+# backup_infrahub_s3_bucket: my-bucket
+# backup_infrahub_s3_prefix: infrahub/
+# backup_infrahub_s3_endpoint: https://s3.example.com
+# backup_infrahub_s3_region: us-east-1
+# backup_infrahub_s3_access_key_id: AKIA...
+# backup_infrahub_s3_secret_access_key: secret
+
+backup_infrahub_encrypt: false
+# backup_infrahub_encrypt_key: /etc/infrahub-backup/backup.pub
+
+backup_infrahub_environment: {}
+
+backup_infrahub_setup_systemd: true
+backup_infrahub_systemd_directory: /etc/systemd/system
+backup_infrahub_systemd_manage_state: true
+backup_infrahub_schedule: "*-*-* 02:00:00"
+backup_infrahub_randomized_delay: "0"
+backup_infrahub_service_user: root
+
+backup_infrahub_run_now: false
+backup_infrahub_become: true
