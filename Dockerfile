@@ -62,12 +62,13 @@ RUN ansible-galaxy collection install ./dist/opsmill-infrahub*.tar.gz -p ${ANSIB
 # Switch to the collection path for tests
 WORKDIR ${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/opsmill/infrahub
 
-# Run sanity tests
+# Run sanity tests against plugins/ and tests/ to match CI collection scope.
+# pep8 is skipped here (Ruff owns style) but runs in every CI matrix cell.
 RUN ansible-test sanity $ANSIBLE_SANITY_ARGS \
     --requirements \
     --skip-test pep8 \
     --python ${PYTHON_VERSION} \
-    plugins/
+    plugins/ tests/
 
 ############
 # Unit Tests
