@@ -1,0 +1,156 @@
+# Tasks: Backup Role for Infrahub Instances
+
+**Input**: `specs/002-backup-role/` — plan.md, spec.md, research.md, data-model.md, contracts/role-interface.md, quickstart.md, critiques/critique-20260929.md
+
+**Tests**: Requested by the plan (research R9, critique E3): localhost test playbooks under `tests/roles/backup/` driven by `run.sh`.
+
+**Authoritative interface**: `contracts/role-interface.md`. Every variable, default, file mode and failure message below comes from it — keep `defaults/main.yml`, `meta/argument_specs.yml` and `docs/docs/references/roles/backup.mdx` identical to it.
+
+**Conventions**: mirror `roles/install/` (YAML style, `---` header, FQCN modules, task names capitalised, handler names in title case). All host-changing tasks use `become: "{{ backup_infrahub_become }}"`. Run `uv run ansible-lint roles/backup tests/roles/backup` after each phase (note `.ansible-lint` excludes `tests/`; lint the role, and `--syntax-check` the tests).
+
+## Phase 1: Setup
+
+- [X] T001 Create role skeleton directories `roles/backup/{defaults,vars,meta,handlers,tasks,templates}` and `tests/roles/backup/`
+- [X] T002 [P] Create `roles/backup/meta/main.yml` with `galaxy_info` copied from `roles/install/meta/main.yml`, `description: Back up Infrahub`, `galaxy_tags: [infrahub, backup]`
+
+## Phase 2: Foundational (blocks all stories)
+
+- [X] T003 Create `roles/backup/defaults/main.yml` with every variable from the contract table that has a default (`backup_infrahub_version: v2.3.0`, `backup_infrahub_install_tool: true`, `backup_infrahub_bin_path: /usr/local/bin/infrahub-backup`, `backup_infrahub_backup_directory: /var/backups/infrahub`, `backup_infrahub_backup_directory_mode: "0700"`, `backup_infrahub_config_directory: /etc/infrahub-backup`, `backup_infrahub_docker_project: infrahub`, `backup_infrahub_force: false`, `backup_infrahub_neo4j_metadata: all`, `backup_infrahub_exclude_taskmanager: false`, `backup_infrahub_log_format: text`, `backup_infrahub_s3_upload: false`, `backup_infrahub_s3_keep_local: false`, `backup_infrahub_environment: {}`, `backup_infrahub_setup_systemd: true`, `backup_infrahub_systemd_directory: /etc/systemd/system`, `backup_infrahub_systemd_manage_state: true`, `backup_infrahub_schedule: "*-*-* 02:00:00"`, `backup_infrahub_randomized_delay: "0"`, `backup_infrahub_service_user: root`, `backup_infrahub_run_now: false`, `backup_infrahub_become: true`); list unset ones (`retention_*`, `s3_bucket/prefix/endpoint/region`, credentials, `on_failure`) as commented lines like install does for `install_infrahub_version`
+- [X] T004 Create `roles/backup/meta/argument_specs.yml` (`argument_specs.main`, `short_description: Back up Infrahub`, description lines stating Docker Compose + systemd + Linux x86_64/aarch64 requirements) with one option per contract row: correct `type`, `default` where defined, `choices` for `neo4j_metadata` (`all, none, users, roles`) and `log_format` (`text, json`), `type: int` for retention, `type: dict` for `environment`, `no_log: true` on `s3_access_key_id`, `s3_secret_access_key`, `environment`
+- [X] T005 Create `roles/backup/vars/main.yml`: `backup_infrahub_arch_map` (`x86_64: amd64`, `aarch64: arm64`, `arm64: arm64`); `backup_infrahub_arch: "{{ backup_infrahub_arch_map.get(ansible_facts.architecture) }}"`; `backup_infrahub_release_url: https://github.com/opsmill/infrahub-backup/releases/download/{{ backup_infrahub_version }}`; `backup_infrahub_default_tool_url` / `backup_infrahub_default_tool_checksum` (`sha256:<release_url>/SHA256SUMS`); `backup_infrahub_env_file: "{{ backup_infrahub_config_directory }}/infrahub-backup.env"`; and `backup_infrahub_create_args` — a list built with Jinja: global flags first (`--backup-dir <dir>`, `--project <p>` only when project non-empty, `--log-format <f>`, `--s3-bucket/--s3-prefix/--s3-endpoint/--s3-region` each only when defined and non-empty), then `create`, `--neo4jmetadata <m>`, then `--force`, `--exclude-taskmanager`, `--s3-upload`, `--s3-keep-local` when true, `--retention-days N` / `--retention-count N` when defined. Tool URL/checksum overrides: tasks use `backup_infrahub_tool_url | default(backup_infrahub_default_tool_url)` (so operators set the public name). Also `backup_infrahub_has_secrets: "{{ backup_infrahub_s3_access_key_id is defined or (backup_infrahub_environment | length > 0) }}"`
+- [X] T006 Create `roles/backup/tasks/validate.yml`: one `ansible.builtin.assert` per failure-contract row (retention_days ≥ 1 when defined → `fail_msg` containing `backup_infrahub_retention_days must be >= 1`; same for count; `s3_upload` ⇒ `s3_bucket` defined and non-empty → `backup_infrahub_s3_bucket is required when backup_infrahub_s3_upload is true`; credentials both-or-neither → `backup_infrahub_s3_access_key_id and backup_infrahub_s3_secret_access_key must be set together`; `backup_infrahub_arch` truthy → `Unsupported architecture: <arch>`), each with `quiet: true`; the credentials assert sets `no_log: true`. Preceded by a `ansible.builtin.setup` with `gather_subset: [min]` when `ansible_facts.architecture is not defined` (critique E6)
+- [X] T007 Create `roles/backup/tasks/main.yml` ordering: `import_tasks: validate.yml` → install tool block → directories/env file → `import_tasks: setup_systemd.yml` when `setup_systemd` → disable path when not → `meta: flush_handlers` → run-now (story phases fill in each section)
+
+**Checkpoint**: `ANSIBLE_ROLES_PATH=roles uv run ansible-playbook -i localhost, -c local --syntax-check` on a one-line play including the role passes.
+
+## Phase 3: User Story 1 — Scheduled local backups (P1) 🎯 MVP
+
+**Goal**: default-variable apply → tool installed, backup dir, timer active daily 02:00; idempotent; retention.
+**Independent test**: `tests/roles/backup/run.sh` validation + render passes; manual e2e in quickstart.md.
+
+### Tests (write first, expect failure)
+
+- [X] T008 [P] [US1] Create `tests/roles/backup/test_validation.yml`: `hosts: localhost`, `connection: local`, `gather_facts: false`; a `vars` block pointing every path variable under `/tmp/infrahub-backup-test-validation` (`backup_directory`, `config_directory`, `systemd_directory`, `bin_path`) with `backup_infrahub_become: false`, `backup_infrahub_install_tool: false`, `backup_infrahub_systemd_manage_state: false`; one `block`/`rescue` per failure-contract row using `ansible.builtin.include_role: name: backup` with the offending vars (retention_days 0, retention_count -1, neo4j_metadata `bogus`, s3_upload without bucket, only access key id set), rescue asserts `ansible_failed_result.msg` contains the contract message (argument-spec case: contains `neo4j_metadata`), and a trailing `ansible.builtin.fail` in each block ensures the role did not succeed; finally assert `/tmp/infrahub-backup-test-validation` does not exist (no host change, SC-005)
+- [X] T009 [P] [US1] Create `tests/roles/backup/test_render.yml`: localhost play applying the role with paths under a temp dir passed as `-e test_root=<dir>`, `become: false`, `install_tool: false`, `systemd_manage_state: false`, `setup_systemd: true`, `retention_count: 14`, `s3_prefix: "infra%hub"`, `on_failure: notify@%n.service`; post-tasks assert: service file contains `ExecStart=` with `--retention-count 14`, `--project infrahub`, `infra%%hub`, `create`, and `OnFailure=notify@%n.service` (on_failure is rendered verbatim, not escaped — it is a systemd unit expression); timer contains `OnCalendar=*-*-* 02:00:00` and `Persistent=true`; env file mode `0600`; backup dir mode `0700`
+- [X] T010 [US1] Create `tests/roles/backup/run.sh` (bash, `set -euo pipefail`, executable): creates a temp dir via `mktemp -d`, trap-removes it; runs `test_validation.yml`; runs `test_render.yml` twice with `-vvv --diff -e test_root=$TMP -e backup_infrahub_s3_access_key_id=AKIATEST -e backup_infrahub_s3_secret_access_key=SENTINEL-SECRET-e3b0c442 -e '{"backup_infrahub_environment": {"INFRAHUB_DB_PASSWORD": "SENTINEL-SECRET-e3b0c442"}}'`, tee-ing output to `$TMP/run1.log` / `run2.log`; fails if `grep -q SENTINEL-SECRET-e3b0c442` matches either log; fails unless `run2.log` recap line has `changed=0`; asserts env file contains the secret (it must be *stored*, just not printed). Uses `ANSIBLE_ROLES_PATH=$(repo)/roles` and `uv run ansible-playbook -i localhost, -c local`
+
+### Implementation
+
+- [X] T011 [US1] In `roles/backup/tasks/main.yml` add the install block (when `backup_infrahub_install_tool`): `ansible.builtin.get_url` `url: "{{ backup_infrahub_tool_url | default(backup_infrahub_default_tool_url) }}"`, `checksum: "{{ backup_infrahub_tool_checksum | default(backup_infrahub_default_tool_checksum) }}"`, `dest: "{{ backup_infrahub_bin_path }}"`, `mode: "0755"`, `owner: root`, `group: root`
+- [X] T012 [US1] In `roles/backup/tasks/main.yml` add `ansible.builtin.file` tasks: backup directory (`state: directory`, `mode: "{{ backup_infrahub_backup_directory_mode }}"`, `owner: "{{ backup_infrahub_service_user }}"` — omit owner when `not backup_infrahub_become` so tests run unprivileged), config directory (`mode: "0700"`)
+- [X] T013 [P] [US1] Create `roles/backup/templates/infrahub-backup.env.j2`: header comment `# Managed by Ansible (opsmill.infrahub.backup) — contains secrets`; `AWS_ACCESS_KEY_ID=` / `AWS_SECRET_ACCESS_KEY=` when set; one `KEY=value` line per `backup_infrahub_environment` item (sorted by key for stable output)
+- [X] T014 [US1] In `roles/backup/tasks/main.yml` add the env file `ansible.builtin.template` (`dest: "{{ backup_infrahub_env_file }}"`, `mode: "0600"`, `no_log: true`, `diff: false`; owner root only when become)
+- [X] T015 [P] [US1] Create `roles/backup/templates/infrahub-backup.service.j2`: `[Unit]` Description, `After=docker.service`, `Requires=docker.service`, `OnFailure=` only when `backup_infrahub_on_failure` defined; `[Service]` `Type=oneshot`, `User={{ backup_infrahub_service_user }}`, `EnvironmentFile=-{{ backup_infrahub_env_file }}`, `ExecStart={{ backup_infrahub_bin_path }} {{ backup_infrahub_create_args | map('quote') | map('replace', '%', '%%') | join(' ') }}`; no `[Install]` section (timer-activated)
+- [X] T016 [P] [US1] Create `roles/backup/templates/infrahub-backup.timer.j2`: `[Unit] Description=Scheduled Infrahub backup`; `[Timer] OnCalendar={{ backup_infrahub_schedule }}`, `Persistent=true`, `RandomizedDelaySec={{ backup_infrahub_randomized_delay }}`, `Unit=infrahub-backup.service`; `[Install] WantedBy=timers.target`
+- [X] T017 [US1] Create `roles/backup/tasks/setup_systemd.yml`: `ansible.builtin.template` for service and timer into `backup_infrahub_systemd_directory` (mode `0644`, owner/group root when become) notifying `Reload systemd for Infrahub backup` and `Restart Infrahub backup timer`; then `ansible.builtin.systemd_service` `name: infrahub-backup.timer`, `enabled: true`, `state: started` when `backup_infrahub_systemd_manage_state`
+- [X] T018 [US1] Create `roles/backup/handlers/main.yml`: `Reload systemd for Infrahub backup` (`ansible.builtin.systemd_service: daemon_reload: true`) and `Restart Infrahub backup timer` (`name: infrahub-backup.timer`, `state: restarted`, `enabled: true`), both `when: backup_infrahub_systemd_manage_state | bool`, `become: "{{ backup_infrahub_become }}"`
+- [X] T019 [US1] Run `tests/roles/backup/run.sh` and `uv run ansible-lint roles/backup`; fix until both pass
+
+**Checkpoint**: MVP — scheduled local backups.
+
+## Phase 4: User Story 2 — Remote object storage (P2)
+
+**Goal**: S3 flags + credentials, secrets hidden.
+**Independent test**: render assertions for S3 flags; secret grep in `run.sh`.
+
+- [X] T020 [US2] Extend `tests/roles/backup/test_render.yml` with a second play (`-e test_root` subdir `s3/`) setting `s3_upload: true`, `s3_bucket: infrahub-backups`, `s3_endpoint: http://minio.local:9000`, `s3_region: eu-central-1`, `s3_keep_local: true`; assert ExecStart contains `--s3-bucket infrahub-backups`, `--s3-endpoint http://minio.local:9000`, `--s3-region eu-central-1`, `--s3-upload`, `--s3-keep-local`, and that the service file does not contain `AWS_` (credentials only in env file); assert default play's ExecStart contains no `--s3-` token
+- [X] T021 [US2] Verify `backup_infrahub_create_args` in `roles/backup/vars/main.yml` emits the S3 global flags before `create` and `--s3-upload`/`--s3-keep-local` after it; rerun `tests/roles/backup/run.sh`
+
+## Phase 5: User Story 3 — On-demand backup and systemd opt-out (P3)
+
+**Goal**: `run_now` runs one backup; `setup_systemd: false` installs no units and disables an existing timer.
+**Independent test**: render test with `setup_systemd: false` → no unit files; e2e for run_now.
+
+- [X] T022 [US3] In `roles/backup/tasks/main.yml` add the disable path (when `not backup_infrahub_setup_systemd`): `ansible.builtin.stat` `{{ backup_infrahub_systemd_directory }}/infrahub-backup.timer`; if it exists and `systemd_manage_state`, `ansible.builtin.systemd_service` `name: infrahub-backup.timer`, `state: stopped`, `enabled: false`
+- [X] T023 [US3] In `roles/backup/tasks/main.yml` after `meta: flush_handlers` add run-now: `ansible.builtin.command` `argv: "{{ [backup_infrahub_bin_path] + backup_infrahub_create_args }}"`, `environment:` built from credentials (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` when set) combined with `backup_infrahub_environment` (implemented as `stdin` KEY=value lines exported by a `/bin/sh` wrapper, not `environment:`, which leaks at -vvv; see research.md), `no_log: "{{ backup_infrahub_has_secrets | bool }}"`, `changed_when: true`, `when: backup_infrahub_run_now | bool`
+- [X] T024 [US3] Extend `tests/roles/backup/test_render.yml` with a play (`test_root` subdir `nosystemd/`) using `setup_systemd: false` asserting neither unit file exists and the env file still exists
+- [X] T025 [US3] Run `tests/roles/backup/run.sh` and `uv run ansible-lint roles/backup`
+
+## Phase 6: Polish & Cross-Cutting
+
+- [X] T026 [P] Create `docs/docs/references/roles/backup.mdx` modelled on `docs/docs/references/roles/install.mdx`: overview; requirements (Linux systemd, x86_64/aarch64, Docker Compose v2, outbound HTTPS to GitHub or overridden URL, facts); role-variables table identical to the contract; examples in `<Tabs>`: quick start (install + backup roles in one play), remote S3/MinIO with vaulted credentials, pre-upgrade on-demand (`run_now: true`, `setup_systemd: false`); sections "Checking scheduled backups" (`systemctl list-timers infrahub-backup.timer`, `journalctl -u infrahub-backup.service`, `backup_infrahub_on_failure`), "Things to know" (Community Edition stops the app during backup → schedule in a maintenance window; `--s3-upload` removes the local archive unless `s3_keep_local`; S3 retention needs delete permission; redact is not exposed), "Restore" (manual, link `https://docs.infrahub.app/backup/restore`), "Air-gapped installs" (override `tool_url` + `tool_checksum`)
+- [X] T027 [P] Add to top of `CHANGELOG.rst` a new unreleased section following the file's existing RST style with a `New Roles` subsection: ``- ``backup`` - Install the infrahub-backup CLI and schedule local or S3 backups of an Infrahub instance with a systemd timer.``
+- [X] T028 Run `invoke generate-doc` and confirm `docs/docs/readme.mdx` lists `backup` under Roles; revert any unrelated generated churn only if it stems from nondeterministic ordering (report it otherwise)
+- [X] T029 Run `invoke format && invoke lint` (review any autoflake edits), `uv run ansible-lint`, `uv run mypy .` (no Python changes expected), `invoke tests-sanity` if Docker is available; `invoke galaxy-build` and confirm the tarball contains `roles/backup/`
+- [ ] T030 Execute quickstart.md end-to-end on a Linux systemd host with Infrahub if one is available; otherwise record in the implementation report that e2e was not executed and list the follow-ups (CI wiring for `run.sh`, dependency-bump automation for the tool version)
+
+## Dependencies
+
+- Phase 1 → Phase 2 → US1 → (US2, US3 in either order) → Polish.
+- US2 and US3 each only touch `vars/main.yml`/`tasks/main.yml` sections plus test additions; run sequentially to avoid edit conflicts in `tasks/main.yml`.
+- T008, T009 parallel; T013, T015, T016 parallel; T026, T027 parallel.
+
+## Parallel Example (US1)
+
+```text
+T008 test_validation.yml  |  T009 test_render.yml
+T013 env.j2  |  T015 service.j2  |  T016 timer.j2
+```
+
+## Implementation Strategy
+
+MVP = Phases 1–3 (scheduled local backups, validated, idempotent, secret-safe). Then US2 (S3 is mostly flag plumbing already in `create_args`), US3, docs.
+
+---
+
+## Iteration 2 (2026-09-30) — from [grill-decisions.md](grill-decisions.md)
+
+**Input**: grill-decisions.md (authoritative for this iteration), updated spec.md (FR-006/007/009/015/017/018/019, SC-007), contracts/role-interface.md (iteration 2), research.md R11–R15, plan.md "Iteration 2".
+**Rule**: existing tests must keep passing unless a test encodes an iteration-1 behaviour that a decision reverses — then update that test and say so.
+
+### Phase 7: Interface, tool defaults, encryption, platform split
+
+- [X] T031 Update `roles/backup/meta/argument_specs.yml` and `roles/backup/defaults/main.yml` to the iteration-2 contract: add `backup_infrahub_platform` (str, default `docker`, choices `[docker]`); make `docker_project`, `log_format`, `neo4j_metadata` default-less (keep choices; comment them out in defaults with the tool default noted); `retention_count` default `7` (description: `null` disables); add `backup_infrahub_encrypt` (bool, default false) and `backup_infrahub_encrypt_key` (str, no default); remove `backup_infrahub_on_failure` everywhere (argument spec, defaults, `templates/infrahub-backup.service.j2`)
+- [X] T032 Update `backup_infrahub_create_args` in `roles/backup/vars/main.yml`: emit `--project`, `--log-format`, `--neo4jmetadata` only when defined and non-empty; `--retention-count` only when not none; after `create`: `--encrypt-key PATH` when `encrypt_key` set, else `--encrypt` when `encrypt` true
+- [X] T033 Restructure tasks per research R12: move Docker-specific tasks to `roles/backup/tasks/docker/main.yml` (tool install, directories, env file, systemd include, disable path, flush handlers, run-now), `roles/backup/tasks/docker/setup_systemd.yml` (moved from `tasks/setup_systemd.yml`), and Docker-only checks (arch, tool checksum, env names/values) to `roles/backup/tasks/docker/validate.yml`; keep shared checks (retention, S3 bucket, credentials pair, `encrypt_key` absolute when set) in `roles/backup/tasks/validate.yml`; `roles/backup/tasks/main.yml` = shared validate → `ansible.builtin.include_tasks: "{{ backup_infrahub_platform }}/main.yml"` (docker validate runs first inside it). Validation must still complete before any host change
+- [X] T034 Update tests for Phase 7 in `tests/roles/backup/test_render.yml` and `tests/roles/backup/test_validation.yml`: default play's ExecStart token list equals exactly `[bin, '--backup-dir', <dir>, 'create', '--retention-count', '7']` plus the play's explicitly-set flags (adjust existing default-play vars accordingly — drop `on_failure`, keep the `%` prefix check in whichever play sets it); a play with `retention_count: null` has no `--retention-count`; encryption: `encrypt: true` → `--encrypt` after `create`, `encrypt_key: /etc/infrahub-backup/backup.pub` → `--encrypt-key /etc/infrahub-backup/backup.pub` and no bare `--encrypt`; validation case `platform: kubernetes` fails with the argument-spec error; remove `OnFailure` assertions. Run `bash tests/roles/backup/run.sh` until it passes
+
+### Phase 8: Exact value round-trip (decision 11, research R11)
+
+- [X] T035 Tests first: in `tests/roles/backup/test_run_now.yml` make the fake tool write `KEY=<sha256 of value>` for `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `INFRAHUB_DB_PASSWORD` (never the value); in `tests/roles/backup/run.sh` pass adversarial secrets via a `-e @$TMP/secrets.yml` file — secret `SENTINEL-SECRET-e3b0c442 a"b\c$HOME`x'y ` (leading and trailing space included) and env password ` $(id) \\$ "q" 'z' SENTINEL-SECRET-e3b0c442` — and compare the recorded hashes to hashes computed in run.sh; keep the sentinel-leak grep over all logs; add a `tests/roles/backup/envfile_roundtrip.sh` (or a run.sh section) that sources the rendered env file with `/bin/sh` (`set -a; . file`) and compares every value's sha256 to the expected; replace the iteration-1 "unsafe characters" validation cases with: a value containing a newline fails with `contains a newline`, naming the variable only
+- [X] T036 Update `roles/backup/templates/infrahub-backup.env.j2`: every entry `KEY="<value>"` with `\`, `"`, `$`, `` ` `` backslash-escaped (in that order: backslash first); sorted keys; header comment unchanged
+- [X] T037 Replace the run-now stdin wrapper in `roles/backup/tasks/docker/main.yml`: `argv: ['/bin/sh', '-c', 'set -a; . "$1"; set +a; shift; exec "$@"', 'infrahub-backup', backup_infrahub_env_file, backup_infrahub_bin_path] + backup_infrahub_create_args`; no `stdin:`; keep `become_user`, `no_log` when secrets set, and the separate fail task; make config dir and env file owned by `service_user` (when become) so the run-now user can read it; update code comments
+- [X] T038 Narrow the env-value validation in `roles/backup/tasks/docker/validate.yml` (and `backup_infrahub_env_unsafe_pattern` in `vars/main.yml`) to newline/CR only; message `contains a newline`; keep env-name validation. Run `bash tests/roles/backup/run.sh` until it passes
+- [X] T039 Verify the systemd side of R11: if `docker info` works, run a privileged systemd-enabled Linux container (e.g. `docker run -d --privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw jrei/systemd-debian:12`), copy a rendered env file in, and run `systemd-run --wait --pipe -p EnvironmentFile=/tmp/test.env sh -c 'printf %s "$KEY" | sha256sum'` per key; compare to expected hashes; record the command and output in the implementation report. Do not commit container artefacts. If Docker/systemd container is unavailable, record it as not verified
+
+### Phase 9: Docs and CI
+
+- [X] T040 Update `docs/docs/references/roles/backup.mdx` to iteration 2: variable table identical to the contract (add platform, encrypt, encrypt_key; defaults for project/log/metadata shown as "tool default"; retention_count 7); remove failure-hook content (keep `systemctl list-timers` / `journalctl` checks); sections: Community Edition offline vs Enterprise online backups; retention default, `null` to disable, union semantics, newest always kept, S3 `ListBucket`+`DeleteObject`; encryption modes with a warning that built-in-key archives can only be decrypted by OpsMill and that the operator places the public key on the host; NFS via `backup_directory`; set `docker_project` on multi-project hosts; non-root `service_user` needs `docker` group and owns backup/config dirs; "Not supported" section: redact (scrambles the LIVE database — manual flow: restore a normal backup to a throwaway instance, run `infrahub-backup create --redact --force` there), `--sleep`, Plakar, restore (link), Kubernetes (planned). Re-run the programmatic table-vs-argument-spec check from T026. Update `roles/backup/meta/argument_specs.yml` descriptions to match
+- [X] T041 Add a CI job per research R15 to `.github/workflows/workflow-ansible-linter-and-tests.yml` running `bash tests/roles/backup/run.sh` (setup uv the same way other jobs in the repo's workflows do; include it in any aggregate/required-status job); validate the YAML with `uv run yamllint -c .yamllint.yml .github/workflows/workflow-ansible-linter-and-tests.yml` and, if available, `actionlint`
+- [X] T042 Update `CHANGELOG.rst` Unreleased entry to mention encryption; run `invoke generate-doc` (revert unrelated nondeterministic churn); run `invoke format && invoke lint` (tracked files), `uv run ansible-lint`, `uv run mypy .`, `invoke tests-sanity` if Docker is available (move the untracked `.ansible/` aside for the run and restore it), `invoke galaxy-build` (inspect, delete tarball), `bash tests/roles/backup/run.sh`
+
+### Iteration 2 dependencies
+
+Phase 7 → Phase 8 → Phase 9. T035 before T036–T038 (TDD). T039 after T036. T040–T042 after Phase 8.
+
+---
+
+## Phase 10: End-to-end verification (replaces manual T030)
+
+**Test machine**: a privileged Debian 12 container running systemd as PID 1, with Docker Engine + Compose v2 inside (Docker-in-Docker). Built from `tests/e2e/backup/Dockerfile`, with the repo mounted read-only at `/src`. Ansible runs **inside** it with `-c local` (the same as a Linux VM target), so no new collection dependencies are needed. Infrahub **Community Edition** is installed by the collection's `install` role. Community backups are offline, so they exercise the stop/start path. MinIO runs as a container inside the same inner Docker, for S3.
+**Why a container**: no VM tooling on the dev machine (Docker Desktop only). A later CI job could reuse it (out of scope, since it needs approval).
+**Rule**: every scenario records its command, ISO 8601 timestamp and verbatim output in `opsmill-implement-report.md`. Tear down the environment at the end, keeping nothing but the evidence.
+
+- [ ] T043 Create the harness in `tests/e2e/backup/`:
+  - `Dockerfile`: debian:12 + systemd + dbus + docker-ce + docker-compose-plugin + python3 + python3-venv + curl + ca-certificates, with `/sbin/init` as entrypoint and `STOPSIGNAL SIGRTMIN+3`.
+  - `up.sh`: build the image, then run it detached with `--privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw --tmpfs /run --tmpfs /run/lock -v infrahub-e2e-docker:/var/lib/docker -v <repo>:/src:ro --name infrahub-backup-e2e`, and publish nothing. Wait for `systemctl is-system-running` (`running` or `degraded`) and `docker info` inside. Create a venv at `/opt/ansible` with `ansible-core` pinned to the repo's lock version.
+  - `down.sh`: remove the container and the `infrahub-e2e-docker` volume.
+  - `run.sh <playbook>`: `docker exec` runs ansible-playbook inside, with `ANSIBLE_ROLES_PATH=/src/roles`.
+  - All scripts use `set -euo pipefail` and pass shellcheck.
+- [ ] T044 Create `tests/e2e/backup/install.yml`: apply `opsmill.infrahub.install` (as roles path `install`) with defaults on localhost, and wait until `http://localhost:8000/api/schema/summary` (or `/api/config`) returns 200, with a timeout of up to 15 min.
+- [ ] T045 Create `tests/e2e/backup/scenarios.yml` plus the helper vars. Each scenario is a tagged play or block:
+  - **S1 install and run now**: `backup` role with defaults + `run_now: true`. Assert:
+    - exactly 1 `infrahub_backup_*.tar.gz` in `/var/backups/infrahub`;
+    - `systemctl is-enabled infrahub-backup.timer` is `enabled` and `is-active` is `active`;
+    - `systemctl show infrahub-backup.timer -p TimersCalendar` contains `02:00:00`;
+    - Infrahub API is healthy again after the backup (Community offline mode restarts it).
+  - **S2 idempotency**: re-apply with `run_now: false` → the play recap shows `changed=0`.
+  - **S3 scheduled path**: `systemctl start infrahub-backup.service` exits 0 → a second archive exists.
+  - **S4 retention**: set `retention_count: 2`, trigger the service twice more → exactly 2 archives remain.
+  - **S5 schedule change**: `schedule: "*-*-* 03:30:00"` → `TimersCalendar` shows `03:30:00` and the play reports changed.
+  - **S6 S3 with adversarial secret**: start MinIO in the inner Docker with root password `Sec$ret"q\\z 'x` (secret includes `$`, `"`, `\`, `'` and a space), create a bucket, then apply with `s3_upload: true`, `s3_bucket`, `s3_endpoint: http://127.0.0.1:9000` (or the MinIO container IP), `s3_region: us-east-1`, and credentials. Trigger the **systemd** service → the object exists in the bucket (list via `mc` or `aws` CLI in a container). This proves systemd delivered the exact secret. Also run `run_now: true` once → a second object (on-demand path).
+  - **S7 encryption**: `infrahub-backup keygen -o /etc/infrahub-backup/backup.key` → `encrypt_key: /etc/infrahub-backup/backup.key.pub`. Run now → the newest archive ends with `.enc`.
+  - **S8 run-now failure surfaces**: stop the Infrahub database container, then `run_now: true` → the play fails and the message contains the tool's error text. Restart the database afterwards.
+  - **S9 disable**: `setup_systemd: false` → the timer is `inactive` and `disabled`, and unit files still exist.
+- [ ] T046 Execute: run `up.sh`, `run.sh install.yml`, then each scenario in order. Record the evidence per scenario, then run `down.sh`. If a scenario fails because of a role bug, fix the role (with a unit/render test if possible), re-run that scenario plus S2, and record both runs. If it fails because of the harness or the environment, fix the harness. If Infrahub cannot be brought up (image pull or resources), record it as blocked, with the exact error.
+- [ ] T047 Update `quickstart.md` with the harness usage, update `opsmill-implement-report.md` with a Phase 10 section (scenario table: id | command | timestamp | verbatim result | pass/fail), and tick T030 if S1–S9 all pass.
