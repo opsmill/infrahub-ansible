@@ -85,6 +85,14 @@ jobs:
             *) exit 0 ;;
           esac
 
+          # Only a stable X.Y.Z release merges without a review. Alpha, beta,
+          # release candidate and development versions stay open for a person.
+          VERSION="${HEAD_REF#update-infrahub-}"
+          if ! [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::notice::Infrahub ${VERSION} is not a stable release; leaving pull request #${PR_NUMBER} for review."
+            exit 0
+          fi
+
           ALLOWED="pyproject.toml uv.lock ${INFRAHUB_IMAGE_FILES}"
           FILES=$(gh api "repos/${GH_REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename')
           if [ -z "${FILES}" ]; then
@@ -113,6 +121,11 @@ jobs:
           HEAD_PIN=$(pin "${RUN_SHA}")
           if [ -z "${HEAD_PIN}" ] || [ "${BASE_PIN}" = "${HEAD_PIN}" ]; then
             echo "::notice::Pull request #${PR_NUMBER} does not move the infrahub-testcontainers pin."
+            exit 0
+          fi
+          # The branch name can be wrong: also refuse a pre-release in the pin itself.
+          if grep -qiE '[0-9][._-]?(a|b|c|rc|alpha|beta|pre|preview|dev)[0-9]*' <<< "${HEAD_PIN}"; then
+            echo "::notice::The infrahub-testcontainers pin is a pre-release (${HEAD_PIN}); leaving pull request #${PR_NUMBER} for review."
             exit 0
           fi
 
