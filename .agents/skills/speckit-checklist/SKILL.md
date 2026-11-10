@@ -123,7 +123,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Audience: Reviewer (PR) if code-related; Author otherwise
    - Focus: Top 2 relevance clusters
 
-   Output the questions (label Q1/Q2/Q3). After answers: if ≥2 scenario classes (Alternate / Exception / Recovery / Non-Functional domain) remain unclear, you MAY ask up to TWO more targeted follow‑ups (Q4/Q5) with a one-line justification each (e.g., "Unresolved recovery path risk"). Do not exceed five total questions. Skip escalation if user explicitly declines more.
+   Output the questions (label Q1/Q2/Q3). After answers: you MAY ask up to TWO more targeted follow‑ups (Q4/Q5) with a one-line justification each (e.g., "Unresolved recovery path risk") when ≥2 of the following scenario classes remain unclear — a class is "unclear" if: (1) the user's answers do not explicitly mention or address it (e.g., no mention of alternate flows, exceptions, recovery steps, or NFRs), (2) the spec contains state mutations or failure modes but the user's answers do not describe recovery/rollback behaviors, or (3) non-functional requirements (performance, availability, security) are present in the spec but the user's answers lack depth/coverage. Do not exceed five total questions. Skip escalation if user explicitly declines more.
 
 4. **Understand user request**: Combine `$ARGUMENTS` + clarifying answers:
    - Derive checklist theme (e.g., security, review, deploy, ux)
