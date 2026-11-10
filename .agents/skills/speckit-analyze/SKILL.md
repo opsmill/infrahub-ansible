@@ -169,6 +169,7 @@ Use this heuristic to prioritize findings:
 
 Output a Markdown report (no file writes) with the following structure:
 
+```markdown
 ## Specification Analysis Report
 
 | ID | Category | Severity | Location(s) | Summary | Recommendation |
@@ -194,6 +195,7 @@ Output a Markdown report (no file writes) with the following structure:
 - Ambiguity Count
 - Duplication Count
 - Critical Issues Count
+```
 
 ### 7. Provide Next Actions
 
