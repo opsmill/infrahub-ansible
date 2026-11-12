@@ -1,0 +1,1 @@
+Fixed error handling with infrahub-sdk 1.24 and later, where a missing schema or branch was reported as a generic GraphQL error because `SchemaNotFoundError` and `BranchNotFoundError` now subclass `GraphQLError`.
