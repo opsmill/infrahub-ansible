@@ -72,4 +72,5 @@ build_ignore:
   - "pyproject.toml"
   - ".claude"
   - ".specify"
+  - ".codex"
   - "dev"
