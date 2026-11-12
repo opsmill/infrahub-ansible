@@ -1,0 +1,21 @@
+plugins/module_utils/exception.py
+  s_c01d1c75c75f0c::t_3b39c5c2df7009 73-88
+changelog/+sdk-exception-order.fixed.md
+  s_c01d1c75c75f0c::t_46e5ba338f887f 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c35d4db43c9f42745a4c37bb3f7217f37860c47f",
+  "prompts": {},
+  "sessions": {
+    "s_c01d1c75c75f0c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e02aa78-8c8d-49a8-a20e-908f664c2f88",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Benoit Kohler <Kohler.benoit@bearchitek.com>"
+    }
+  }
+}
