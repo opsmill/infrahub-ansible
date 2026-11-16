@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "presets": {
+    "critique-opsmill": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:0dfb76ba3f29dc941a01ed43cda981777fb1463466a9ebaedc796fd85962ffff",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.critique.run"
+        ]
+      },
+      "registered_skills": {},
+      "installed_at": "2026-11-10T13:36:27.933507+00:00"
+    },
+    "jira-branch": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:c06329b9c0f45605abdf8513eaf04b6cdf0955e5c9a24b830c0d5da3a335457f",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.git.feature"
+        ]
+      },
+      "registered_skills": {},
+      "installed_at": "2026-11-10T13:36:45.856290+00:00"
+    }
+  }
+}

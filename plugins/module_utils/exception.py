@@ -70,6 +70,22 @@ def handle_infrahub_exceptions(display: Display | None) -> Callable[[Callable], 
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return func(*args, **kwargs)
+            # SchemaNotFoundError and BranchNotFoundError subclass GraphQLError in
+            # infrahub-sdk >= 1.24, so they must be caught before GraphQLError.
+            except SchemaNotFoundError as exc:
+                _handle_exc(
+                    display=display,
+                    exc=exc,
+                    msg_prefix=f"An error occurred while looking for a Schema in Infrahub. {args}",
+                    kwargs=kwargs,
+                )
+            except BranchNotFoundError as exc:
+                _handle_exc(
+                    display=display,
+                    exc=exc,
+                    msg_prefix=f"An error occurred while looking for a Branch in Infrahub. {args}",
+                    kwargs=kwargs,
+                )
             except GraphQLError as exc:
                 msg1 = f"A GraphQL error occurred while executing Infrahub operation. {args}"
                 msg2 = f"Parameters: {kwargs}"
@@ -89,20 +105,6 @@ def handle_infrahub_exceptions(display: Display | None) -> Callable[[Callable], 
                     display.verbose(msg2, caplevel=2)
                 else:
                     raise Exception(exc)
-            except SchemaNotFoundError as exc:
-                _handle_exc(
-                    display=display,
-                    exc=exc,
-                    msg_prefix=f"An error occurred while looking for a Schema in Infrahub. {args}",
-                    kwargs=kwargs,
-                )
-            except BranchNotFoundError as exc:
-                _handle_exc(
-                    display=display,
-                    exc=exc,
-                    msg_prefix=f"An error occurred while looking for a Branch in Infrahub. {args}",
-                    kwargs=kwargs,
-                )
             except (ServerNotReachableError, ServerNotResponsiveError) as exc:
                 _handle_exc(
                     display=display,
