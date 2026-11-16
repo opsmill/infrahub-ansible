@@ -27,7 +27,7 @@ dev = [
     "invoke>=3.0.3,<4",
     "mypy>=1.20.1,<3",
     "types-PyYAML>=6.0.12.20260408",
-    "ruff==0.16.4",
+    "ruff==0.17.5",
     "mock>=5.2.0,<6",
     "pytest>=9.0.3,<10",
     "pytest-mock",
@@ -45,7 +45,7 @@ dev = [
 integration = [
     "pytest>=9.0.3,<10",
     "pytest-mock",
-    "infrahub-testcontainers==1.11.11",
+    "infrahub-testcontainers==1.12.1",
 ]
 
 [tool.uv]
