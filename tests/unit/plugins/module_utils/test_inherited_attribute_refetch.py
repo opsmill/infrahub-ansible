@@ -50,3 +50,19 @@ def test_inherited_attrs_refetch_node_once(mocker):
     assert result == {"a": "va", "b": "vb"}
     # ...via exactly one refetch, not one per empty attribute (was 2).
     assert client.get.call_count == 1
+
+
+def test_refetched_node_without_the_attribute_resolves_to_none(mocker):
+    """A refetched node that lacks the attribute gives None, not an AttributeError."""
+    client = mocker.MagicMock()
+    # The refetched node carries "a" but not "b" (e.g. a peer on a generic schema).
+    client.get.return_value = SimpleNamespace(a=FakeAttr("va"))
+
+    wrapper = mocker.MagicMock()
+    wrapper.client = client
+    processor = iu.InfrahubNodesProcessor(client=wrapper)
+
+    node = FakeNode(client=client, empty_attrs=("a", "b"))
+    result = processor.resolve_node_mapping(node=node, attrs=["a", "b"], schemas={}, include_id=False)
+
+    assert result == {"a": "va", "b": None}

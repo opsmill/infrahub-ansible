@@ -23,6 +23,9 @@ def _module(mocker, *, state, existing_branch):
     mod.check_mode = False
     mod.state = state
     mod.data = {"name": BRANCH, "description": "d", "sync_with_git": False}
+    # __new__ skips InfrahubModule.__init__, which is where these are set.
+    mod.result = {"changed": False}
+    mod.branch = None
     mod.wrapper = mocker.Mock()
     # _get_branch -> wrapper.fetch_branch(name=...)
     mod.wrapper.fetch_branch.return_value = existing_branch

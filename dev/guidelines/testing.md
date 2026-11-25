@@ -215,7 +215,8 @@ Tests run on every PR to `develop`:
 1. **Linter job** — Ruff check + format, **mypy**, yamllint, rumdl, Vale
 2. **Ansible linter and tests job** — ansible-lint, sanity tests, unit tests
 
-`invoke lint` covers ruff, yamllint, and rumdl — but **not mypy**. Run `uv run mypy .` separately, or
-the first sign of a type error will be a red CI job.
+`invoke lint` covers ruff, mypy, yamllint, and rumdl. It does not run Vale
+(`validate-documentation-style`) or the Docusaurus build (`documentation-lint`), which the linter
+job also runs. It stops at the first step that fails, so a ruff failure means mypy did not run.
 
 The CI workflow is in `.github/workflows/trigger-pr-develop.yml`.

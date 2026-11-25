@@ -5,8 +5,6 @@ from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type
 
-from typing import Any
-
 from ansible_collections.opsmill.infrahub.plugins.module_utils.infrahub_utils import InfrahubModule
 
 
@@ -22,8 +20,6 @@ class BranchModule(InfrahubModule):
         branch_name = data.get("name")
         if not branch_name:
             self._handle_errors(msg="Missing required parameter: 'name'")
-
-        self.result: dict[str, Any] = {"changed": False}
 
         self.branch = self._get_branch(name=branch_name)
         if self.state == "present":
