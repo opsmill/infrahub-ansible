@@ -27,7 +27,7 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 ```bash
 invoke lint            # autoflake (rewrites files!) + ruff + yamllint + rumdl -- NOT mypy, see below
 invoke format          # Auto-fix (ruff)
-invoke tests-sanity    # Ansible compliance — full collection scope (plugins/ + tests/), one ansible-core version
+invoke tests-sanity    # Ansible compliance — plugins/ tests/ tasks/ conftest.py meta/ roles/, one ansible-core version
 invoke tests-unit      # Unit tests
 invoke tests-integration
 invoke tests-all
@@ -48,7 +48,7 @@ This works only from a checkout rooted at `ansible_collections/opsmill/infrahub`
 
 | When you change… | Run |
 |------------------|-----|
-| any plugin file (`plugins/**/*.py`) or test file (`tests/**/*.py`) | `invoke format` → `invoke lint` → `invoke tests-sanity` |
+| any Python file under `plugins/`, `tests/` or `tasks/`, or `conftest.py` | `invoke format` → `invoke lint` → `invoke tests-sanity` |
 | module logic or `module_utils` | also `invoke tests-unit` |
 | module docstrings (DOCUMENTATION / EXAMPLES / RETURN) | `invoke generate-doc` |
 | any Python file | also `uv run mypy .` -- `invoke lint` does **not** run it, CI does |
