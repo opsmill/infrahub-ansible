@@ -130,7 +130,8 @@ Use modern type hints (`str | None` not `Optional[str]`). The `from __future__ i
 
 ### mypy
 
-`invoke lint` runs mypy, and so does CI's `python-lint` job. To run it on its own:
+`invoke lint` runs mypy with the same command as CI's `python-lint` job. `invoke lint` stops at the first
+step that fails, so mypy does not run when ruff fails. To run mypy on its own:
 
 ```bash
 uv run mypy .

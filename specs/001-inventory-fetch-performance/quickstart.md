@@ -10,7 +10,7 @@ invoke tests-sanity                   # ansible-test sanity, Docker
 invoke tests-unit                     # 106 unit tests
 ```
 
-`invoke lint` runs mypy as of #378; it used to not, and running it separately was a step this feature
+`invoke lint` runs mypy as of #410; it used to not, and running it separately was a step this feature
 needed. A failing `ruff check` still masks the steps after it, so read the whole output.
 
 ## Verify the round-trip budgets

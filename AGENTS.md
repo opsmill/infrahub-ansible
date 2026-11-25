@@ -46,7 +46,7 @@ All tests run in Docker. Run checks as you go, not just at the end:
 
 Full verification before a PR: `invoke format && invoke lint && invoke tests-sanity && invoke tests-unit && invoke generate-doc`.
 
-`invoke lint` runs mypy, so it now covers everything CI's `python-lint` job checks. Nothing under `plugins/` is excluded from the typecheck.
+`invoke lint` runs mypy the same way CI's `python-lint` job does (`uv run mypy .`). Nothing under `plugins/` is excluded from the typecheck. `invoke lint` stops at the first step that fails, so when ruff fails, mypy does not run: a failing `invoke lint` does not tell you whether the types check. Run `uv run mypy .` on its own to find out.
 
 One limit to know: `ansible_collections.opsmill.infrahub.*` is not importable outside an installed collection tree, and `ignore_missing_imports` is on, so anything a plugin imports from a sibling `module_utils` resolves to `Any`. Types are checked within a file and against `infrahub-sdk`, but not across the collection's own modules.
 
