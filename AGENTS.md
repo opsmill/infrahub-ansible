@@ -44,7 +44,7 @@ All tests run in Docker. Run checks as you go, not just at the end:
 uv run ansible-test sanity --test pylint --requirements --python 3.12
 ```
 
-This works only from a checkout rooted at `ansible_collections/opsmill/infrahub` (maintainer setup via `conftest.py` symlink — a fresh `git clone` gives `infrahub-ansible/` and the command will fail). Use it as a quick gate before committing; `invoke tests-sanity` remains the full Docker gate.
+This works only when the checkout directory itself sits at `ansible_collections/opsmill/infrahub`, because `ansible-test` requires that collection layout. A plain `git clone` creates `infrahub-ansible/`, so clone into `<dir>/ansible_collections/opsmill/infrahub` instead. The root `conftest.py` does not help here: its symlink under `.pytest_collections/` is created only when pytest runs, and only for unit-test imports. The Docker gate meets the requirement by installing the built collection with `ansible-galaxy collection install`. `--requirements` runs pip to install the sanity test dependencies into the environment of the `--python` interpreter; under `uv run` that is the project `.venv` when it uses the same Python version. Use it as a quick gate before committing; `invoke tests-sanity` remains the full Docker gate.
 
 | When you change… | Run |
 |------------------|-----|
