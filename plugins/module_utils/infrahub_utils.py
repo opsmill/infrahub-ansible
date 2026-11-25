@@ -1981,9 +1981,9 @@ if HAS_INFRAHUBCLIENT:
                 tuple(object, diff): tuple of the branch created in Infrahub and the Ansible diff.
             """
             processor = InfrahubNodesProcessor(client=self.wrapper)
-            branch_name = data.get("name")
+            branch_name = data.get("name") or ""
             branch_description = data.get("description") or ""
-            sync_with_git: Any = data.get("sync_with_git")
+            sync_with_git = bool(data.get("sync_with_git"))
             try:
                 branch = processor.create_branch(
                     name=branch_name, description=branch_description, sync_with_git=sync_with_git
@@ -2251,6 +2251,8 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 dict: Ansible diff.
             """
+            if self.infrahub_node is None:
+                self._handle_errors(msg="No node to delete")
             if not self.check_mode:
                 try:
                     processor = InfrahubNodesProcessor(client=self.wrapper)
@@ -2291,7 +2293,7 @@ if HAS_INFRAHUBCLIENT:
             if not self.branch:
                 self.result["msg"] = f"InfrahubBranch {data.get('name')} already absent"
             else:
-                branch_name: Any = data.get("name")
+                branch_name = data.get("name") or ""
                 diff = self._delete_branch(name=branch_name)
                 self.result["msg"] = f"InfrahubBranch {branch_name} deleted"
                 self.result["changed"] = True
