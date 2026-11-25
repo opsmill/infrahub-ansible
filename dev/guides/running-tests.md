@@ -27,7 +27,8 @@ invoke tests-sanity
   → docker compose up --build --force-recreate --quiet-pull --exit-code-from sanity sanity
     → Dockerfile (base stage → sanity stage)
       → ansible-galaxy collection build + install
-      → ansible-test sanity --skip-test pep8 --python 3.12 plugins/
+      → ansible-test sanity --requirements --skip-test pep8 --python 3.12 \
+          plugins/ tests/ tasks/ conftest.py meta/ roles/
 ```
 
 ### Docker Compose Services

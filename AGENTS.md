@@ -27,7 +27,7 @@ This file is the portable router: repo-wide facts every agent needs up front. De
 ```bash
 invoke lint            # autoflake (rewrites files!) + ruff + yamllint + rumdl -- NOT mypy, see below
 invoke format          # Auto-fix (ruff)
-invoke tests-sanity    # Ansible compliance (boilerplate, docs, imports)
+invoke tests-sanity    # Ansible compliance — plugins/ tests/ tasks/ conftest.py meta/ roles/, one ansible-core version
 invoke tests-unit      # Unit tests
 invoke tests-integration
 invoke tests-all
@@ -38,9 +38,17 @@ invoke galaxy-build    # Build collection tarball
 
 All tests run in Docker. Run checks as you go, not just at the end:
 
+**Version gap:** `invoke tests-sanity` uses the ansible-core version pinned in `uv.lock`. CI runs a matrix over ansible-core 2.19–milestone. For a faster (~90 s) pylint check that matches CI rules without Docker, run directly:
+
+```bash
+uv run ansible-test sanity --test pylint --requirements --python 3.12
+```
+
+This works only when the checkout directory itself sits at `ansible_collections/opsmill/infrahub`, because `ansible-test` requires that collection layout. A plain `git clone` creates `infrahub-ansible/`, so clone into `<dir>/ansible_collections/opsmill/infrahub` instead. The root `conftest.py` does not help here: its symlink under `.pytest_collections/` is created only when pytest runs, and only for unit-test imports. The Docker gate meets the requirement by installing the built collection with `ansible-galaxy collection install`. `--requirements` runs pip to install the sanity test dependencies into the environment of the `--python` interpreter; under `uv run` that is the project `.venv` when it uses the same Python version. Use it as a quick gate before committing; `invoke tests-sanity` remains the full Docker gate.
+
 | When you change… | Run |
 |------------------|-----|
-| any plugin file (`plugins/**/*.py`) | `invoke format` → `invoke lint` → `invoke tests-sanity` |
+| any Python file under `plugins/`, `tests/` or `tasks/`, or `conftest.py` | `invoke format` → `invoke lint` → `invoke tests-sanity` |
 | module logic or `module_utils` | also `invoke tests-unit` |
 | module docstrings (DOCUMENTATION / EXAMPLES / RETURN) | `invoke generate-doc` |
 | any Python file | also `uv run mypy .` -- `invoke lint` does **not** run it, CI does |

@@ -13,10 +13,11 @@ the test mechanics and the full test matrix, see
 invoke tests-sanity
 ```
 
-This builds the collection and runs `ansible-test sanity --skip-test pep8
---python <ver> plugins/` inside the `sanity` Docker service (`pep8` is skipped
-because Ruff owns style). The container exits non-zero on the first failing
-test, and the failing test names and file/line references print to stdout.
+This builds the collection and runs `ansible-test sanity --requirements
+--skip-test pep8 --python <ver> plugins/ tests/ tasks/ conftest.py meta/ roles/`
+inside the `sanity` Docker service (`pep8` is skipped because Ruff owns style).
+`docs/` and root-level files are not scanned locally; only CI checks them. The container exits non-zero on the first
+failing test, and the failing test names and file/line references print to stdout.
 
 ## The Common Failures
 

@@ -62,12 +62,17 @@ RUN ansible-galaxy collection install ./dist/opsmill-infrahub*.tar.gz -p ${ANSIB
 # Switch to the collection path for tests
 WORKDIR ${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/opsmill/infrahub
 
-# Run sanity tests
+# Run sanity tests against every tracked directory that ships in the collection
+# tarball and holds code or metadata CI checks: plugins/, tests/, tasks/,
+# conftest.py, meta/ and roles/. Paths are named explicitly because the image has
+# no .git, so a bare run would also scan untracked files such as docs/node_modules.
+# Not covered here, left to CI: docs/ and root-level files.
+# pep8 is skipped here (Ruff owns style) but runs in every CI matrix cell.
 RUN ansible-test sanity $ANSIBLE_SANITY_ARGS \
     --requirements \
     --skip-test pep8 \
     --python ${PYTHON_VERSION} \
-    plugins/
+    plugins/ tests/ tasks/ conftest.py meta/ roles/
 
 ############
 # Unit Tests
