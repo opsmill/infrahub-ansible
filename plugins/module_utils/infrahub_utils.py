@@ -447,7 +447,7 @@ if HAS_INFRAHUBCLIENT:
             except SchemaNotFoundError:
                 return None
 
-        def fetch_schemas(self, branch: str | None = None) -> MutableMapping[str, MainSchemaTypesAPI] | None:
+        def fetch_schemas(self, branch: str | None = None) -> MutableMapping[str, MainSchemaTypesAPI]:
             """
             Retrieves schema attributes for the given kind.
 
@@ -2360,7 +2360,7 @@ if HAS_INFRAHUBCLIENT:
 
 if not HAS_INFRAHUBCLIENT:
 
-    def get_node_identifier(_node: Any) -> str:  # type: ignore[misc]
+    def get_node_identifier(node: InfrahubNodeSync) -> str:  # noqa: ARG001
         return "unknown"
 
     class InfrahubclientWrapper:  # type: ignore[no-redef]
