@@ -192,6 +192,9 @@ if HAS_INFRAHUBCLIENT:
                 filters=filters,
                 branch=branch,
             )
+            if node is None:
+                # An empty result is what the artifact_fetch action reports as "unable to find".
+                return {}
             resp = self.client._get(url=f"{self.client.address}/api/storage/object/{node.storage_id.value}")  # type: ignore[union-attr]
             if node.content_type.value == "application/json":  # type: ignore[union-attr]
                 result["json"] = resp.json()
@@ -313,7 +316,7 @@ if HAS_INFRAHUBCLIENT:
             branch: str | None = None,
             prefetch_relationships: bool = True,
             raise_when_missing: bool = False,
-        ) -> InfrahubNodeSync:
+        ) -> InfrahubNodeSync | None:
             """
             Retrieve a single node of a given kind based on filters
 
@@ -329,12 +332,13 @@ if HAS_INFRAHUBCLIENT:
                 raise_when_missing (bool, optional): Whether we want to raise an Exception in case of missing object. Defaults to False.
 
             Returns:
-                InfrahubNodeSync: Single Infrahub Node
+                InfrahubNodeSync | None: Single Infrahub Node, or None when it is missing and
+                    raise_when_missing is False
             """
             if not filters and not hfid and not id:
                 raise Exception("At least one filter must be provided.")
 
-            node: InfrahubNodeSync
+            node: InfrahubNodeSync | None
             if filters:
                 node = self.client.get(  # type: ignore[call-overload,misc]
                     kind=kind,
@@ -627,6 +631,9 @@ if HAS_INFRAHUBCLIENT:
                 branch=branch,
                 raise_when_missing=True,
             )
+            if node is None:
+                # raise_when_missing=True makes the SDK raise first; this keeps the type honest.
+                raise Exception(f"{kind} not found (id={node_id}, hfid={hfid})")
             content = cast("bytes", node.download_file())
             return node, content
 
