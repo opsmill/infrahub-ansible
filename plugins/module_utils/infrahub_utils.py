@@ -775,10 +775,12 @@ if HAS_INFRAHUBCLIENT:
                 return [peer.id for peer in node_attr.peers if peer.id]
 
             for peer in node_attr.peers:
-                related_node: Any = store.get(key=peer.id, raise_when_missing=False)  # type: ignore[arg-type]
+                related_node: InfrahubNodeSync | None = store.get(key=peer.id, raise_when_missing=False)  # type: ignore[arg-type]
                 if not related_node:
                     peer.fetch()
-                    related_node = peer.peer
+                    # The SDK types RelationshipManagerSync.peers as the sync/async union;
+                    # a synchronous client only ever holds synchronous peers.
+                    related_node = cast("InfrahubNodeSync", peer.peer)
 
                 if not related_node or not hasattr(related_node._schema, "attribute_names"):
                     continue
