@@ -745,7 +745,9 @@ if HAS_INFRAHUBCLIENT:
 
             if "node" not in refetch_cache:
                 refetch_cache["node"] = node._client.get(id=node.id, kind=node._schema.kind)
-            tmp_attr: Any = getattr(refetch_cache["node"], root_attr, None)
+            tmp_attr = getattr(refetch_cache["node"], root_attr, None)
+            if tmp_attr is None:
+                return None
             return str(tmp_attr.value) if tmp_attr.value else tmp_attr.value
 
         def _resolve_many_relationship(
