@@ -1823,12 +1823,12 @@ if HAS_INFRAHUBCLIENT:
 
         """
 
-        result: dict[str, Any]
-        infrahub_node: InfrahubNodeSync | None
-        branch: BranchData | str | None
-
         def __init__(self, module: AnsibleModule, client: InfrahubclientWrapper | None = None) -> None:
             self.module = module
+            self.result: dict[str, Any] = {"changed": False}
+            # Set by the subclass that manages nodes (node.py) or branches (branch.py).
+            self.infrahub_node: InfrahubNodeSync | None = None
+            self.branch: BranchData | str | None = None
             self.state = self.module.params["state"]
             self.check_mode = self.module.check_mode
 

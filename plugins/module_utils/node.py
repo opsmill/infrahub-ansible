@@ -34,8 +34,6 @@ class NodeModule(InfrahubModule):
         if file_path and not Path(file_path).exists():
             self._handle_errors(msg=f"file_path '{file_path}' does not exist on the controller")
 
-        self.result: dict[str, Any] = {"changed": False}
-
         schema = self.wrapper.fetch_single_schema(kind=kind, raise_when_missing=False)
         if not schema:
             self._handle_errors(msg=f"Non-existing kind '{kind}'")
