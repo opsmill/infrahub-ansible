@@ -1906,9 +1906,11 @@ if HAS_INFRAHUBCLIENT:
             Returns:
                 list[str]: A list of filter strings. If some fields are missing, returning None
             """
+            if not schema.human_friendly_id:
+                return None
             hfid_values = []
             # Iterate over each composite key defined in the schema.
-            for composite in schema.human_friendly_id:  # type: ignore[union-attr]
+            for composite in schema.human_friendly_id:
                 # Split the composite key into individual field names.
                 element = composite.split("__")[0]
                 value = data.get(element)
